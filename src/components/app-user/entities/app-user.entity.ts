@@ -11,7 +11,6 @@ class AppUser extends EntityHelper {
   @Column({ nullable: false })
   public username: string;
 
-  // @Exclude()
   @Column({ nullable: false })
   public password: string;
 
@@ -81,6 +80,8 @@ class AppUser extends EntityHelper {
   @Column({ default: null })
   public hold_value: number;
 
+  @Column({default: false})
+  public is_freeze: boolean
 
   @Column({ default: null })
   public online_service: string;

@@ -12,22 +12,28 @@ export class Withdraw extends EntityHelper {
     @Column()
     amount: number
 
-    @Column()
-    deposit_account_id: number
-
-    @Column()
+    @Column({default: true})
     audit: boolean
 
-    @Column()
+    @Column({nullable: true})
+    before: string
+
+    @Column({default: false})
+    isApproved: boolean
+
+    @Column({nullable: true})
+    after: string
+
+    @Column({default: null})
     comments: string
 
-    @Column()
+    @Column({default: null})
     remark: string
 
-    @Column()
+    @Column({default: null})
     reviewed_by: string
 
-    @Column()
+    @Column({default: null})
     reviewed_at: Date
 
     @Column()
