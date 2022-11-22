@@ -9,7 +9,7 @@ export class WithdrawController {
 
   @Post()
   create(@Body() createWithdrawDto: CreateWithdrawDto) {
-    return this.withdrawService.create(createWithdrawDto);
+    return this.withdrawService.userPerformWithdraw(createWithdrawDto);
   }
 
   @Get()

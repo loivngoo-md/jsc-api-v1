@@ -4,15 +4,30 @@ import { UpdateWithdrawDto } from './dto/update-withdraw.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Withdraw } from './entities/withdraw.entity';
+import { AppUserService } from '../app-user/app-user.service';
 
 @Injectable()
 export class WithdrawService {
   constructor(
     @InjectRepository(Withdraw)
-    private readonly _withdrawRepo: Repository<Withdraw>
+    private readonly _withdrawRepo: Repository<Withdraw>,
+    private readonly _appUserService: AppUserService
   ) { }
 
-  async create(dto: CreateWithdrawDto) {
+  async userPerformWithdraw(dto: any) {
+
+    const { username, amount } = dto
+    const user = await this._appUserService.findByUsername(username)
+    let { balance } = user
+
+    const compare = parseFloat(balance) - parseFloat(amount)
+
+    if (compare < 0) {
+      throw new HttpException('Do not enough money to withdraw.', HttpStatus.BAD_REQUEST)
+    }
+
+    await this._appUserService.update(user.id, { balance: compare.toString() })
+
     const response = this._withdrawRepo.create(dto);
     await this._withdrawRepo.save(response);
     return response;
