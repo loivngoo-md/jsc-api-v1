@@ -7,4 +7,5 @@ export class EntityHelper extends BaseEntity {
   setEntityName() {
     this.__entity = this.constructor.name;
   }
+
 }

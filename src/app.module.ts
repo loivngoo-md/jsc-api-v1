@@ -12,9 +12,12 @@ import { WithdrawModule } from './components/withdraw/withdraw.module';
 import { DepositAccountModule } from './components/deposit-account/deposit-account.module';
 import { CashFlowModule } from './components/cash-flow/cash-flow.module';
 import { TransactionModule } from './components/transaction/transaction.module';
+import { StockModule } from './components/stock/stock.module';
+import {HttpModule} from '@nestjs/axios'
 
 @Module({
   imports: [
+    HttpModule,
     ConfigModule.forRoot({
       validationSchema: Joi.object({
         POSTGRES_HOST: Joi.string().required(),
@@ -38,6 +41,7 @@ import { TransactionModule } from './components/transaction/transaction.module';
     DepositAccountModule,
     CashFlowModule,
     TransactionModule,
+    StockModule,
 
   ],
   controllers: [],
