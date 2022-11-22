@@ -1,1 +1,3 @@
-export class CreateDepositAccountDto {}
+export class CreateDepositAccountDto {
+    created_at? : Date
+}

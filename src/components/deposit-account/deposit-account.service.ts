@@ -14,6 +14,7 @@ export class DepositAccountService {
   ) { }
 
   async create(dto: CreateDepositAccountDto) {
+    dto.created_at = new Date()
     const response = await this._depositAccountRepo.create(dto);
     await this._depositAccountRepo.save(response);
     return response;
