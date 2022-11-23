@@ -9,24 +9,23 @@ class Deposit extends EntityHelper {
     @Column()
     username: string
 
-    @Column()
-    amount: number
+    @Column({ nullable: false })
+    amount: string
 
-    @Column()
+    @Column({ nullable: false })
     deposit_account_id: number
 
-    @Column()
-    audit: boolean
+    @Column({ default: false })
+    is_reviewed: boolean
 
-    @Column()
-    isVirtualDeposit: boolean
+    @Column({ default: false })
+    is_virtual_deposit: boolean
 
-    @Column()
+    @Column({ default: null })
     comments: string
 
-    @Column()
+    @Column({ default: null })
     remark: string
-
 
     @Column()
     created_at: Date;

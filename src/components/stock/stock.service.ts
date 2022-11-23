@@ -25,7 +25,7 @@ export class StockService {
     ps: number,
     where?: string
   }) {
-    const ROUT = 'CNST'
+    const ROUT = 'GBFSB'
     const { page, ps, where } = query
     const APP_KEY = `AppCode ${process.env.APP_CODE_3RD}`
     const uri = process.env.HOST_STOCK_3RD

@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { AppUserService } from '../app-user/app-user.service';
 import { CreateDepositDto } from './dto/create-deposit.dto';
 import { UpdateDepositDto } from './dto/update-deposit.dto';
 import Deposit from './entities/deposit.entity';
@@ -9,11 +10,15 @@ import Deposit from './entities/deposit.entity';
 export class DepositService {
   constructor(
     @InjectRepository(Deposit)
-    private readonly _depositRepo: Repository<Deposit>
+    private readonly _depositRepo: Repository<Deposit>,
+    private readonly _appUserRepo: AppUserService
   ) { }
 
   async create(dto: CreateDepositDto) {
     const response = this._depositRepo.create(dto);
+    const { balance } = await this._appUserRepo.findByUsername(dto['username'])
+    const newBalance = +balance + Number(dto['amount'])
+    await this._appUserRepo.update(dto['id'], { balance: newBalance.toString() })
     await this._depositRepo.save(response);
     return response;
   }

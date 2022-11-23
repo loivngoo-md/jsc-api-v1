@@ -5,7 +5,6 @@ import { UpdateWithdrawDto } from './dto/update-withdraw.dto';
 import { AppAuthGuard } from '../auth/guards/appAuth.guard';
 import { CmsAuthGuard } from '../auth/guards/cmsAuth.guard';
 import { GetCurrentAppUser } from '../auth/guards/app-user.decorator';
-import { GetCurrentCmsUser } from '../auth/guards/cms-user.decorator';
 import { PayLoad } from '../auth/dto/PayLoad';
 
 @Controller('withdrawals')
