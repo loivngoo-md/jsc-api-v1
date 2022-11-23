@@ -8,6 +8,6 @@ import AppUser from './entities/app-user.entity';
   imports: [TypeOrmModule.forFeature([AppUser])],
   controllers: [AppUserController],
   providers: [AppUserService],
-  exports: [AppUserService]
+  exports: [AppUserService],
 })
-export class AppUserModule { }
+export class AppUserModule {}

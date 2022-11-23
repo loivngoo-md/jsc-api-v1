@@ -7,13 +7,9 @@ import { AppUserModule } from '../app-user/app-user.module';
 import { MoneyLogModule } from '../money-log/money-log.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([CmsUser]),
-     AppUserModule,
-     MoneyLogModule
-    ],
+  imports: [TypeOrmModule.forFeature([CmsUser]), AppUserModule, MoneyLogModule],
   controllers: [CmsUserController],
   providers: [CmsUserService],
-  exports: [CmsUserService]
+  exports: [CmsUserService],
 })
-export class CmsUserModule { }
+export class CmsUserModule {}

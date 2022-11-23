@@ -7,6 +7,6 @@ export class LoginRecordController {
 
   @Get()
   async list() {
-    return await this.loginRecordService.list()
+    return await this.loginRecordService.list();
   }
 }

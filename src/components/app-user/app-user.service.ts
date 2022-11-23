@@ -1,4 +1,10 @@
-import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateAppUserDto } from './dto/create-app-user.dto';
 import { UpdateAppUserDto } from './dto/update-app-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -7,27 +13,30 @@ import AppUser from './entities/app-user.entity';
 
 @Injectable()
 export class AppUserService {
-
   constructor(
     @InjectRepository(AppUser)
-    private _appUserRepo: Repository<AppUser>
-  ) { }
+    private _appUserRepo: Repository<AppUser>,
+  ) {}
 
-  async modifiedBalance(id: number, body: {
-    amount: number,
-    type: number,
-    comments: string,
-    remark: string
-  }) {
-    let newBalance: string = null
-    const { type, amount, comments, remark } = body
-    const { balance } = await this._appUserRepo.findOne({ where: { id } })
-    if (!parseFloat(balance)) {
-      throw new NotFoundException('Invalid balance.')
+  async modifiedBalance(
+    id: number,
+    body: {
+      amount: number;
+      type: number;
+      comments: string;
+      remark: string;
+    },
+  ) {
+    const { type, amount, comments, remark } = body;
+    const { balance } = await this._appUserRepo.findOne({ where: { id } });
+    if (!Number(balance)) {
+      throw new NotFoundException('Invalid balance.');
     }
 
-    newBalance = (!!type) ? (parseFloat(balance) + amount).toString() : (parseFloat(balance) - amount).toString()
-    await this.update(id, { balance: newBalance })
+    const newBalance = !!type
+      ? Number(balance) + amount
+      : Number(balance) - amount;
+    await this.update(id, { balance: '' });
 
     return {
       user_id: id,
@@ -36,19 +45,20 @@ export class AppUserService {
       after: newBalance,
       type,
       comments,
-      remark
-    }
+      remark,
+    };
   }
 
   async verifiedAccount(id: number) {
-    return await this.update(id, { is_verified: true })
+    return await this.update(id, {});
   }
 
   async create(createAppUserDto: CreateAppUserDto) {
-
-    const isExistedUser = await this._appUserRepo.findOne({ where: { username: createAppUserDto.username } })
+    const isExistedUser = await this._appUserRepo.findOne({
+      where: { username: createAppUserDto['username'] },
+    });
     if (!!isExistedUser) {
-      throw new BadRequestException('Username is existed.')
+      throw new BadRequestException('Username is existed.');
     }
 
     const newUser = await this._appUserRepo.create(createAppUserDto);
@@ -57,11 +67,11 @@ export class AppUserService {
   }
 
   async findByUsername(username: string) {
-    const user = await this._appUserRepo.findOne({ where: { username } })
+    const user = await this._appUserRepo.findOne({ where: { username } });
     if (!user) {
-      throw new NotFoundException('Not found app user.')
+      throw new NotFoundException('Not found app user.');
     }
-    return user
+    return user;
   }
 
   async findAll() {
@@ -69,61 +79,55 @@ export class AppUserService {
   }
 
   async getAppUserWithPagging(query: {
-    page: number,
-    limit: number,
-    search?: string
+    page: number;
+    limit: number;
+    search?: string;
   }) {
+    let app_users: any[];
 
-    let app_users: any[]
-
-    const { page, limit } = query
-    const take = +limit
-    const skip = +limit * (+page - 1)
+    const { page, limit } = query;
+    const take = +limit;
+    const skip = +limit * (+page - 1);
 
     if (query.search) {
-      app_users = await this._appUserRepo.find(
-        {
-          where: {
-            username: `%${query.search}%`
-          },
-          take,
-          skip,
-        })
-    }
-
-    app_users = await this._appUserRepo.find(
-      {
+      app_users = await this._appUserRepo.find({
+        where: {
+          username: `%${query.search}%`,
+        },
         take,
         skip,
-      }
-    )
+      });
+    }
+
+    app_users = await this._appUserRepo.find({
+      take,
+      skip,
+    });
 
     app_users.map((user) => {
-
-      user.balance = parseFloat(user.balance)
-      user.balance_frozen = parseFloat(user.balance_frozen)
-      user.balance_avail = parseFloat(user.balance_avail)
-      user.total_assets = parseFloat(user.total_assets)
-      user.withdraw_avail = parseFloat(user.withdraw_avail)
-      user.profit = parseFloat(user.profit)
-      user.balance_avail_newshare = parseFloat(user.balance_avail_newshare)
-      user.sell_amount_day = parseInt(user.sell_amount_day)
-      user.hold_value = parseFloat(user.hold_value)
+      user.balance = parseFloat(user.balance);
+      user.balance_frozen = parseFloat(user.balance_frozen);
+      user.balance_avail = parseFloat(user.balance_avail);
+      user.total_assets = parseFloat(user.total_assets);
+      user.withdraw_avail = parseFloat(user.withdraw_avail);
+      user.profit = parseFloat(user.profit);
+      user.balance_avail_newshare = parseFloat(user.balance_avail_newshare);
+      user.sell_amount_day = parseInt(user.sell_amount_day);
+      user.hold_value = parseFloat(user.hold_value);
 
       return {
-        ...user
-      }
-    })
-
+        ...user,
+      };
+    });
 
     return {
       count: app_users.length,
       data: app_users,
-    }
+    };
   }
 
   async findOne(id: number) {
-    const user = await this._appUserRepo.findOne({ where: { id: id } })
+    const user = await this._appUserRepo.findOne({ where: { id: id } });
     if (user) {
       return user;
     }
@@ -131,17 +135,16 @@ export class AppUserService {
   }
 
   async update(id: number, updateAppUserDto: UpdateAppUserDto) {
-
-    const user = await this._appUserRepo.findOne({ where: { id } })
+    const user = await this._appUserRepo.findOne({ where: { id } });
 
     if (!user) {
-      throw new BadRequestException('Not found user.')
+      throw new BadRequestException('Not found user.');
     }
 
-    await this._appUserRepo.update(id, updateAppUserDto);
+    await this._appUserRepo.update({ id }, updateAppUserDto);
     const updatedUser = await this._appUserRepo.findOne({ where: { id: id } });
     if (updatedUser) {
-      return updatedUser
+      return updatedUser;
     }
     throw new HttpException('User not found', HttpStatus.NOT_FOUND);
   }

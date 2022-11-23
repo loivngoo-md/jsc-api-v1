@@ -1,3 +1,3 @@
 export class CreateDepositAccountDto {
-    created_at? : Date
+  created_at?: Date;
 }

@@ -7,25 +7,26 @@ import DepositAccount from './entities/deposit-account.entity';
 
 @Injectable()
 export class DepositAccountService {
-
   constructor(
     @InjectRepository(DepositAccount)
-    private readonly _depositAccountRepo: Repository<DepositAccount>
-  ) { }
+    private readonly _depositAccountRepo: Repository<DepositAccount>,
+  ) {}
 
   async create(dto: CreateDepositAccountDto) {
-    dto.created_at = new Date()
+    dto.created_at = new Date();
     const response = await this._depositAccountRepo.create(dto);
     await this._depositAccountRepo.save(response);
     return response;
   }
 
   async findAll() {
-    return this._depositAccountRepo.find()
+    return this._depositAccountRepo.find();
   }
 
   async findOne(id: number) {
-    const response = await this._depositAccountRepo.findOne({ where: { id: id } })
+    const response = await this._depositAccountRepo.findOne({
+      where: { id: id },
+    });
     if (response) {
       return response;
     }
@@ -34,9 +35,11 @@ export class DepositAccountService {
 
   async update(id: number, dto: UpdateDepositAccountDto) {
     await this._depositAccountRepo.update(id, dto);
-    const updated = await this._depositAccountRepo.findOne({ where: { id: id } });
+    const updated = await this._depositAccountRepo.findOne({
+      where: { id: id },
+    });
     if (updated) {
-      return updated
+      return updated;
     }
     throw new HttpException('Deposit account not found', HttpStatus.NOT_FOUND);
   }
@@ -44,7 +47,10 @@ export class DepositAccountService {
   async remove(id: number) {
     const deleteResponse = await this._depositAccountRepo.delete(id);
     if (!deleteResponse.affected) {
-      throw new HttpException('Deposit account not found', HttpStatus.NOT_FOUND);
+      throw new HttpException(
+        'Deposit account not found',
+        HttpStatus.NOT_FOUND,
+      );
     }
   }
 }

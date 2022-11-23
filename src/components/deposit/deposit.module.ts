@@ -6,11 +6,8 @@ import Deposit from './entities/deposit.entity';
 import { AppUserModule } from '../app-user/app-user.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Deposit]),
-    AppUserModule
-  ],
+  imports: [TypeOrmModule.forFeature([Deposit]), AppUserModule],
   controllers: [DepositController],
-  providers: [DepositService]
+  providers: [DepositService],
 })
 export class DepositModule {}

@@ -13,65 +13,73 @@ export class WithdrawService {
   constructor(
     @InjectRepository(Withdraw)
     private readonly _withdrawRepo: Repository<Withdraw>,
-    private readonly _appUserService: AppUserService
-  ) { }
+    private readonly _appUserService: AppUserService,
+  ) {}
 
   async approve(withdraw_id: number, user_id: number, amount: string) {
-    await this._withdrawRepo.update({ id: withdraw_id }, { isApproved: true })
-    await this._appUserService.update(user_id, { is_freeze: true, balance_frozen: amount })
+    await this._withdrawRepo.update({ id: withdraw_id }, { isApproved: true });
+    await this._appUserService.update(user_id, {
+      is_freeze: true,
+      balance_frozen: amount,
+    });
   }
 
   async cmsPerformWithdraw(dto: any) {
-
-    dto['created_at'] = new Date()
-    const { amount } = dto
-    const user = await this._appUserService.findByUsername(dto.username)
-    let { balance } = user
-    const compare = parseFloat(balance) - parseFloat(amount)
+    dto['created_at'] = new Date();
+    const { amount } = dto;
+    const user = await this._appUserService.findByUsername(dto.username);
+    const { balance } = user;
+    const compare = Number(balance) - amount;
 
     if (compare < 0) {
-      throw new HttpException('Do not enough money to withdraw.', HttpStatus.BAD_REQUEST)
+      throw new HttpException(
+        'Do not enough money to withdraw.',
+        HttpStatus.BAD_REQUEST,
+      );
     }
-    dto['before'] = balance
-    dto['after'] = compare.toString()
-    await this._appUserService.update(user.id, { balance: compare.toString() })
+    dto['before'] = balance;
+    dto['after'] = compare.toString();
+    await this._appUserService.update(user.id, { balance: compare });
     const response = this._withdrawRepo.create(dto);
     await this._withdrawRepo.save(response);
     return response;
   }
 
   async userPerformWithdraw(dto: any, userFromToken: PayLoad) {
-    const { username } = userFromToken
+    const { username } = userFromToken;
 
-    dto['username'] = username
-    dto['created_at'] = new Date()
-    const { amount } = dto
-    const user = await this._appUserService.findByUsername(username)
-    let { balance } = user
+    dto['username'] = username;
+    dto['created_at'] = new Date();
+    const { amount } = dto;
+    const user = await this._appUserService.findByUsername(username);
+    const { balance } = user;
 
-    const compare = parseFloat(balance) - parseFloat(amount)
+    const compare = Number(balance) - Number(amount);
 
     if (compare < 0) {
-      throw new HttpException('Do not enough money to withdraw.', HttpStatus.BAD_REQUEST)
+      throw new HttpException(
+        'Do not enough money to withdraw.',
+        HttpStatus.BAD_REQUEST,
+      );
     }
-    dto['before'] = balance
-    dto['after'] = compare.toString()
+    dto['before'] = balance;
+    dto['after'] = compare.toString();
     await this._appUserService.update(user.id, {
       balance_frozen: amount,
       balance: compare.toString(),
       is_freeze: true,
-    })
+    });
     const response = this._withdrawRepo.create(dto);
     await this._withdrawRepo.save(response);
     return response;
   }
 
   async findAll() {
-    return this._withdrawRepo.find()
+    return this._withdrawRepo.find();
   }
 
   async findOne(id: number) {
-    const response = await this._withdrawRepo.findOne({ where: { id: id } })
+    const response = await this._withdrawRepo.findOne({ where: { id: id } });
     if (response) {
       return response;
     }
@@ -82,7 +90,7 @@ export class WithdrawService {
     await this._withdrawRepo.update(id, dto);
     const updated = await this._withdrawRepo.findOne({ where: { id: id } });
     if (updated) {
-      return updated
+      return updated;
     }
     throw new HttpException('Withdraw not found', HttpStatus.NOT_FOUND);
   }

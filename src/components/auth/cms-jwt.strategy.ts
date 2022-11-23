@@ -14,14 +14,16 @@ export class CmsStrategy extends PassportStrategy(Strategy, 'cms') {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKey: process.env.SECRET_KEY_JWT,
-    }) 
+    });
   }
 
   async validate(payload: PayLoad) {
     const user = await this.authService.validateCmsUser(payload);
     if (!user) {
       this.logger.debug(`Invalid/expired payload: ${JSON.stringify(payload)}`);
-      throw new UnauthorizedException('The current user is not logged in to the system');
+      throw new UnauthorizedException(
+        'The current user is not logged in to the system',
+      );
     }
     SessionMiddleware.set('session_user', user);
     return user;

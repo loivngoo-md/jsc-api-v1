@@ -1,7 +1,13 @@
-import { BeforeInsert, BeforeUpdate, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  BeforeInsert,
+  BeforeUpdate,
+  Column,
+  Entity,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { EntityHelper } from 'src/helpers/entity-helper';
-
+import Decimal from 'decimal.js';
 
 @Entity({ name: 'app_users' })
 class AppUser extends EntityHelper {
@@ -14,7 +20,7 @@ class AppUser extends EntityHelper {
   @Column({ nullable: false })
   public password: string;
 
-  @Column({ nullable: true })
+  @Column({ default: "" })
   public withdraw_password: string;
 
   @Column({ default: false })
@@ -23,92 +29,92 @@ class AppUser extends EntityHelper {
   @Column({ default: false })
   public is_verified: boolean;
 
-  @Column({ default: null })
+  @Column({ default: "" })
   public real_name: string;
 
-  @Column({ default: null })
+  @Column({ default: "" })
   public id_number_cccd: string;
 
-  @Column({ default: null })
+  @Column({ default: "" })
   public id_front_cccd: string;
 
-  @Column({ default: null })
+  @Column({ default: "" })
   public id_back_cccd: string;
 
-  @Column({ default: null })
+  @Column({ default: "" })
   public phone: string;
 
-  @Column({ default: null })
+  @Column({ default: "" })
   public bank_name: string;
 
-  @Column({ default: null })
+  @Column({ default: "" })
   public bank_number: string;
 
-  @Column({ default: null })
+  @Column({ default: "" })
   public bank_branch: string;
 
-  @Column({ default: null })
+  @Column({ default: "" })
   public account_name: string;
 
-  @Column({ default: null })
+  @Column({ default: "" })
   public withdraw_tips: string;
 
-  @Column({ default: null })
-  public balance: string
+  @Column("float8", { default: 0 })
+  public balance: number;
 
-  @Column({ default: null })
-  public balance_frozen: string;
+  @Column("float8", { default: 0 })
+  public balance_frozen: number;
 
-  @Column({ default: null })
-  public balance_avail: string;
+  @Column("float8", { default: 0 })
+  public balance_avail: number;
 
-  @Column({ default: null })
-  public balance_avail_newshare: string
+  @Column("float8", { default: 0, })
+  public balance_avail_newshare: number;
 
-  @Column({ default: null })
-  public total_assets: string;
+  @Column("float8", { default: 0 })
+  public total_assets: number;
 
-  @Column({ default: null })
-  public withdraw_avail: string
+  @Column("float8", { default: 0 })
+  public withdraw_avail: number;
 
-  @Column({ default: null })
-  public profit: string;
+  @Column("float8", { default: 0 })
+  public profit: number;
 
-  @Column({ default: null })
-  public sell_amount_day: string;
+  @Column("float8", { default: 0 })
+  public sell_amount_day: number;
 
-  @Column({ default: null })
+  @Column("float8", { default: 0 })
   public hold_value: number;
 
-  @Column({default: false})
-  public is_freeze: boolean
+  @Column({ default: false })
+  public is_freeze: boolean;
 
-  @Column({ default: null })
+  @Column({ default: "" })
   public online_service: string;
 
-  @Column({ default: null })
+  @Column({ default: "" })
   public agent_code: string;
 
-  @Column({ default: null })
+  @Column({ default: "" })
   public superior: string;
 
-  @Column({ default: null })
+  @Column({ default: "" })
   public last_login_ip: string;
 
   @Column({ default: false })
-  ipo_application: boolean
+  ipo_application: boolean;
 
   @Column({ default: false })
-  id_playing_board: boolean
+  id_playing_board: boolean;
 
-  @Column({ default: null })
+  @Column({ default: "" })
   public created_by: string;
 
   @Column({ default: true })
-  public is_active: boolean
+  public is_active: boolean;
 
-  @Column({ default: null })
-  public created_at: Date
+  @Column({ default: new Date() })
+  public created_at: Date;
 
   @BeforeInsert()
   @BeforeUpdate()
@@ -118,7 +124,6 @@ class AppUser extends EntityHelper {
       this.password = await bcrypt.hash(this.password, salt);
     }
   }
-
 }
 
 export default AppUser;

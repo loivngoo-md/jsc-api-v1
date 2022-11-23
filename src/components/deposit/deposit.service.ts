@@ -11,24 +11,24 @@ export class DepositService {
   constructor(
     @InjectRepository(Deposit)
     private readonly _depositRepo: Repository<Deposit>,
-    private readonly _appUserRepo: AppUserService
-  ) { }
+    private readonly _appUserRepo: AppUserService,
+  ) {}
 
   async create(dto: CreateDepositDto) {
     const response = this._depositRepo.create(dto);
-    const { balance } = await this._appUserRepo.findByUsername(dto['username'])
-    const newBalance = +balance + Number(dto['amount'])
-    await this._appUserRepo.update(dto['id'], { balance: newBalance.toString() })
+    const { balance } = await this._appUserRepo.findOne(dto['id']);
+    const newBalance = Number(dto['amount']) + Number(balance);
+    await this._appUserRepo.update(dto['id'], { balance: newBalance });
     await this._depositRepo.save(response);
     return response;
   }
 
   async findAll() {
-    return this._depositRepo.find()
+    return this._depositRepo.find();
   }
 
   async findOne(id: number) {
-    const response = await this._depositRepo.findOne({ where: { id: id } })
+    const response = await this._depositRepo.findOne({ where: { id: id } });
     if (response) {
       return response;
     }
@@ -39,7 +39,7 @@ export class DepositService {
     await this._depositRepo.update(id, dto);
     const updated = await this._depositRepo.findOne({ where: { id: id } });
     if (updated) {
-      return updated
+      return updated;
     }
     throw new HttpException('Deposit not found', HttpStatus.NOT_FOUND);
   }

@@ -3,39 +3,36 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'withdraw' })
 export class Withdraw extends EntityHelper {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    username: string
+  @Column("varchar")
+  username: string;
 
-    @Column()
-    amount: number
+  @Column("float8")
+  amount: number;
 
-    @Column({default: true})
-    audit: boolean
+  @Column("float8", { default: 0 })
+  before: number;
 
-    @Column({nullable: true})
-    before: string
+  @Column("float8", { default: 0 })
+  after: number;
 
-    @Column({default: false})
-    isApproved: boolean
+  @Column("bool", { default: false })
+  isApproved: boolean;
 
-    @Column({nullable: true})
-    after: string
+  @Column("varchar", { default: "" })
+  comments: string;
 
-    @Column({default: null})
-    comments: string
+  @Column("varchar", { default: "" })
+  remark: string;
 
-    @Column({default: null})
-    remark: string
+  @Column("varchar", { default: "" })
+  reviewed_by: string;
 
-    @Column({default: null})
-    reviewed_by: string
+  @Column({ default: new Date() })
+  reviewed_at: Date;
 
-    @Column({default: null})
-    reviewed_at: Date
-
-    @Column()
-    created_at: Date;
+  @Column({ default: new Date() })
+  created_at: Date;
 }

@@ -1,34 +1,44 @@
+import Decimal from 'decimal.js';
 import { EntityHelper } from 'src/helpers/entity-helper';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { AfterLoad, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+
+export class ColumnNumericTransformer {
+  to(data: number): number {
+    return data;
+  }
+  from(data: string): number {
+    return parseFloat(data);
+  }
+}
 
 @Entity({ name: 'deposit' })
 class Deposit extends EntityHelper {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn('increment')
+  id: number;
 
-    @Column()
-    username: string
+  @Column('integer')
+  user_id: number;
 
-    @Column({ nullable: false })
-    amount: string
+  @Column('float8')
+  amount: number;
 
-    @Column({ nullable: false })
-    deposit_account_id: number
+  @Column('integer')
+  deposit_account_id: number;
 
-    @Column({ default: false })
-    is_reviewed: boolean
+  @Column('boolean', { default: false })
+  is_reviewed: boolean;
 
-    @Column({ default: false })
-    is_virtual_deposit: boolean
+  @Column('boolean', { default: false })
+  is_virtual_deposit: boolean;
 
-    @Column({ default: null })
-    comments: string
+  @Column('varchar', { default: '' })
+  comments: string;
 
-    @Column({ default: null })
-    remark: string
+  @Column('varchar', { default: '' })
+  remark: string;
 
-    @Column()
-    created_at: Date;
+  @Column()
+  created_at: Date;
 }
 
 export default Deposit;

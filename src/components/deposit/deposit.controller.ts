@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
 import { PayLoad } from '../auth/dto/PayLoad';
 import { GetCurrentAppUser } from '../auth/guards/app-user.decorator';
 import { AppAuthGuard } from '../auth/guards/appAuth.guard';
@@ -8,24 +17,24 @@ import { UpdateDepositDto } from './dto/update-deposit.dto';
 
 @Controller('deposit')
 export class DepositController {
-  constructor(private readonly depositService: DepositService) { }
+  constructor(private readonly depositService: DepositService) {}
 
-  @Post("/cms")
+  @Post('/cms')
   appCreate(@Body() createDepositDto: CreateDepositDto) {
     return this.depositService.create(createDepositDto);
   }
 
   @UseGuards(AppAuthGuard)
-  @Post("/app")
+  @Post('/app')
   cmsCreate(
     @Body() dto: CreateDepositDto,
-    @GetCurrentAppUser() appUser: PayLoad
+    @GetCurrentAppUser() appUser: PayLoad,
   ) {
+    dto['user_id'] = appUser['id'];
+    dto['created_at'] = new Date();
+    dto['amount'] = dto['amount'];
 
-    dto['username'] = appUser['username']
-    dto['id'] = appUser['id']
-    dto['created_at'] = new Date()
-    dto['amount'] = dto['amount'].toString()
+    console.log(dto);
 
     return this.depositService.create(dto);
   }

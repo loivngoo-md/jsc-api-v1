@@ -9,5 +9,4 @@ export class LoginByUsernameDto {
   @ApiProperty({ default: 'admin' })
   @IsString()
   password: string;
-
 }

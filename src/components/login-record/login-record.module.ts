@@ -7,7 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 @Module({
   imports: [TypeOrmModule.forFeature([LoginRecord])],
   controllers: [LoginRecordController],
-  providers: [LoginRecordService,],
-  exports: [LoginRecordService,]
+  providers: [LoginRecordService],
+  exports: [LoginRecordService],
 })
-export class LoginRecordModule { }
+export class LoginRecordModule {}

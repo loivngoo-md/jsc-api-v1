@@ -1,10 +1,16 @@
 import * as bcrypt from 'bcryptjs';
 
 import { EntityHelper } from 'src/helpers/entity-helper';
-import {  BeforeInsert, BeforeUpdate, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  BeforeInsert,
+  BeforeUpdate,
+  Column,
+  Entity,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity({ name: 'cms_users' })
-class CmsUser extends EntityHelper{
+class CmsUser extends EntityHelper {
   @PrimaryGeneratedColumn()
   public id: number;
 

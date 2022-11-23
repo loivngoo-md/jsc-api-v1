@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
 import { WithdrawService } from './withdraw.service';
 import { CreateWithdrawDto } from './dto/create-withdraw.dto';
 import { UpdateWithdrawDto } from './dto/update-withdraw.dto';
@@ -9,11 +18,14 @@ import { PayLoad } from '../auth/dto/PayLoad';
 
 @Controller('withdrawals')
 export class WithdrawController {
-  constructor(private readonly withdrawService: WithdrawService) { }
+  constructor(private readonly withdrawService: WithdrawService) {}
 
   @UseGuards(AppAuthGuard)
   @Post('/app')
-  createOnApp(@Body() createWithdrawDto: CreateWithdrawDto, @GetCurrentAppUser() user) {
+  createOnApp(
+    @Body() createWithdrawDto: CreateWithdrawDto,
+    @GetCurrentAppUser() user,
+  ) {
     return this.withdrawService.userPerformWithdraw(createWithdrawDto, user);
   }
 
@@ -29,7 +41,7 @@ export class WithdrawController {
     @Body() body: any,
     // @GetCurrentCmsUser() currentCmsAdmin: PayLoad
   ) {
-    const { user_id, withdraw_id, amount } = body
+    const { user_id, withdraw_id, amount } = body;
     return this.withdrawService.approve(withdraw_id, user_id, amount);
   }
 
@@ -44,7 +56,10 @@ export class WithdrawController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateWithdrawDto: UpdateWithdrawDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateWithdrawDto: UpdateWithdrawDto,
+  ) {
     return this.withdrawService.update(+id, updateWithdrawDto);
   }
 

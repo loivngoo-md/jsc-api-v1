@@ -5,10 +5,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import DepositAccount from './entities/deposit-account.entity';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([DepositAccount]),
-  ],
+  imports: [TypeOrmModule.forFeature([DepositAccount])],
   controllers: [DepositAccountController],
-  providers: [DepositAccountService]
+  providers: [DepositAccountService],
 })
-export class DepositAccountModule { }
+export class DepositAccountModule {}

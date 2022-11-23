@@ -1,10 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginByUsernameDto } from './dto/LoginByUsernameDto';
 import { RealIP } from 'nestjs-real-ip';
@@ -20,31 +14,31 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly _cmsUserService: CmsUserService,
-    private readonly _appUserService: AppUserService
-  ) { }
+    private readonly _appUserService: AppUserService,
+  ) {}
 
   @UseGuards(AppAuthGuard)
   @Get('/get-app')
   async getCurrentAppInfo(@GetCurrentCmsUser() user) {
-    const response = await this._appUserService.findByUsername(user.username)
-    return response
+    const response = await this._appUserService.findOne(user['id']);
+    return response;
   }
 
   @UseGuards(CmsAuthGuard)
   @Get('/get-cms')
   async getCurrentCmsInfo(@GetCurrentCmsUser() user) {
-    const response = await this._cmsUserService.findByUsername(user.username)
-    return response
+    const response = await this._cmsUserService.findByUsername(user.username);
+    return response;
   }
 
   @Post('/signup/cms')
   async signupCms(@Body() input: CreateCmsUserDto) {
-    return this._cmsUserService.create(input)
+    return this._cmsUserService.create(input);
   }
 
   @Post('/signup/app')
   async signupApp(@Body() input: CreateCmsUserDto) {
-    return this._appUserService.create(input)
+    return this._appUserService.create(input);
   }
 
   @Post('login/cms')

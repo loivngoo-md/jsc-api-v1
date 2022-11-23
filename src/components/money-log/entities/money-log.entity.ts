@@ -2,29 +2,29 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'money_log' })
 class MoneyLog {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    user_id: number;
+  @Column("integer")
+  user_id: number;
 
-    @Column()
-    amount: string;
+  @Column("float8")
+  amount: number;
 
-    @Column()
-    before: string;
+  @Column("float8")
+  before: number;
 
-    @Column()
-    after: string;
+  @Column("float8")
+  after: number;
 
-    @Column()
-    type: string;
+  @Column("varchar")
+  type: string;
 
-    @Column({ default: null })
-    comments: string;
+  @Column({ default: "" })
+  comments: string;
 
-    @Column({ default: null })
-    remark: string;
+  @Column({ default: "" })
+  remark: string;
 }
 
 export default MoneyLog;

@@ -11,7 +11,7 @@ import { DepositModule } from './components/deposit/deposit.module';
 import { WithdrawModule } from './components/withdraw/withdraw.module';
 import { DepositAccountModule } from './components/deposit-account/deposit-account.module';
 import { StockModule } from './components/stock/stock.module';
-import {HttpModule} from '@nestjs/axios'
+import { HttpModule } from '@nestjs/axios';
 import { OrderModule } from './components/order/order.module';
 
 @Module({
@@ -26,9 +26,8 @@ import { OrderModule } from './components/order/order.module';
         POSTGRES_DB: Joi.string().required(),
         PORT: Joi.number(),
       }),
-      isGlobal: true
-    },
-    ),
+      isGlobal: true,
+    }),
     DatabaseModule,
     CmsUserModule,
     AppUserModule,
@@ -40,9 +39,8 @@ import { OrderModule } from './components/order/order.module';
     DepositAccountModule,
     StockModule,
     OrderModule,
-
   ],
   controllers: [],
   providers: [],
 })
-export class AppModule { }
+export class AppModule {}

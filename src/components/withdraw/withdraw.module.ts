@@ -6,11 +6,8 @@ import { Withdraw } from './entities/withdraw.entity';
 import { AppUserModule } from '../app-user/app-user.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Withdraw]),
-    AppUserModule
-  ],
+  imports: [TypeOrmModule.forFeature([Withdraw]), AppUserModule],
   controllers: [WithdrawController],
-  providers: [WithdrawService]
+  providers: [WithdrawService],
 })
 export class WithdrawModule {}

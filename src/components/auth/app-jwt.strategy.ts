@@ -21,7 +21,9 @@ export class AppStrategy extends PassportStrategy(Strategy, 'app') {
     const user = await this.authService.validateAppUser(payload);
     if (!user) {
       this.logger.debug(`Invalid/expired payload: ${JSON.stringify(payload)}`);
-      throw new UnauthorizedException('The current user is not logged in to the system');
+      throw new UnauthorizedException(
+        'The current user is not logged in to the system',
+      );
     }
     SessionMiddleware.set('session_user', user);
     return user;

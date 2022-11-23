@@ -2,24 +2,23 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'login_record' })
 class LoginRecord {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    username: string;
+  @Column()
+  user_id: string;
 
-    @Column({ nullable: true })
-    password: string;
+  @Column({ nullable: true })
+  password: string;
 
-    @Column()
-    ip: string;
+  @Column()
+  ip: string;
 
-    @Column({ default: null })
-    location: string;
+  @Column({ default: 'N/A' })
+  location: string;
 
-    @Column()
-    created_at : Date;
-
+  @Column({ default: new Date() })
+  created_at: Date;
 }
 
 export default LoginRecord;

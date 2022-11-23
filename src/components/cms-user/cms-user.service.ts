@@ -1,4 +1,9 @@
-import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateCmsUserDto } from './dto/create-cms-user.dto';
 import { UpdateCmsUserDto } from './dto/update-cms-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -7,12 +12,10 @@ import CmsUser from './entities/cms-user.entity';
 
 @Injectable()
 export class CmsUserService {
-
   constructor(
     @InjectRepository(CmsUser)
     private _cmsUserRepo: Repository<CmsUser>,
-  ) { }
-
+  ) {}
 
   async create(createCmsUserDto: CreateCmsUserDto) {
     const newUser = await this._cmsUserRepo.create(createCmsUserDto);
@@ -21,11 +24,11 @@ export class CmsUserService {
   }
 
   async findByUsername(username: string) {
-    const user = await this._cmsUserRepo.findOne({ where: { username } })
+    const user = await this._cmsUserRepo.findOne({ where: { username } });
     if (!user) {
-      throw new NotFoundException('Not found cms user')
+      throw new NotFoundException('Not found cms user');
     }
-    return user
+    return user;
   }
 
   findAll() {
@@ -33,7 +36,7 @@ export class CmsUserService {
   }
 
   async findOne(id: number) {
-    const user = await this._cmsUserRepo.findOne({ where: { id: id } })
+    const user = await this._cmsUserRepo.findOne({ where: { id: id } });
     if (user) {
       return user;
     }
@@ -44,7 +47,7 @@ export class CmsUserService {
     await this._cmsUserRepo.update(id, updateCmsUserDto);
     const updatedUser = await this._cmsUserRepo.findOne({ where: { id: id } });
     if (updatedUser) {
-      return updatedUser
+      return updatedUser;
     }
     throw new HttpException('User not found', HttpStatus.NOT_FOUND);
   }
