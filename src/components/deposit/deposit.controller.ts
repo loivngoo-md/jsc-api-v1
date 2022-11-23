@@ -21,15 +21,14 @@ export class DepositController {
     @Body() dto: CreateDepositDto,
     @GetCurrentAppUser() appUser: PayLoad
   ) {
+
     dto['username'] = appUser['username']
     dto['id'] = appUser['id']
-
     dto['created_at'] = new Date()
     dto['amount'] = dto['amount'].toString()
 
     return this.depositService.create(dto);
   }
-
 
   @Get()
   findAll() {

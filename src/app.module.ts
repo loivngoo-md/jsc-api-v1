@@ -10,10 +10,9 @@ import { MoneyLogModule } from './components/money-log/money-log.module';
 import { DepositModule } from './components/deposit/deposit.module';
 import { WithdrawModule } from './components/withdraw/withdraw.module';
 import { DepositAccountModule } from './components/deposit-account/deposit-account.module';
-import { CashFlowModule } from './components/cash-flow/cash-flow.module';
-import { TransactionModule } from './components/transaction/transaction.module';
 import { StockModule } from './components/stock/stock.module';
 import {HttpModule} from '@nestjs/axios'
+import { OrderModule } from './components/order/order.module';
 
 @Module({
   imports: [
@@ -39,9 +38,8 @@ import {HttpModule} from '@nestjs/axios'
     DepositModule,
     WithdrawModule,
     DepositAccountModule,
-    CashFlowModule,
-    TransactionModule,
     StockModule,
+    OrderModule,
 
   ],
   controllers: [],
