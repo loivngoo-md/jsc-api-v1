@@ -19,7 +19,7 @@ export class Withdraw extends EntityHelper {
   after: number;
 
   @Column("bool", { default: false })
-  isApproved: boolean;
+  is_approved: boolean;
 
   @Column("varchar", { default: "" })
   comments: string;
@@ -30,9 +30,7 @@ export class Withdraw extends EntityHelper {
   @Column("varchar", { default: "" })
   reviewed_by: string;
 
-  @Column({ default: new Date() })
+  @Column({ nullable: true })
   reviewed_at: Date;
 
-  @Column({ default: new Date() })
-  created_at: Date;
 }

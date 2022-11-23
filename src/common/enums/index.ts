@@ -1,6 +1,4 @@
-export enum TransactionType {
-  DEPOSIT = 'DEPOSIT',
-  WITHDRAW = 'WITHDRAW',
-  SELL = 'SELL',
-  BUY = 'BUY',
+export enum ORDER_TYPE {
+  BUY = 'B',
+  SELL = 'S',
 }

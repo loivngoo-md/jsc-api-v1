@@ -20,9 +20,6 @@ class DepositAccount extends EntityHelper {
 
   @Column({ default: true })
   isEnable: boolean;
-
-  @Column({ default: new Date() })
-  created_at: Date;
 }
 
 export default DepositAccount;

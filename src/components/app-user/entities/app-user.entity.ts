@@ -7,7 +7,6 @@ import {
 } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { EntityHelper } from 'src/helpers/entity-helper';
-import Decimal from 'decimal.js';
 
 @Entity({ name: 'app_users' })
 class AppUser extends EntityHelper {
@@ -112,9 +111,6 @@ class AppUser extends EntityHelper {
 
   @Column({ default: true })
   public is_active: boolean;
-
-  @Column({ default: new Date() })
-  public created_at: Date;
 
   @BeforeInsert()
   @BeforeUpdate()

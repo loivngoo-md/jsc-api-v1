@@ -1,7 +1,8 @@
+import { EntityHelper } from 'src/helpers/entity-helper';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'login_record' })
-class LoginRecord {
+class LoginRecord extends EntityHelper {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -17,8 +18,6 @@ class LoginRecord {
   @Column({ default: 'N/A' })
   location: string;
 
-  @Column({ default: new Date() })
-  created_at: Date;
 }
 
 export default LoginRecord;
