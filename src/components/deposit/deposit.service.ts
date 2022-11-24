@@ -16,10 +16,10 @@ export class DepositService {
 
   async create(dto: CreateDepositDto) {
     const response = this._depositRepo.create(dto);
-    let user = await this._appUserService.findOne(dto['id']);
-
-    const balance = user['balance'] + Number(dto['amount'])
-
+    let user = await this._appUserService.findOne(dto['user_id']);
+    const balance = user['balance'] + dto['amount']
+    console.log(balance);
+    
     await this._appUserService.update(dto['user_id'], { balance });
     await this._depositRepo.save(response);
     return response;

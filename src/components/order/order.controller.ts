@@ -52,7 +52,7 @@ export class OrderController {
 
   @Post("/cms/buy")
   async buyStockOnCms(
-    dto: CreateOrderDto,
+    @Body() dto: CreateOrderDto,
   ) {
     if (dto['type'] != ORDER_TYPE.BUY) {
       throw new BadRequestException()

@@ -17,7 +17,7 @@ import { UpdateDepositDto } from './dto/update-deposit.dto';
 
 @Controller('deposit')
 export class DepositController {
-  constructor(private readonly depositService: DepositService) {}
+  constructor(private readonly depositService: DepositService) { }
 
   @Post('/cms')
   appCreate(@Body() createDepositDto: CreateDepositDto) {
@@ -30,8 +30,8 @@ export class DepositController {
     @Body() dto: CreateDepositDto,
     @GetCurrentAppUser() appUser: PayLoad,
   ) {
-    dto['user_id'] = appUser['id'];
-    return this.depositService.create(dto); 
+    dto['user_id'] = Number(appUser['id']);
+    return this.depositService.create(dto);
   }
 
   @Get()

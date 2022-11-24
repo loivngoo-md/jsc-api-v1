@@ -62,7 +62,11 @@ export class OrderService {
     }
     dto['amount'] = stock["P"] * dto['quantity']
 
+    console.log(dto['user_id']);
+    
+
     const { balance } = await this._appUserService.findOne(dto['user_id'])
+    
     if (balance < dto['amount']) {
       throw new HttpException("Not enough money", HttpStatus.BAD_REQUEST)
     }
