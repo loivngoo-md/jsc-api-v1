@@ -9,8 +9,11 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { RealIP } from 'nestjs-real-ip';
 import { AppUserService } from '../app-user/app-user.service';
 import { CreateAppUserDto } from '../app-user/dto/create-app-user.dto';
+import { AuthService } from '../auth/auth.service';
+import { LoginByUsernameDto } from '../auth/dto/LoginByUsernameDto';
 import MoneyLog from '../money-log/entities/money-log.entity';
 import { MoneyLogService } from '../money-log/money-log.service';
 import { CmsUserService } from './cms-user.service';
@@ -23,7 +26,17 @@ export class CmsUserController {
     private readonly cmsUserService: CmsUserService,
     private readonly appUserService: AppUserService,
     private readonly moneyLogService: MoneyLogService,
-  ) {}
+    private readonly authService: AuthService,
+  ) { }
+
+  @Post('login')
+  async loginCms(@Body() input: LoginByUsernameDto, @RealIP() ip: string) {
+    try {
+      return this.authService.loginCmsViaUsername(input, ip);
+    } catch (error) {
+      throw error;
+    }
+  }
 
   @Post('app-users/verified/:id')
   verificationAppUserAccount(@Param('id') id: string) {
@@ -42,8 +55,6 @@ export class CmsUserController {
     @Param('id') id: string,
   ) {
     const modified = await this.appUserService.modifiedBalance(+id, dto);
-    console.log(modified);
-
     return this.moneyLogService.insert(modified);
   }
 
@@ -70,6 +81,11 @@ export class CmsUserController {
     @Query() query: { page: number; limit: number; search?: string },
   ) {
     return this.appUserService.getAppUserWithPagging(query);
+  }
+
+  @Get('app-users/:id')
+  getAAppUser(@Param('id') id: string) {
+    return this.appUserService.findOne(+id);
   }
 
   @Post()

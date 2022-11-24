@@ -16,7 +16,7 @@ export class AppUserService {
   constructor(
     @InjectRepository(AppUser)
     private _appUserRepo: Repository<AppUser>,
-  ) {}
+  ) { }
 
   async modifiedBalance(
     id: number,
@@ -29,14 +29,11 @@ export class AppUserService {
   ) {
     const { type, amount, comments, remark } = body;
     const { balance } = await this._appUserRepo.findOne({ where: { id } });
-    if (!Number(balance)) {
-      throw new NotFoundException('Invalid balance.');
-    }
 
     const newBalance = !!type
       ? Number(balance) + amount
       : Number(balance) - amount;
-    await this.update(id, { balance: '' });
+    await this.update(id, { balance: newBalance });
 
     return {
       user_id: id,
@@ -50,7 +47,11 @@ export class AppUserService {
   }
 
   async verifiedAccount(id: number) {
-    return await this.update(id, {});
+    const user = await this._appUserRepo.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('User is not found.');
+    }
+    return await this._appUserRepo.update(id, { is_verified: true })
   }
 
   async create(createAppUserDto: CreateAppUserDto) {
@@ -136,12 +137,11 @@ export class AppUserService {
 
   async update(id: number, updateAppUserDto: UpdateAppUserDto) {
     const user = await this._appUserRepo.findOne({ where: { id } });
-
     if (!user) {
       throw new BadRequestException('Not found user.');
     }
 
-    await this._appUserRepo.update({ id }, updateAppUserDto);
+    await this._appUserRepo.update(id, updateAppUserDto);
     const updatedUser = await this._appUserRepo.findOne({ where: { id: id } });
     if (updatedUser) {
       return updatedUser;

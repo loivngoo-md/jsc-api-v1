@@ -21,158 +21,158 @@ export class Stock extends EntityHelper {
   @Column({ nullable: true })
   FS: string;
 
-  @Column({ nullable: true })
-  P: string;
+  @Column("float8", { nullable: true })
+  P: number;
 
-  @Column({ nullable: true })
-  NV: string;
+  @Column("bigint", { nullable: true })
+  NV: number;
 
-  @Column({ nullable: true })
-  Tick: string;
+  @Column("bigint", { nullable: true })
+  Tick: number;
 
-  @Column({ nullable: true })
-  B1: string;
+  @Column("float8", { nullable: true })
+  B1: number
 
-  @Column({ nullable: true })
-  B2: string;
+  @Column("float8", { nullable: true })
+  B2: number
 
-  @Column({ nullable: true })
-  B3: string;
+  @Column("float8", { nullable: true })
+  B3: number
 
-  @Column({ nullable: true })
-  B4: string;
+  @Column("float8", { nullable: true })
+  B4: number
 
-  @Column({ nullable: true })
-  B5: string;
+  @Column("float8", { nullable: true })
+  B5: number;
 
-  @Column({ nullable: true })
-  B1V: string;
+  @Column("bigint", { nullable: true })
+  B1V: number
 
-  @Column({ nullable: true })
-  B2V: string;
+  @Column("bigint", { nullable: true })
+  B2V: number
 
-  @Column({ nullable: true })
-  B3V: string;
+  @Column("bigint", { nullable: true })
+  B3V: number
 
-  @Column({ nullable: true })
-  B4V: string;
+  @Column("bigint", { nullable: true })
+  B4V: number
 
-  @Column({ nullable: true })
-  B5V: string;
+  @Column("bigint", { nullable: true })
+  B5V: number
 
-  @Column({ nullable: true })
-  S1: string;
+  @Column("float8", { nullable: true })
+  S1: number
 
-  @Column({ nullable: true })
-  S2: string;
+  @Column("float8", { nullable: true })
+  S2: number
 
-  @Column({ nullable: true })
-  S3: string;
+  @Column("float8", { nullable: true })
+  S3: number
 
-  @Column({ nullable: true })
-  S4: string;
+  @Column("float8", { nullable: true })
+  S4: number
 
-  @Column({ nullable: true })
-  S5: string;
+  @Column("float8", { nullable: true })
+  S5: number
 
-  @Column({ nullable: true })
-  S1V: string;
+  @Column("bigint", { nullable: true })
+  S1V: number
 
-  @Column({ nullable: true })
-  S2V: string;
+  @Column("bigint", { nullable: true })
+  S2V: number
 
-  @Column({ nullable: true })
-  S3V: string;
+  @Column("bigint", { nullable: true })
+  S3V: number
 
-  @Column({ nullable: true })
-  S4V: string;
+  @Column("bigint", { nullable: true })
+  S4V: number
 
-  @Column({ nullable: true })
-  S5V: string;
+  @Column("bigint", { nullable: true })
+  S5V: number
 
-  @Column({ nullable: true })
-  ZT: string;
+  @Column("float8", { nullable: true })
+  ZT: number
 
-  @Column({ nullable: true })
-  DT: string;
+  @Column("float8", { nullable: true })
+  DT: number
 
-  @Column({ nullable: true })
-  O: string;
+  @Column("float8", { nullable: true })
+  O: number
 
-  @Column({ nullable: true })
-  H: string;
+  @Column("float8", { nullable: true })
+  H: number
 
-  @Column({ nullable: true })
-  L: string;
+  @Column("float8", { nullable: true })
+  L: number
 
-  @Column({ nullable: true })
-  YC: string;
+  @Column("float8", { nullable: true })
+  YC: number
 
-  @Column({ nullable: true })
-  A: string;
+  @Column("bigint", { nullable: true })
+  A: number;
 
-  @Column({ nullable: true })
-  V: string;
+  @Column("bigint", { nullable: true })
+  V: number;
 
-  @Column({ nullable: true })
-  OV: string;
+  @Column("bigint", { nullable: true })
+  OV: number;
 
-  @Column({ nullable: true })
-  IV: string;
+  @Column("bigint", { nullable: true })
+  IV: number;
 
-  @Column({ nullable: true })
-  SY: string;
+  @Column("float8", { nullable: true })
+  SY: number;
 
-  @Column({ nullable: true })
-  SJ: string;
+  @Column("float8", { nullable: true })
+  SJ: number;
 
-  @Column({ nullable: true })
-  HS: string;
+  @Column("float8", { nullable: true })
+  HS: number;
 
-  @Column({ nullable: true })
-  ZS: string;
+  @Column("float8", { nullable: true })
+  ZS: number;
 
-  @Column({ nullable: true })
-  LS: string;
+  @Column("float8", { nullable: true })
+  LS: number;
 
-  @Column({ nullable: true })
-  Z: string;
+  @Column("bigint", { nullable: true })
+  Z: number;
 
-  @Column({ nullable: true })
-  Z2: string;
+  @Column("bigint", { nullable: true })
+  Z2: number;
 
-  @Column({ nullable: true })
-  VF: string;
+  @Column("float8", { nullable: true })
+  VF: number;
 
-  @Column({ nullable: true })
-  ZF: string;
+  @Column("float8", { nullable: true })
+  ZF: number;
 
-  @Column({ nullable: true })
-  JS: string;
+  @Column("bigint", { nullable: true })
+  JS: number;
 
-  @Column({ nullable: true })
-  YJS: string;
+  @Column("bigint", { nullable: true })
+  YJS: number;
 
-  @Column({ nullable: true })
-  HD: string;
+  @Column("bigint", { nullable: true })
+  HD: number;
 
-  @Column({ nullable: true })
-  YHD: string;
+  @Column("bigint", { nullable: true })
+  YHD: number;
 
-  @Column({ nullable: true })
-  AVP: string;
+  @Column("float8", { nullable: true })
+  AVP: number;
 
-  @Column({ nullable: true })
-  SY2: string;
+  @Column("float8", { nullable: true })
+  SY2: number;
 
-  @Column({ nullable: true })
-  QJ: string;
+  @Column("bigint", { nullable: true })
+  QJ: number;
 
   @Column({ nullable: true })
   QR: string;
 
-  @Column({ nullable: true })
-  MT: string;
+  @Column("bigint", { nullable: true })
+  MT: number;
 }
 
 export default Stock;

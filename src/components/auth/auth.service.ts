@@ -5,6 +5,8 @@ import {
 } from './../../common/constant/error-message';
 import { TOKEN_EXPIRES_IN } from './../../common/constant/constants';
 import {
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -27,11 +29,15 @@ export class AuthService {
   private readonly logger = new BackendLogger(AuthService.name);
 
   constructor(
+    @Inject(forwardRef(() => CmsUserService))
     private readonly _cmsUserService: CmsUserService,
+
     private readonly _jwtService: JwtService,
+
     private readonly _loginRecord: LoginRecordService,
+
     private readonly _appUserService: AppUserService,
-  ) {}
+  ) { }
 
   async validateCmsUser(payload: PayLoad): Promise<any> {
     const { username } = payload;
@@ -83,14 +89,12 @@ export class AuthService {
         .catch((error) => console.log('error', error));
 
       const location = {
-        username: user.username,
+        user_id: user['id'],
         password: '',
         ip: ip,
-        location: ipgeo.city?.name || null,
+        location: ipgeo.city?.name || "",
         created_at: new Date(),
       };
-
-      console.log(location);
 
       await this._loginRecord.insert(location);
 

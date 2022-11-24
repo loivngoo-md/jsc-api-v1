@@ -29,7 +29,6 @@ export class WithdrawController {
     return this.withdrawService.userPerformWithdraw(createWithdrawDto, user);
   }
 
-  @UseGuards(CmsAuthGuard)
   @Post('/cms')
   createOnCms(@Body() createWithdrawDto: CreateWithdrawDto) {
     return this.withdrawService.cmsPerformWithdraw(createWithdrawDto);

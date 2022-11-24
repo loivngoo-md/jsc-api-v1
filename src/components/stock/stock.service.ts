@@ -13,14 +13,14 @@ export class StockService {
     private readonly httpService: HttpService,
     @InjectRepository(Stock)
     private _stockRepo: Repository<Stock>,
-  ) {}
+  ) { }
 
   async create(createStockDto: CreateStockDto) {
     return 'This action adds a new stock';
   }
 
   async pullLatestStock(query: { page: number; ps: number; where?: string }) {
-    const ROUT = 'GBFSB';
+    const ROUT = 'CNST';
     const { page, ps, where } = query;
     const APP_KEY = `AppCode ${process.env.APP_CODE_3RD}`;
     const uri = process.env.HOST_STOCK_3RD;
@@ -31,7 +31,7 @@ export class StockService {
     };
 
     for (let i = 1; i <= page; i++) {
-      const url = `${uri}/query/compvol?p=${i}&ps=${ps}&rout=${ROUT}&sort=ZF&sorttype=0&where=${where}`;
+      const url = `${uri}/query/compvol?p=${i}&ps=${ps}&rout=${ROUT}&sort=ZF&sorttype=0`;
       const { data } = await firstValueFrom(this.httpService.get(url, config));
       const listStocks: any[] = data.Obj;
 
@@ -73,10 +73,11 @@ export class StockService {
     };
   }
 
-  async findOne(id: string) {
-    const stock = await this._stockRepo.findOne({ where: { FS: id } });
+  async findOne(fs: string) {
+    const stock = await this._stockRepo.findOne({ where: { FS: fs } });
     if (stock) {
-      delete stock.__entity;
+      delete stock['__entity'];
+      delete stock['id']
       await this._stockRepo.update({ FS: stock.FS }, stock);
       return stock;
     }

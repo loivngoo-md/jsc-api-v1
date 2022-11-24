@@ -6,7 +6,6 @@ import { Repository } from 'typeorm';
 import { Withdraw } from './entities/withdraw.entity';
 import { AppUserService } from '../app-user/app-user.service';
 import { PayLoad } from '../auth/dto/PayLoad';
-import { cp } from 'fs';
 
 @Injectable()
 export class WithdrawService {
@@ -14,22 +13,20 @@ export class WithdrawService {
     @InjectRepository(Withdraw)
     private readonly _withdrawRepo: Repository<Withdraw>,
     private readonly _appUserService: AppUserService,
-  ) {}
+  ) { }
 
-  async approve(withdraw_id: number, user_id: number, amount: string) {
-    await this._withdrawRepo.update({ id: withdraw_id }, { isApproved: true });
+  async approve(withdraw_id: number, user_id: number, amount: number) {
+    await this._withdrawRepo.update({ id: withdraw_id }, { is_approved: true });
     await this._appUserService.update(user_id, {
       is_freeze: true,
       balance_frozen: amount,
     });
   }
 
-  async cmsPerformWithdraw(dto: any) {
-    dto['created_at'] = new Date();
-    const { amount } = dto;
-    const user = await this._appUserService.findByUsername(dto.username);
+  async cmsPerformWithdraw(dto: CreateWithdrawDto) {
+    const user = await this._appUserService.findByUsername(dto['username']);
     const { balance } = user;
-    const compare = Number(balance) - amount;
+    const compare = balance - dto['amount'];
 
     if (compare < 0) {
       throw new HttpException(
@@ -38,7 +35,7 @@ export class WithdrawService {
       );
     }
     dto['before'] = balance;
-    dto['after'] = compare.toString();
+    dto['after'] = compare
     await this._appUserService.update(user.id, { balance: compare });
     const response = this._withdrawRepo.create(dto);
     await this._withdrawRepo.save(response);
@@ -66,7 +63,7 @@ export class WithdrawService {
     dto['after'] = compare.toString();
     await this._appUserService.update(user.id, {
       balance_frozen: amount,
-      balance: compare.toString(),
+      balance: compare,
       is_freeze: true,
     });
     const response = this._withdrawRepo.create(dto);

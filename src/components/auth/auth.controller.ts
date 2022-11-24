@@ -8,6 +8,7 @@ import { GetCurrentCmsUser } from './guards/cms-user.decorator';
 import { AppUserService } from '../app-user/app-user.service';
 import { AppAuthGuard } from './guards/appAuth.guard';
 import { CmsAuthGuard } from './guards/cmsAuth.guard';
+import { CreateAppUserDto } from '../app-user/dto/create-app-user.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -37,7 +38,7 @@ export class AuthController {
   }
 
   @Post('/signup/app')
-  async signupApp(@Body() input: CreateCmsUserDto) {
+  async signupApp(@Body() input: CreateAppUserDto) {
     return this._appUserService.create(input);
   }
 

@@ -31,12 +31,7 @@ export class DepositController {
     @GetCurrentAppUser() appUser: PayLoad,
   ) {
     dto['user_id'] = appUser['id'];
-    dto['created_at'] = new Date();
-    dto['amount'] = dto['amount'];
-
-    console.log(dto);
-
-    return this.depositService.create(dto);
+    return this.depositService.create(dto); 
   }
 
   @Get()

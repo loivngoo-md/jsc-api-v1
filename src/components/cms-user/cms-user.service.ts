@@ -1,6 +1,8 @@
 import {
+  forwardRef,
   HttpException,
   HttpStatus,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -9,13 +11,15 @@ import { UpdateCmsUserDto } from './dto/update-cms-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import CmsUser from './entities/cms-user.entity';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class CmsUserService {
   constructor(
     @InjectRepository(CmsUser)
     private _cmsUserRepo: Repository<CmsUser>,
-  ) {}
+
+  ) { }
 
   async create(createCmsUserDto: CreateCmsUserDto) {
     const newUser = await this._cmsUserRepo.create(createCmsUserDto);

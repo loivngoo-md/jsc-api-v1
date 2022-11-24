@@ -23,7 +23,7 @@ export class SerializerInterceptor implements NestInterceptor {
           if (value?.password) {
             delete value.password;
           }
-          if (value?.withdraw_password || value?.withdraw_password === null) {
+          if (value?.withdraw_password || value?.withdraw_password === null || value?.withdraw_password == "") {
             delete value.withdraw_password;
           }
           return value;

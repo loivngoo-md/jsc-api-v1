@@ -11,14 +11,16 @@ export class DepositService {
   constructor(
     @InjectRepository(Deposit)
     private readonly _depositRepo: Repository<Deposit>,
-    private readonly _appUserRepo: AppUserService,
-  ) {}
+    private readonly _appUserService: AppUserService,
+  ) { }
 
   async create(dto: CreateDepositDto) {
     const response = this._depositRepo.create(dto);
-    const { balance } = await this._appUserRepo.findOne(dto['id']);
-    const newBalance = Number(dto['amount']) + Number(balance);
-    await this._appUserRepo.update(dto['id'], { balance: newBalance });
+    let user = await this._appUserService.findOne(dto['id']);
+
+    const balance = user['balance'] + Number(dto['amount'])
+
+    await this._appUserService.update(dto['user_id'], { balance });
     await this._depositRepo.save(response);
     return response;
   }
