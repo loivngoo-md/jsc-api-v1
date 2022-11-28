@@ -29,6 +29,7 @@ export class WithdrawController {
     return this.withdrawService.userPerformWithdraw(createWithdrawDto, user);
   }
 
+  @UseGuards(CmsAuthGuard)
   @Post('/cms')
   createOnCms(@Body() createWithdrawDto: CreateWithdrawDto) {
     return this.withdrawService.cmsPerformWithdraw(createWithdrawDto);
@@ -38,7 +39,6 @@ export class WithdrawController {
   @Post('/approve')
   approve(
     @Body() body: any,
-    // @GetCurrentCmsUser() currentCmsAdmin: PayLoad
   ) {
     const { user_id, withdraw_id, amount } = body;
     return this.withdrawService.approve(withdraw_id, user_id, amount);

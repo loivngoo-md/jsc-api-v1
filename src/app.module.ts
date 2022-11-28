@@ -13,6 +13,9 @@ import { DepositAccountModule } from './components/deposit-account/deposit-accou
 import { StockModule } from './components/stock/stock.module';
 import { HttpModule } from '@nestjs/axios';
 import { OrderModule } from './components/order/order.module';
+import { LocalFileModule } from './components/local-file/local-file.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -28,6 +31,9 @@ import { OrderModule } from './components/order/order.module';
       }),
       isGlobal: true,
     }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public'),
+    }),
     DatabaseModule,
     CmsUserModule,
     AppUserModule,
@@ -39,8 +45,9 @@ import { OrderModule } from './components/order/order.module';
     DepositAccountModule,
     StockModule,
     OrderModule,
+    LocalFileModule,
   ],
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule { }

@@ -1,4 +1,4 @@
 export class PayLoad {
-  id: string;
+  id: number;
   username: string;
 }

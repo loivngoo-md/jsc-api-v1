@@ -25,10 +25,9 @@ export class DepositService {
     return response;
   }
 
-  async findAll(query: {
+  async findAll(
     user_id: number
-  }) {
-    const { user_id } = query
+  ) {
     return this._depositRepo.find({ where: { user_id } });
   }
 

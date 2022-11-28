@@ -110,6 +110,6 @@ export class CmsUserController {
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.cmsUserService.remove(+id);
+    return this.appUserService.update(+id, { is_active: false })
   }
 }
