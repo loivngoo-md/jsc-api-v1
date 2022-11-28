@@ -10,13 +10,30 @@ import { UpdateAppUserDto } from './dto/update-app-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import AppUser from './entities/app-user.entity';
+import { LocalFileDto } from '../local-file/dto/local-file.dto';
+import { LocalFilesService } from '../local-file/local-file.service';
 
 @Injectable()
 export class AppUserService {
   constructor(
     @InjectRepository(AppUser)
     private _appUserRepo: Repository<AppUser>,
+    private localFilesService: LocalFilesService,
   ) { }
+
+  async addFrontBackCCCD(user_id: number, fileData: LocalFileDto, dto: {
+    type: number
+  }) {
+
+    if (dto['type'] === 1) {
+      await this._appUserRepo.update(user_id, { id_front_cccd: fileData.filename })
+
+    } else if (dto['type'] === 0) {
+      await this._appUserRepo.update(user_id, { id_back_cccd: fileData.filename })
+    }
+
+    return fileData.filename
+  }
 
   async modifiedBalance(
     id: number,
@@ -93,7 +110,8 @@ export class AppUserService {
     if (query.search) {
       app_users = await this._appUserRepo.find({
         where: {
-          username: `%${query.search}%`,
+          is_active: true,
+          username: `%${query.search}%`
         },
         take,
         skip,
@@ -101,6 +119,9 @@ export class AppUserService {
     }
 
     app_users = await this._appUserRepo.find({
+      where: {
+        is_active: true
+      },
       take,
       skip,
     });

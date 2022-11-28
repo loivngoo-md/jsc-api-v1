@@ -35,9 +35,13 @@ export class DepositController {
     return this.depositService.create(dto);
   }
 
+
+  @UseGuards(AppAuthGuard)
   @Get()
-  findAll(@Query() query) {
-    return this.depositService.findAll(query);
+  findAll(
+    @GetCurrentAppUser() user: PayLoad
+  ) {
+    return this.depositService.findAll(user.id);
   }
 
   @Get(':id')
