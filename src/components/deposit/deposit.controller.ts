@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { PayLoad } from '../auth/dto/PayLoad';
 import { GetCurrentAppUser } from '../auth/guards/app-user.decorator';
@@ -35,8 +36,8 @@ export class DepositController {
   }
 
   @Get()
-  findAll() {
-    return this.depositService.findAll();
+  findAll(@Query() query) {
+    return this.depositService.findAll(query);
   }
 
   @Get(':id')

@@ -19,14 +19,17 @@ export class DepositService {
     let user = await this._appUserService.findOne(dto['user_id']);
     const balance = user['balance'] + dto['amount']
     console.log(balance);
-    
+
     await this._appUserService.update(dto['user_id'], { balance });
     await this._depositRepo.save(response);
     return response;
   }
 
-  async findAll() {
-    return this._depositRepo.find();
+  async findAll(query: {
+    user_id: number
+  }) {
+    const { user_id } = query
+    return this._depositRepo.find({ where: { user_id } });
   }
 
   async findOne(id: number) {
