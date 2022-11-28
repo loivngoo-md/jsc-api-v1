@@ -16,6 +16,7 @@ import { OrderModule } from './components/order/order.module';
 import { LocalFileModule } from './components/local-file/local-file.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { StockStorageModule } from './components/stock-storage/stock-storage.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { join } from 'path';
     StockModule,
     OrderModule,
     LocalFileModule,
+    StockStorageModule,
   ],
   controllers: [],
   providers: [],
