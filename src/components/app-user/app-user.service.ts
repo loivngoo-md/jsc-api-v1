@@ -12,6 +12,8 @@ import { Repository } from 'typeorm';
 import AppUser from './entities/app-user.entity';
 import { LocalFileDto } from '../local-file/dto/local-file.dto';
 import { LocalFilesService } from '../local-file/local-file.service';
+import * as bcrypt from 'bcryptjs';
+
 
 @Injectable()
 export class AppUserService {
@@ -156,13 +158,18 @@ export class AppUserService {
     throw new HttpException('User not found', HttpStatus.NOT_FOUND);
   }
 
-  async update(id: number, updateAppUserDto: UpdateAppUserDto) {
+  async update(id: number, dto: UpdateAppUserDto) {
     const user = await this._appUserRepo.findOne({ where: { id } });
     if (!user) {
       throw new BadRequestException('Not found user.');
     }
 
-    await this._appUserRepo.update(id, updateAppUserDto);
+    if (dto['withdraw_password']) {
+      const salt = await bcrypt.genSalt();
+      dto['withdraw_password'] = await bcrypt.hash(dto['withdraw_password'], salt);
+    }
+
+    await this._appUserRepo.update(id, dto);
     const updatedUser = await this._appUserRepo.findOne({ where: { id: id } });
     if (updatedUser) {
       return updatedUser;

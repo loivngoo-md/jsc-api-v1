@@ -16,23 +16,32 @@ import { PayLoad } from '../auth/dto/PayLoad';
 import { ORDER_TYPE } from 'src/common/enums';
 import { AppAuthGuard } from '../auth/guards/appAuth.guard';
 import { GetCurrentAppUser } from '../auth/guards/app-user.decorator';
+import { CmsAuthGuard } from '../auth/guards/cmsAuth.guard';
 
 
 
 @Controller('orders')
 export class OrderController {
   constructor(
-    private readonly orderService: OrderService
+    private readonly _orderService: OrderService
   ) { }
+
+  @UseGuards(CmsAuthGuard)
+  @Get("/histories")
+  async list_orders_by_user(
+    id: number
+    ) {
+    return this._orderService.list_orders_by_user(id)
+  }
 
   @Get()
   async viewListOrders() {
-    return this.orderService.findAll()
+    return this._orderService.findAll()
   }
 
   @Get('/:id')
   async viewOrderDetail(@Param("id") id: string) {
-    return this.orderService.findOne(+id);
+    return this._orderService.findOne(+id);
   }
 
   @UseGuards(AppAuthGuard)
@@ -47,7 +56,7 @@ export class OrderController {
     }
     dto['user_id'] = userFromToken['id']
 
-    return this.orderService.buyOnApp(dto)
+    return this._orderService.buyOnApp(dto)
   }
 
   @Post("/cms/buy")
@@ -57,7 +66,7 @@ export class OrderController {
     if (dto['type'] != ORDER_TYPE.BUY) {
       throw new BadRequestException()
     }
-    return this.orderService.buyOnCms(dto)
+    return this._orderService.buyOnCms(dto)
   }
 
   @Post("/cms/sell")
@@ -68,7 +77,7 @@ export class OrderController {
       throw new BadRequestException()
     }
 
-    return this.orderService.sellOnCms(dto)
+    return this._orderService.sellOnCms(dto)
   }
 
   @UseGuards(AppAuthGuard)
@@ -83,21 +92,21 @@ export class OrderController {
     }
 
     dto['user_id'] = userFromToken['id']
-    return this.orderService.sellOnApp(dto)
+    return this._orderService.sellOnApp(dto)
   }
 
   @Post()
   create(@Body() createOrderDto: CreateOrderDto) {
-    return this.orderService.create(createOrderDto);
+    return this._orderService.create(createOrderDto);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
-    return this.orderService.update(+id, updateOrderDto);
+    return this._orderService.update(+id, updateOrderDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.orderService.remove(+id);
+    return this._orderService.remove(+id);
   }
 }

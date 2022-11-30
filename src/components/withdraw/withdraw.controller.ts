@@ -18,7 +18,7 @@ import { PayLoad } from '../auth/dto/PayLoad';
 
 @Controller('withdrawals')
 export class WithdrawController {
-  constructor(private readonly withdrawService: WithdrawService) {}
+  constructor(private readonly withdrawService: WithdrawService) { }
 
   @UseGuards(AppAuthGuard)
   @Post('/app')
@@ -35,7 +35,7 @@ export class WithdrawController {
     return this.withdrawService.cmsPerformWithdraw(createWithdrawDto);
   }
 
-  @UseGuards(CmsAuthGuard)
+  @UseGuards(AppAuthGuard)
   @Post('/approve')
   approve(
     @Body() body: any,
@@ -44,9 +44,10 @@ export class WithdrawController {
     return this.withdrawService.approve(withdraw_id, user_id, amount);
   }
 
+  @UseGuards(AppAuthGuard)
   @Get()
-  findAll() {
-    return this.withdrawService.findAll();
+  findAll(@GetCurrentAppUser() user: PayLoad) {
+    return this.withdrawService.findAll(user);
   }
 
   @Get(':id')

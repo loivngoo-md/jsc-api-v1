@@ -6,12 +6,14 @@ import CmsUser from './entities/cms-user.entity';
 import { AppUserModule } from '../app-user/app-user.module';
 import { MoneyLogModule } from '../money-log/money-log.module';
 import { AuthModule } from '../auth/auth.module';
+import { OrderModule } from '../order/order.module';
 
 @Module({
   imports: [
      TypeOrmModule.forFeature([CmsUser]),
     AppUserModule,
     MoneyLogModule,
+    OrderModule,
     forwardRef(() => AuthModule)
   ],
   controllers: [CmsUserController],

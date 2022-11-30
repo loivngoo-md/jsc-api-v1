@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateWithdrawDto } from './dto/create-withdraw.dto';
 import { UpdateWithdrawDto } from './dto/update-withdraw.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -6,6 +6,10 @@ import { Repository } from 'typeorm';
 import { Withdraw } from './entities/withdraw.entity';
 import { AppUserService } from '../app-user/app-user.service';
 import { PayLoad } from '../auth/dto/PayLoad';
+import CmsUser from '../cms-user/entities/cms-user.entity';
+import AppUser from '../app-user/entities/app-user.entity';
+import * as bcrypt from 'bcryptjs';
+import { INVALID_PASSWORD } from 'src/common/constant/error-message';
 
 @Injectable()
 export class WithdrawService {
@@ -42,13 +46,26 @@ export class WithdrawService {
     return response;
   }
 
+  async validatePassword(
+    user: AppUser,
+    withdraw_password: string,
+  ): Promise<boolean> {
+    return bcrypt.compareSync(withdraw_password, user.withdraw_password);
+  }
+
   async userPerformWithdraw(dto: any, userFromToken: PayLoad) {
     const { username } = userFromToken;
+
+
 
     dto['username'] = username;
     dto['created_at'] = new Date();
     const { amount } = dto;
     const user = await this._appUserService.findByUsername(username);
+    if (!(await this.validatePassword(user, dto['withdraw_password']))) {
+      throw new NotFoundException(INVALID_PASSWORD);
+    }
+
     const { balance } = user;
 
     const compare = Number(balance) - Number(amount);
@@ -71,8 +88,8 @@ export class WithdrawService {
     return response;
   }
 
-  async findAll() {
-    return this._withdrawRepo.find();
+  async findAll(user: PayLoad) {
+    return this._withdrawRepo.find({ where: { username: user.username } });
   }
 
   async findOne(id: number) {

@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 import { AppUserService } from '../app-user/app-user.service';
 import { StockService } from '../stock/stock.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -16,6 +16,44 @@ export class OrderService {
     @InjectRepository(Order)
     private readonly _orderRepo: Repository<Order>
   ) { }
+
+  async list_orders_by_user(user_id: number) {
+    const $orders = await this._orderRepo.find({ where: { user_id } })
+    if (!!$orders) {
+      return $orders
+    }
+    throw new NotFoundException()
+  }
+
+  async list_all_orders() {
+    return this._orderRepo.find()
+  }
+
+  async view_detail_order(id: number) {
+    const $orders = await this._orderRepo.findOne({ where: { id } })
+    if (!!$orders) {
+      return $orders
+    }
+    throw new NotFoundException()
+  }
+
+  async list_orders_today_for_user(user_id: number) {
+
+    const today = new Date()
+    let $list_orders = await this._orderRepo.find(
+      {
+        where: {
+          user_id,
+          created_at: LessThanOrEqual(today)
+        },
+      }
+    )
+
+    if (!!$list_orders) {
+      return $list_orders
+    }
+    throw new NotFoundException()
+  }
 
   async create(dto: CreateOrderDto) {
     const data = await this._orderRepo.create(dto);
@@ -34,7 +72,9 @@ export class OrderService {
     const { balance } = await this._appUserService.findOne(dto['user_id'])
 
     await this._appUserService.update(dto['user_id'], { balance: balance + dto['amount'] })
-    return this.create(dto)
+    const created_order = this._orderRepo.create(dto)
+    await this._orderRepo.save(created_order)
+    return created_order
 
   }
 
@@ -49,7 +89,9 @@ export class OrderService {
     const { balance } = await this._appUserService.findOne(dto['user_id'])
 
     await this._appUserService.update(dto['user_id'], { balance: balance + dto['amount'] })
-    return this.create(dto)
+    const created_order = this._orderRepo.create(dto)
+    await this._orderRepo.save(created_order)
+    return created_order
 
   }
 
@@ -63,16 +105,18 @@ export class OrderService {
     dto['amount'] = stock["P"] * dto['quantity']
 
     console.log(dto['user_id']);
-    
+
 
     const { balance } = await this._appUserService.findOne(dto['user_id'])
-    
+
     if (balance < dto['amount']) {
       throw new HttpException("Not enough money", HttpStatus.BAD_REQUEST)
     }
 
     await this._appUserService.update(dto['user_id'], { balance: balance - dto['amount'] })
-    return this._orderRepo.create(dto)
+    const created_order = this._orderRepo.create(dto)
+    await this._orderRepo.save(created_order)
+    return created_order
   }
 
   async buyOnApp(dto) {

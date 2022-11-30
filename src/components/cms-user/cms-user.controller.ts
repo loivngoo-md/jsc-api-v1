@@ -16,6 +16,7 @@ import { AuthService } from '../auth/auth.service';
 import { LoginByUsernameDto } from '../auth/dto/LoginByUsernameDto';
 import MoneyLog from '../money-log/entities/money-log.entity';
 import { MoneyLogService } from '../money-log/money-log.service';
+import { OrderService } from '../order/order.service';
 import { CmsUserService } from './cms-user.service';
 import { CreateCmsUserDto } from './dto/create-cms-user.dto';
 import { UpdateCmsUserDto } from './dto/update-cms-user.dto';
@@ -27,6 +28,7 @@ export class CmsUserController {
     private readonly appUserService: AppUserService,
     private readonly moneyLogService: MoneyLogService,
     private readonly authService: AuthService,
+    private readonly _orderService: OrderService
   ) { }
 
   @Post('login')
@@ -111,5 +113,27 @@ export class CmsUserController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.appUserService.update(+id, { is_active: false })
+  }
+
+  @Get("/orders/histories")
+  async list_orders(
+  ) {
+    return this._orderService.list_all_orders()
+  }
+
+  @Get("/orders/today")
+  async list_orders_by_user_from_today(
+    @Body() dto: {
+      user_id: number
+    }
+  ) {
+    return this._orderService.list_orders_today_for_user(dto['user_id'])
+  }
+
+  @Get("/orders/:id")
+  async view_detail_order(
+    @Param("id") id: string
+  ) {
+    return this._orderService.view_detail_order(+id)
   }
 }

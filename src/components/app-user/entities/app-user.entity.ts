@@ -9,7 +9,6 @@ import {
 } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { EntityHelper } from 'src/helpers/entity-helper';
-import LocalFile from 'src/components/local-file/entities/local-file.entity';
 
 @Entity({ name: 'app_users' })
 class AppUser extends EntityHelper {
@@ -22,7 +21,7 @@ class AppUser extends EntityHelper {
   @Column({ nullable: false })
   public password: string;
 
-  @Column({ default: "" })
+  @Column({ nullable: true })
   public withdraw_password: string;
 
   @Column({ default: false })
@@ -34,26 +33,8 @@ class AppUser extends EntityHelper {
   @Column({ default: "" })
   public real_name: string;
 
-  // @JoinColumn({ name: 'id_front_cccd' })
-  // @OneToOne(
-  //   () => LocalFile,
-  //   {
-  //     nullable: true
-  //   }
-  // )
-  // public front_cccd?: LocalFile;
-
   @Column({ nullable: true })
   public id_front_cccd?: string;
-
-  // @JoinColumn({ name: 'id_back_cccd' })
-  // @OneToOne(
-  //   () => LocalFile,
-  //   {
-  //     nullable: true
-  //   }
-  // )
-  // public back_cccd?: LocalFile;
 
   @Column({ nullable: true })
   public id_back_cccd?: string;
@@ -139,11 +120,6 @@ class AppUser extends EntityHelper {
     if (this.password) {
       const salt = await bcrypt.genSalt();
       this.password = await bcrypt.hash(this.password, salt);
-    }
-
-    if (this.withdraw_password) {
-      const salt = await bcrypt.genSalt();
-      this.password = await bcrypt.hash(this.withdraw_password, salt);
     }
   }
 }
