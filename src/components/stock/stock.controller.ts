@@ -7,14 +7,20 @@ import {
   Param,
   Delete,
   Query,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { StockService } from './stock.service';
 import { CreateStockDto } from './dto/create-stock.dto';
 import { UpdateStockDto } from './dto/update-stock.dto';
+import { OrderService } from '../order/order.service';
 
 @Controller('stock')
 export class StockController {
-  constructor(private readonly stockService: StockService) {}
+  constructor(
+    private readonly stockService: StockService,
+    private readonly orderService: OrderService
+  ) { }
 
   @Post()
   create(@Body() createStockDto: CreateStockDto) {
@@ -32,8 +38,16 @@ export class StockController {
   }
 
   @Get('/:fs')
-  findOne(@Param('fs') fs: string) {
-    return this.stockService.findOne(fs);
+  async findOne(@Param('fs') fs: string) {
+    const stock = await this.stockService.findOne(fs);
+    return {
+      stock_data: stock,
+      user_holding: {
+        today_count: 37,
+        total_count: 155
+      }
+    }
+
   }
 
   @Patch(':id')
