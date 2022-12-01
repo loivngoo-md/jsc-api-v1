@@ -17,9 +17,9 @@ export class SystemConfigurationController {
     return this.systemConfigurationService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.systemConfigurationService.findOne(+id);
+  @Get("main")
+  findOne() {
+    return this.systemConfigurationService.findOne();
   }
 
   @Patch(':id')
