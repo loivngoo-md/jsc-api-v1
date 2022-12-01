@@ -15,6 +15,43 @@ export class StockService {
     private _stockRepo: Repository<Stock>,
   ) { }
 
+
+  async get_k_line_data(query: {
+    fromtick: string,
+    period: string,
+    psize: string,
+    symbol: string
+  }) {
+    let { fromtick, period, psize, symbol } = query
+
+    psize = psize ?? '500'
+    const APP_KEY = `AppCode ${process.env.APP_CODE_3RD}`;
+    const uri = process.env.HOST_STOCK_3RD;
+    const config = {
+      headers: {
+        Authorization: `${APP_KEY}`,
+      },
+    };
+    const url = `${uri}/query/comkmv2ex?fromtick=${fromtick}&period=${period}&psize=${psize}&symbol=${symbol}`
+    const { data } = await firstValueFrom(this.httpService.get(url, config));
+    const listStocks: string = data.Obj;
+
+    const formattedStock = listStocks.split(';').map(string => {
+      const splittedData = string.split(',')
+      return {
+        Tick: splittedData[0],
+        C: splittedData[1],
+        O: splittedData[2],
+        H: splittedData[3],
+        L: splittedData[4],
+        A: splittedData[5],
+        V: splittedData[6],
+      }
+    })
+
+    return formattedStock
+  }
+
   async create(createStockDto: CreateStockDto) {
     return 'This action adds a new stock';
   }

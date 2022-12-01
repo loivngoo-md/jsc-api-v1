@@ -20,6 +20,7 @@ import { AppAuthGuard } from '../auth/guards/appAuth.guard';
 import { GetCurrentAppUser } from '../auth/guards/app-user.decorator';
 import { PayLoad } from '../auth/dto/PayLoad';
 
+@UseGuards(AppAuthGuard)
 @Controller('stock')
 export class StockController {
   constructor(
@@ -29,8 +30,15 @@ export class StockController {
   ) { }
 
   @Get("timeline")
-  async get_time_line() {
-
+  async get_k_line(
+    @Query() query: {
+      fromtick: string,
+      period: string,
+      psize: string,
+      symbol: string
+    }
+  ) {
+    return await this.stockService.get_k_line_data(query)
   }
 
   @Post()
