@@ -39,13 +39,13 @@ export class StockService {
     const formattedStock = listStocks.split(';').map(string => {
       const splittedData = string.split(',')
       return {
-        Tick: splittedData[0],
-        C: splittedData[1],
-        O: splittedData[2],
-        H: splittedData[3],
-        L: splittedData[4],
-        A: splittedData[5],
-        V: splittedData[6],
+        Tick: Number(splittedData[0]),
+        C: Number(splittedData[1]),
+        O: Number(splittedData[2]),
+        H: Number(splittedData[3]),
+        L: Number(splittedData[4]),
+        A: Number(splittedData[5]),
+        V: Number(splittedData[6]),
       }
     })
 
