@@ -4,4 +4,5 @@ export class CreateAppUserDto {
     balance_frozen?: number;
     is_active?: boolean;
     is_verified?: boolean;
+    balance_avail: number
 }

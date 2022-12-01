@@ -37,8 +37,6 @@ class Deposit extends EntityHelper {
   @Column('varchar', { default: '' })
   remark: string;
 
-  @Column()
-  created_at: Date;
 }
 
 export default Deposit;

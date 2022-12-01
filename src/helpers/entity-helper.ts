@@ -1,4 +1,5 @@
-import { AfterLoad, BaseEntity, BeforeInsert, BeforeUpdate, Column } from 'typeorm';
+import { AfterLoad, BaseEntity, BeforeInsert, BeforeUpdate, Column, Timestamp, UpdateDateColumn } from 'typeorm';
+import * as moment from 'moment'
 
 export class EntityHelper extends BaseEntity {
   __entity?: string;
@@ -8,15 +9,9 @@ export class EntityHelper extends BaseEntity {
     this.__entity = this.constructor.name;
   }
 
-  @Column({ default: new Date() })
-  created_at: Date
+  @Column("timestamptz", { default: new Date().toLocaleString("en-US", { timeZone: 'Asia/Bangkok' }) })
+  created_at: Timestamp
 
-  @Column({ default: new Date() })
-  updated_at: Date
-
-  @BeforeInsert()
-  @BeforeUpdate()
-  async set_updated_at() {
-    this.updated_at = new Date()
-  }
+  @UpdateDateColumn({ default: new Date().toLocaleString("en-US", { timeZone: 'Asia/Bangkok' }) })
+  updated_at: Timestamp
 }

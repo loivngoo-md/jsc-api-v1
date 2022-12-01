@@ -5,12 +5,14 @@ import { HttpModule } from '@nestjs/axios';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import Stock from './entities/stock.entity';
 import { OrderModule } from '../order/order.module';
+import { StockStorageModule } from '../stock-storage/stock-storage.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Stock]),
     HttpModule,
-    forwardRef(()=> OrderModule)
+    forwardRef(()=> OrderModule),
+    StockStorageModule
   ],
   controllers: [StockController],
   providers: [StockService],

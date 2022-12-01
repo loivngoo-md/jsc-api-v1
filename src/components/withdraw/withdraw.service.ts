@@ -56,17 +56,17 @@ export class WithdrawService {
   async userPerformWithdraw(dto: any, userFromToken: PayLoad) {
     const { username } = userFromToken;
 
-
-
     dto['username'] = username;
     dto['created_at'] = new Date();
     const { amount } = dto;
     const user = await this._appUserService.findByUsername(username);
+
     if (!(await this.validatePassword(user, dto['withdraw_password']))) {
       throw new NotFoundException(INVALID_PASSWORD);
     }
 
-    const { balance } = user;
+    let { balance, balance_avail, balance_frozen } = user;
+
 
     const compare = Number(balance) - Number(amount);
 
@@ -76,12 +76,20 @@ export class WithdrawService {
         HttpStatus.BAD_REQUEST,
       );
     }
+
+    balance_frozen = balance_frozen + dto['amount']
+    balance_avail = balance - balance_frozen
+    balance = balance_avail + balance_frozen
+
+
     dto['before'] = balance;
     dto['after'] = compare.toString();
     await this._appUserService.update(user.id, {
-      balance_frozen: amount,
-      balance: compare,
+      balance_frozen,
+      balance,
+      balance_avail,
       is_freeze: true,
+
     });
     const response = this._withdrawRepo.create(dto);
     await this._withdrawRepo.save(response);

@@ -1,3 +1,4 @@
+import { ORDER_TYPE } from "src/common/enums";
 import { EntityHelper } from "src/helpers/entity-helper";
 import { BeforeInsert, BeforeUpdate, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
@@ -20,4 +21,7 @@ export class StockStorage extends EntityHelper {
 
     @Column("float8")
     amount: number
+
+    @Column({ nullable: false })
+    type: ORDER_TYPE
 }

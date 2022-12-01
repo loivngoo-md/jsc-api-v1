@@ -8,5 +8,6 @@ import { StockStorageService } from './stock-storage.service';
     imports: [TypeOrmModule.forFeature([StockStorage])],
     controllers: [StockStorageController],
     providers: [StockStorageService],
+    exports: [StockStorageService]
 })
 export class StockStorageModule { }

@@ -23,6 +23,30 @@ export class AppUserService {
     private localFilesService: LocalFilesService,
   ) { }
 
+  async update_customer_profit(id: number) {
+
+
+
+  }
+  async update_customer_hold_value(id: number) {
+
+  }
+  async update_customer_balance_frozen(id: number) {
+
+  }
+  async update_customer_balance_avail(id: number) {
+
+  }
+  async freeze_account(id: number) {
+    let { is_freeze } = await this._appUserRepo.findOne({ where: { id } })
+    if (is_freeze === true) {
+      is_freeze = false
+    } else {
+      is_freeze = true
+    }
+
+  }
+
   async addFrontBackCCCD(user_id: number, fileData: LocalFileDto, dto: {
     type: number
   }) {
@@ -163,7 +187,6 @@ export class AppUserService {
     if (!user) {
       throw new BadRequestException('Not found user.');
     }
-
     if (dto['withdraw_password']) {
       const salt = await bcrypt.genSalt();
       dto['withdraw_password'] = await bcrypt.hash(dto['withdraw_password'], salt);

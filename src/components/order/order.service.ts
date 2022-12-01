@@ -2,6 +2,7 @@ import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestj
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 import { AppUserService } from '../app-user/app-user.service';
+import { StockStorageService } from '../stock-storage/stock-storage.service';
 import { StockService } from '../stock/stock.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
@@ -14,7 +15,8 @@ export class OrderService {
     private readonly _stockService: StockService,
     private readonly _appUserService: AppUserService,
     @InjectRepository(Order)
-    private readonly _orderRepo: Repository<Order>
+    private readonly _orderRepo: Repository<Order>,
+    private readonly _stockStorageService: StockStorageService
   ) { }
 
   async list_orders_by_user(user_id: number) {
@@ -44,7 +46,7 @@ export class OrderService {
       {
         where: {
           user_id,
-          created_at: LessThanOrEqual(today)
+          // created_at: LessThanOrEqual(today)
         },
       }
     )
@@ -69,9 +71,13 @@ export class OrderService {
     }
 
     dto['amount'] = stock['P'] * dto['quantity']
-    const { balance } = await this._appUserService.findOne(dto['user_id'])
+    let { balance, balance_avail } = await this._appUserService.findOne(dto['user_id'])
+    balance_avail += dto['amount']
+    balance += dto['amount']
 
-    await this._appUserService.update(dto['user_id'], { balance: balance + dto['amount'] })
+    await this._appUserService.update(dto['user_id'], { balance, balance_avail })
+    await this._stockStorageService.store(dto)
+
     const created_order = this._orderRepo.create(dto)
     await this._orderRepo.save(created_order)
     return created_order
@@ -86,9 +92,12 @@ export class OrderService {
     }
 
     dto['amount'] = Number(stock['P']) * Number(dto['quantity'])
-    const { balance } = await this._appUserService.findOne(dto['user_id'])
+    let { balance, balance_avail } = await this._appUserService.findOne(dto['user_id'])
+    balance += dto['amount']
+    balance_avail += dto['amount']
+    await this._appUserService.update(dto['user_id'], { balance, balance_avail })
+    await this._stockStorageService.store(dto)
 
-    await this._appUserService.update(dto['user_id'], { balance: balance + dto['amount'] })
     const created_order = this._orderRepo.create(dto)
     await this._orderRepo.save(created_order)
     return created_order
@@ -114,6 +123,8 @@ export class OrderService {
     }
 
     await this._appUserService.update(dto['user_id'], { balance: balance - dto['amount'] })
+    await this._stockStorageService.store(dto)
+
     const created_order = this._orderRepo.create(dto)
     await this._orderRepo.save(created_order)
     return created_order
@@ -126,15 +137,21 @@ export class OrderService {
       throw new NotFoundException()
     }
     dto['amount'] = stock["P"] * dto['quantity']
-    console.log(stock["P"], dto['quantity'], dto['amount']);
 
-
-    const { balance } = await this._appUserService.findOne(dto['user_id'])
+    let { balance, balance_avail } = await this._appUserService.findOne(dto['user_id'])
     if (balance < dto['amount']) {
       throw new HttpException("Not enough money", HttpStatus.BAD_REQUEST)
     }
+    balance = balance - dto['amount']
+    balance_avail = balance_avail - dto['amount']
 
-    await this._appUserService.update(dto['user_id'], { balance: balance - dto['amount'] })
+
+
+
+    await this._appUserService.update(dto['user_id'], { balance, balance_avail })
+
+    await this._stockStorageService.store(dto)
+
     const response = this._orderRepo.create(dto)
     await this._orderRepo.save(response)
     return response

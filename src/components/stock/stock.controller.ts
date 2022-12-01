@@ -9,17 +9,23 @@ import {
   Query,
   Inject,
   forwardRef,
+  UseGuards,
 } from '@nestjs/common';
 import { StockService } from './stock.service';
 import { CreateStockDto } from './dto/create-stock.dto';
 import { UpdateStockDto } from './dto/update-stock.dto';
 import { OrderService } from '../order/order.service';
+import { StockStorageService } from '../stock-storage/stock-storage.service';
+import { AppAuthGuard } from '../auth/guards/appAuth.guard';
+import { GetCurrentAppUser } from '../auth/guards/app-user.decorator';
+import { PayLoad } from '../auth/dto/PayLoad';
 
 @Controller('stock')
 export class StockController {
   constructor(
     private readonly stockService: StockService,
-    private readonly orderService: OrderService
+    private readonly orderService: OrderService,
+    private readonly _stockInventoryService: StockStorageService
   ) { }
 
   @Post()
@@ -37,14 +43,22 @@ export class StockController {
     return this.stockService.findAll(query);
   }
 
+  @UseGuards(AppAuthGuard)
   @Get('/:fs')
-  async findOne(@Param('fs') fs: string) {
+  async findOne(
+    @Param('fs') fs: string,
+    @GetCurrentAppUser() user: PayLoad
+  ) {
     const stock = await this.stockService.findOne(fs);
+
+    const today_count = await this._stockInventoryService.count_today_purchased(user['id'], fs)
+    const total_count = await this._stockInventoryService.count_list_stock_purchased(user['id'], fs)
+
     return {
       stock_data: stock,
       user_holding: {
-        today_count: 37,
-        total_count: 155
+        today_count,
+        total_count
       }
     }
 
