@@ -62,11 +62,7 @@ export class StockService {
     const { data } = await firstValueFrom(this.httpService.get(url, config));
     const listStocks: any[] = data.Obj;
 
-    listStocks.map(async (stock) => {
-      await this._stockRepo.update({ FS: stock.FS }, stock);
-      return stock;
-    });
-
+    await this._stockRepo.upsert([...listStocks], ['id'])
     return {
       count: listStocks.length,
       data: listStocks,

@@ -28,6 +28,11 @@ export class StockController {
     private readonly _stockInventoryService: StockStorageService
   ) { }
 
+  @Get("timeline")
+  async get_time_line() {
+
+  }
+
   @Post()
   create(@Body() createStockDto: CreateStockDto) {
     return this.stockService.create(createStockDto);
