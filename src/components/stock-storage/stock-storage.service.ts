@@ -13,7 +13,7 @@ export class StockStorageService {
         @InjectRepository(StockStorage)
         private readonly _stockStorageRepo: Repository<StockStorage>,
         private readonly _stockService: StockService
-        ) { }
+    ) { }
 
 
     public async list_for_user(user_id: number) {
@@ -47,7 +47,7 @@ export class StockStorageService {
         }, 0)
         return today_count
     }
-    
+
 
     public async count_list_stock_purchased(user_id: number, fs: string) {
         const positions = await this._stockStorageRepo.find({
@@ -91,17 +91,15 @@ export class StockStorageService {
         })
 
         const stockCodes = positions.reduce((codes: string[], position) => {
-            if(!codes.includes(position.stock_code)) {
+            if (!codes.includes(position.stock_code)) {
                 codes.push(position.stock_code)
             }
             return codes
         }, [])
 
-        console.log({stockCodes})
-
         const stocks = await this._stockService.getStocksUsingCodes(stockCodes)
 
-        return {positions, stocks}
+        return { positions, stocks }
     }
 
     public async getSellablePositions(user_id: number, query: SellablePositionsQuery) {
@@ -118,6 +116,10 @@ export class StockStorageService {
                 created_at: LessThan(today)
             }
         })
-        return positions
+
+        const stocks = await this._stockService.getStocksUsingCodes([query.stock_code])
+
+
+        return { positions, stocks }
     }
 }
