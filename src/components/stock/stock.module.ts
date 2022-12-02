@@ -12,7 +12,8 @@ import { StockStorageModule } from '../stock-storage/stock-storage.module';
     TypeOrmModule.forFeature([Stock]),
     HttpModule,
     forwardRef(()=> OrderModule),
-    StockStorageModule
+    forwardRef(()=> StockStorageModule),
+    
   ],
   controllers: [StockController],
   providers: [StockService],

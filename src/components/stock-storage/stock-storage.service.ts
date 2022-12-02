@@ -1,15 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ORDER_TYPE } from 'src/common/enums';
-import { DeepPartial, MoreThanOrEqual, Repository } from 'typeorm';
+import { ORDER_TYPE, POSITION_STATUS } from 'src/common/enums';
+import { dateFormatter } from 'src/helpers/moment';
+import { DeepPartial, LessThan, MoreThanOrEqual, Repository } from 'typeorm';
+import { PositionQuery, SellablePositionsQuery } from '../app-user/dto/positions-pagination.dto';
+import { StockService } from '../stock/stock.service';
 import { StockStorage } from './entities/stock-storage.entity';
 
 @Injectable()
 export class StockStorageService {
     constructor(
         @InjectRepository(StockStorage)
-        private readonly _stockStorageRepo: Repository<StockStorage>
-    ) { }
+        private readonly _stockStorageRepo: Repository<StockStorage>,
+        private readonly _stockService: StockService
+        ) { }
 
 
     public async list_for_user(user_id: number) {
@@ -25,30 +29,95 @@ export class StockStorageService {
 
     public async count_today_purchased(user_id: number, fs: string) {
 
-        const today_timestamp = new Date().setHours(16, 0, 0)
+        const today_timestamp = dateFormatter().valueOf()
         const today = new Date(today_timestamp)
-        console.log(today);
-        
 
-        const list_stock = await this._stockStorageRepo.find({
+
+        const positions = await this._stockStorageRepo.find({
             where: {
                 user_id,
                 stock_code: fs,
-                type: ORDER_TYPE.BUY,
+                status: POSITION_STATUS.OPEN,
                 created_at: MoreThanOrEqual(today)
             }
         })
-        return list_stock.length
+        const today_count = positions.reduce((count: number, position) => {
+            count += +position.quantity
+            return count
+        }, 0)
+        return today_count
     }
+    
 
     public async count_list_stock_purchased(user_id: number, fs: string) {
-        const list_stock = await this._stockStorageRepo.find({
+        const positions = await this._stockStorageRepo.find({
             where: {
                 user_id,
                 stock_code: fs,
-                type: ORDER_TYPE.BUY
+                status: POSITION_STATUS.OPEN
             }
         })
-        return list_stock.length
+
+        const total_count = positions.reduce((count: number, position) => {
+            count += +position.quantity
+            return count
+        }, 0)
+        return total_count
+    }
+
+    public async update(position_id: string | number, dto: DeepPartial<StockStorage>) {
+        return this._stockStorageRepo.update(position_id, dto)
+    }
+
+    public findOne(position_id: number) {
+        return this._stockStorageRepo.findOne({
+            where: {
+                id: position_id
+            }
+        })
+    }
+
+    public async findUserPostions(user_id: string | number, query: PositionQuery) {
+        const page = +query.page || 1
+        const pageSize = +query.ps || 20
+        const skip = (page - 1) * pageSize
+        const positions = await this._stockStorageRepo.find({
+            where: {
+                user_id: Number(user_id),
+                status: POSITION_STATUS.OPEN
+            },
+            skip,
+            take: pageSize
+        })
+
+        const stockCodes = positions.reduce((codes: string[], position) => {
+            if(!codes.includes(position.stock_code)) {
+                codes.push(position.stock_code)
+            }
+            return codes
+        }, [])
+
+        console.log({stockCodes})
+
+        const stocks = await this._stockService.getStocksUsingCodes(stockCodes)
+
+        return {positions, stocks}
+    }
+
+    public async getSellablePositions(user_id: number, query: SellablePositionsQuery) {
+
+        const today_timestamp = dateFormatter().valueOf()
+        const today = new Date(today_timestamp)
+
+
+        const positions = await this._stockStorageRepo.find({
+            where: {
+                user_id,
+                stock_code: query.stock_code,
+                status: POSITION_STATUS.OPEN,
+                created_at: LessThan(today)
+            }
+        })
+        return positions
     }
 }

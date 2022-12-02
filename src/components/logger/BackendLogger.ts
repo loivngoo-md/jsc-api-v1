@@ -1,17 +1,17 @@
-import * as dayjs from 'dayjs';
 import * as winston from 'winston';
 import * as chalk from 'chalk';
 import { Logger } from '@nestjs/common';
 import { SessionMiddleware } from '../../middleware/session.middleware';
 import { REQUEST_ID, SESSION_USER } from '../../common/constant/constants';
 import CmsUser from '../cms-user/entities/cms-user.entity';
+import { dateFormatter } from 'src/helpers/moment';
 
 const formatter = (info) => {
   const requestId = SessionMiddleware.get(REQUEST_ID) || '-';
   const user: CmsUser = SessionMiddleware.get(SESSION_USER);
   const email = user ? user.username : '-';
 
-  return `${dayjs(info.timestamp).format(
+  return `${dateFormatter(info.timestamp).format(
     'YYYY/MM/DD - hh:mm:ss.SSS A',
   )} ${chalk.magentaBright(requestId)} ${email} [${info.level}] [${chalk.green(
     info.context,

@@ -67,7 +67,6 @@ export class WithdrawService {
 
     let { balance, balance_avail, balance_frozen } = user;
 
-
     const compare = Number(balance) - Number(amount);
 
     if (compare < 0) {
@@ -80,6 +79,7 @@ export class WithdrawService {
     balance_frozen = balance_frozen + dto['amount']
     balance_avail = balance - balance_frozen
     balance = balance_avail + balance_frozen
+
 
 
     dto['before'] = balance;

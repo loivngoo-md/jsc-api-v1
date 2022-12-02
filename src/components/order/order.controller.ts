@@ -10,7 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
-import { CreateOrderDto } from './dto/create-order.dto';
+import { ClosePositionDto, CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { PayLoad } from '../auth/dto/PayLoad';
 import { ORDER_TYPE } from 'src/common/enums';
@@ -83,16 +83,10 @@ export class OrderController {
   @UseGuards(AppAuthGuard)
   @Post("/app/sell")
   async sellStockOnApp(
-    @Body() dto: CreateOrderDto,
+    @Param() position_id: string,
     @GetCurrentAppUser() userFromToken: PayLoad
   ) {
-
-    if (dto['type'] != ORDER_TYPE.SELL) {
-      throw new BadRequestException()
-    }
-
-    dto['user_id'] = userFromToken['id']
-    return this._orderService.sellOnApp(dto)
+    return this._orderService.sellOnApp(position_id, userFromToken.id)
   }
 
   @Post()

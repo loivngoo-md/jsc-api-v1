@@ -7,6 +7,7 @@ import { LocalFileModule } from '../local-file/local-file.module';
 import { OrderModule } from '../order/order.module';
 import { WithdrawModule } from '../withdraw/withdraw.module';
 import { DepositModule } from '../deposit/deposit.module';
+import { StockStorageModule } from '../stock-storage/stock-storage.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { DepositModule } from '../deposit/deposit.module';
     forwardRef(() => OrderModule),
     forwardRef(() => WithdrawModule),
     forwardRef(() => DepositModule),
+    StockStorageModule,
     
   ],
   controllers: [AppUserController],

@@ -11,6 +11,7 @@ import {
   UploadedFile,
   Query,
   BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { PayLoad } from '../auth/dto/PayLoad';
 import { GetCurrentAppUser } from '../auth/guards/app-user.decorator';
@@ -19,13 +20,15 @@ import { CreateAppUserDto } from './dto/create-app-user.dto';
 import { UpdateAppUserDto } from './dto/update-app-user.dto';
 import LocalFilesInterceptor from 'src/middleware/localFiles.interceptor';
 import { AppAuthGuard } from '../auth/guards/appAuth.guard'
-import { CreateOrderDto } from '../order/dto/create-order.dto';
+import { ClosePositionDto, CreateOrderDto } from '../order/dto/create-order.dto';
 import { ORDER_TYPE } from 'src/common/enums';
 import { OrderService } from '../order/order.service';
 import { CreateWithdrawDto } from '../withdraw/dto/create-withdraw.dto';
 import { WithdrawService } from '../withdraw/withdraw.service';
 import { CreateDepositDto } from '../deposit/dto/create-deposit.dto';
 import { DepositService } from '../deposit/deposit.service';
+import { StockStorageService } from '../stock-storage/stock-storage.service';
+import { PositionQuery, SellablePositionsQuery } from './dto/positions-pagination.dto';
 
 
 @Controller('app')
@@ -34,6 +37,7 @@ export class AppUserController {
     private readonly appUserService: AppUserService,
     private readonly orderService: OrderService,
     private readonly withdrawService: WithdrawService,
+    private readonly stockStorageService: StockStorageService,
     private readonly depositService: DepositService
   ) { }
 
@@ -47,10 +51,6 @@ export class AppUserController {
     return this.appUserService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.appUserService.findOne(+id);
-  }
 
   @UseGuards(AppAuthGuard)
   @Patch()
@@ -141,18 +141,12 @@ export class AppUserController {
   }
 
   @UseGuards(AppAuthGuard)
-  @Post("sell")
+  @Post("sell/:position_id")
   async sellStock(
-    @Body() dto: CreateOrderDto,
+    @Param('position_id') position_id: string,
     @GetCurrentAppUser() userFromToken: PayLoad,
   ) {
-
-    if (dto['type'] != ORDER_TYPE.SELL) {
-      throw new BadRequestException()
-    }
-    dto['user_id'] = userFromToken['id']
-
-    return this.orderService.sellOnApp(dto)
+    return this.orderService.sellOnApp(position_id, userFromToken.id)
   }
 
   @UseGuards(AppAuthGuard)
@@ -172,5 +166,32 @@ export class AppUserController {
   ) {
     dto['user_id'] = appUser['id'];
     return this.depositService.create(dto);
+  }
+
+  @UseGuards(AppAuthGuard)
+  @Get("positions/sellable")
+  async getSellablePositions(
+    @Query() query: SellablePositionsQuery,
+    @GetCurrentAppUser() userFromToken: PayLoad
+  ) {
+    if(!query.stock_code) {
+      throw new NotFoundException()
+    }
+    
+    return this.stockStorageService.getSellablePositions(userFromToken.id, query)
+  }
+
+  @UseGuards(AppAuthGuard)
+  @Get("positions")
+  async getUserPosition(
+    @Query() query: PositionQuery,
+    @GetCurrentAppUser() userFromToken: PayLoad
+  ) {
+    return this.stockStorageService.findUserPostions(userFromToken['id'], query)
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.appUserService.findOne(+id);
   }
 }

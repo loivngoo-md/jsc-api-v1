@@ -57,7 +57,7 @@ export class StockController {
   }
 
   @UseGuards(AppAuthGuard)
-  @Get('/:fs')
+  @Get(':fs')
   async findOne(
     @Param('fs') fs: string,
     @GetCurrentAppUser() user: PayLoad

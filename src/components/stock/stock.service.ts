@@ -142,4 +142,12 @@ export class StockService {
 
     return o;
   }
+
+  async getStocksUsingCodes (codes: string[]) {
+    return Promise.all(codes.map((code) => this._stockRepo.findOne({
+      where: {
+        FS: code
+      }
+    })))
+  }
 }

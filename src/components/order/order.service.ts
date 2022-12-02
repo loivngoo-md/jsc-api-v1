@@ -1,10 +1,12 @@
-import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ORDER_TYPE, POSITION_STATUS } from 'src/common/enums';
+import { dateFormatter } from 'src/helpers/moment';
 import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 import { AppUserService } from '../app-user/app-user.service';
 import { StockStorageService } from '../stock-storage/stock-storage.service';
 import { StockService } from '../stock/stock.service';
-import { CreateOrderDto } from './dto/create-order.dto';
+import { ClosePositionDto, CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { Order } from './entities/order.entity';
 
@@ -64,21 +66,43 @@ export class OrderService {
   }
 
 
-  async sellOnApp(dto) {
-    const stock = await this._stockService.findOne(dto['stock_code'])
-    if (!stock['FS'] || !stock['P']) {
+  async sellOnApp(position_id: string, user_id: number) {
+    const position = await this._stockStorageService.findOne(+position_id)
+
+    if (!position) {
       throw new NotFoundException()
     }
 
-    dto['amount'] = stock['P'] * dto['quantity']
-    let { balance, balance_avail } = await this._appUserService.findOne(dto['user_id'])
-    balance_avail += dto['amount']
-    balance += dto['amount']
+    if (+user_id !== +position.user_id || position.status === POSITION_STATUS.CLOSED) {
+      throw new UnauthorizedException()
+    }
 
-    await this._appUserService.update(dto['user_id'], { balance, balance_avail })
-    await this._stockStorageService.store(dto)
+    const stock = await this._stockService.findOne(position.stock_code)
+    if (!stock) {
+      throw new NotFoundException()
+    }
 
-    const created_order = this._orderRepo.create(dto)
+    const amount = stock.P * +position.quantity
+
+    let { balance, balance_avail } = await this._appUserService.findOne(user_id)
+    balance_avail += amount
+    balance += amount
+
+    await this._appUserService.update(user_id, { balance, balance_avail })
+    await this._stockStorageService.update(position_id, { status: POSITION_STATUS.CLOSED })
+
+    const created_order = this._orderRepo.create(
+      {
+        amount,
+        type: ORDER_TYPE.SELL,
+        zhangting: stock.ZT,
+        dieting: stock.DT,
+        quantity: position.quantity,
+        stock_code: stock.FS,
+        stock_market: stock.M,
+        stock_name: stock.N,
+        user_id,
+      })
     await this._orderRepo.save(created_order)
     return created_order
 

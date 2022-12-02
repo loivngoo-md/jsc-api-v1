@@ -8,3 +8,11 @@ export class CreateOrderDto {
     // before?: number;
     // after?: number;
 }
+
+export class ClosePositionDto {
+    position_id: string | number
+    type: ORDER_TYPE
+    user_id: number
+    amount: number;
+    quantity: number
+}
