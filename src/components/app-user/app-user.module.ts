@@ -8,6 +8,7 @@ import { OrderModule } from '../order/order.module';
 import { WithdrawModule } from '../withdraw/withdraw.module';
 import { DepositModule } from '../deposit/deposit.module';
 import { StockStorageModule } from '../stock-storage/stock-storage.module';
+import { FavoriteStockModule } from 'src/modules/favorite-stock/favorite-stock.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { StockStorageModule } from '../stock-storage/stock-storage.module';
     forwardRef(() => WithdrawModule),
     forwardRef(() => DepositModule),
     StockStorageModule,
+    FavoriteStockModule
     
   ],
   controllers: [AppUserController],

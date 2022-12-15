@@ -86,4 +86,8 @@ export class StockController {
   remove(@Param('id') id: string) {
     return this.stockService.remove(+id);
   }
+
+
+  
+
 }

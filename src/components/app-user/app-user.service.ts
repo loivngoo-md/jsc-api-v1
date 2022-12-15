@@ -25,8 +25,6 @@ export class AppUserService {
 
   async update_customer_profit(id: number) {
 
-
-
   }
   async update_customer_hold_value(id: number) {
 

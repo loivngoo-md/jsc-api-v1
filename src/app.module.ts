@@ -18,6 +18,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { StockStorageModule } from './components/stock-storage/stock-storage.module';
 import { SystemConfigurationModule } from './components/system-configuration/system-configuration.module';
+import { FavoriteStockModule } from './modules/favorite-stock/favorite-stock.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { SystemConfigurationModule } from './components/system-configuration/sys
     LocalFileModule,
     StockStorageModule,
     SystemConfigurationModule,
+    FavoriteStockModule,
   ],
   controllers: [],
   providers: [],

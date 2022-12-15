@@ -15,7 +15,6 @@ export class StockService {
     private _stockRepo: Repository<Stock>,
   ) { }
 
-
   async get_k_line_data(query: {
     fromtick: string,
     period: string,

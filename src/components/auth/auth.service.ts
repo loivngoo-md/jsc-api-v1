@@ -112,10 +112,12 @@ export class AuthService {
     LoginByUsernameDto: LoginByUsernameDto,
     ip: string,
   ): Promise<LoginReturnDto> {
-    try {
       const { username } = LoginByUsernameDto;
 
       const user = await this._cmsUserService.findByUsername(username);
+
+      console.log(user);
+      
 
       if (!user) {
         throw new NotFoundException(INVALID_USERNAME);
@@ -130,9 +132,6 @@ export class AuthService {
       );
 
       return this.createToken(user);
-    } catch (error) {
-      console.log(error);
-    }
   }
 
   async validatePassword(

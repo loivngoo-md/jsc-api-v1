@@ -20,7 +20,7 @@ import { CreateAppUserDto } from './dto/create-app-user.dto';
 import { UpdateAppUserDto } from './dto/update-app-user.dto';
 import LocalFilesInterceptor from 'src/middleware/localFiles.interceptor';
 import { AppAuthGuard } from '../auth/guards/appAuth.guard'
-import { ClosePositionDto, CreateOrderDto } from '../order/dto/create-order.dto';
+import { CreateOrderDto } from '../order/dto/create-order.dto';
 import { ORDER_TYPE } from 'src/common/enums';
 import { OrderService } from '../order/order.service';
 import { CreateWithdrawDto } from '../withdraw/dto/create-withdraw.dto';
@@ -29,6 +29,8 @@ import { CreateDepositDto } from '../deposit/dto/create-deposit.dto';
 import { DepositService } from '../deposit/deposit.service';
 import { StockStorageService } from '../stock-storage/stock-storage.service';
 import { PositionQuery, SellablePositionsQuery } from './dto/positions-pagination.dto';
+import { StockService } from '../stock/stock.service';
+import { FavoriteStockService } from 'src/modules/favorite-stock/favorite-stock.service';
 
 
 @Controller('app')
@@ -38,7 +40,8 @@ export class AppUserController {
     private readonly orderService: OrderService,
     private readonly withdrawService: WithdrawService,
     private readonly stockStorageService: StockStorageService,
-    private readonly depositService: DepositService
+    private readonly depositService: DepositService,
+    private readonly favoriteStockService: FavoriteStockService
   ) { }
 
   @Post()
@@ -174,10 +177,10 @@ export class AppUserController {
     @Query() query: SellablePositionsQuery,
     @GetCurrentAppUser() userFromToken: PayLoad
   ) {
-    if(!query.stock_code) {
+    if (!query.stock_code) {
       throw new NotFoundException()
     }
-    
+
     return this.stockStorageService.getSellablePositions(userFromToken.id, query)
   }
 
@@ -194,4 +197,39 @@ export class AppUserController {
   findOne(@Param('id') id: string) {
     return this.appUserService.findOne(+id);
   }
+
+
+  @UseGuards(AppAuthGuard)
+  @Get("/favorite-list-stock")
+  async get_favorite_list_stock(
+    @Query() query: {
+
+    },
+    @GetCurrentAppUser() userFromToken: PayLoad
+  ) {
+    const r = { ...query }
+    return await this.favoriteStockService.get_list()
+  }
+}
+
+const response = {
+  data: [
+    {
+      fs: "SH8222",
+      count: 10,
+      position_price: 22.3
+    },
+    {
+      fs: "SH8222",
+      count: 7,
+      position_price: 24.7
+    },
+    {
+      fs: "SH8222",
+      count: 5,
+      position_price: 25.9
+    },
+  ],
+  status: 200,
+  message: null,
 }
