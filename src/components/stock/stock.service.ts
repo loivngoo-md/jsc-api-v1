@@ -105,6 +105,7 @@ export class StockService {
     };
   }
 
+  // TODO: FIX FINDONE
   async findOne(fs: string) {
     const stock = await this._stockRepo.findOne({ where: { FS: fs } });
     if (stock) {

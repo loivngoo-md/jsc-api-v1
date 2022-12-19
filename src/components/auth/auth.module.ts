@@ -5,9 +5,9 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
 import { CmsStrategy } from './cms-jwt.strategy';
 import { LoginRecordModule } from '../login-record/login-record.module';
-import { CmsUserModule } from '../cms-user/cms-user.module';
-import { AppUserModule } from '../app-user/app-user.module';
 import { AppStrategy } from './app-jwt.strategy';
+import { AppUserModule } from '../../modules/app-user/app-user.module';
+import { CmsUserModule } from '../../modules/cms-user/cms-user.module';
 
 @Module({
   imports: [

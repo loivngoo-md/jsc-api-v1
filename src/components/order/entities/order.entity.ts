@@ -1,44 +1,55 @@
-import { ORDER_TYPE } from "src/common/enums";
-import { EntityHelper } from "src/helpers/entity-helper";
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
-
+import { ORDER_TYPE } from 'src/common/enums';
+import { EntityHelper } from 'src/helpers/entity-helper';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'orders' })
 export class Order extends EntityHelper {
-    @PrimaryGeneratedColumn()
-    id: number
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    type: ORDER_TYPE
+  @Column()
+  type: ORDER_TYPE;
 
-    @Column("integer")
-    quantity: number
+  @Column('varchar')
+  stock_code: string;
 
-    @Column("varchar")
-    stock_code: string
+  @Column('integer')
+  quantity: number;
 
-    @Column("float8")
-    amount: number
+  @Column('float8')
+  price: number;
 
-    @Column("integer")
-    user_id: number
+  @Column('float8')
+  fee_rate: number;
 
-    @Column("bool", { nullable: true })
-    is_resolved: boolean
+  @Column('float8')
+  amount: number;
 
-    @Column("varchar", { default: "" })
-    remarks: string;
+  @Column('float8')
+  actual_amount: number;
 
-    @Column()
-    stock_market: string
+  @Column('integer')
+  user_id: number;
 
-    @Column()
-    stock_name: string
+  @Column('bool', { nullable: true })
+  is_resolved: boolean;
 
-    @Column("float8")
-    zhangting: number
+  @Column('varchar', { default: '' })
+  remarks: string;
 
-    @Column("float8")
-    dieting: number
+  @Column()
+  stock_market: string;
 
+  @Column()
+  stock_name: string;
+
+  @Column('float8')
+  zhangting: number;
+
+  @Column('float8')
+  dieting: number;
+
+  // TODO: Remove nullable trading_session
+  @Column('varchar', { nullable: true })
+  trading_session: string;
 }

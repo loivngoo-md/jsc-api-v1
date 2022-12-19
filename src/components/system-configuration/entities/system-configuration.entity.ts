@@ -1,20 +1,32 @@
-import { EntityHelper } from "src/helpers/entity-helper";
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { EntityHelper } from 'src/helpers/entity-helper';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  IDepositsAndWithdrawals,
+  INewShares,
+  ITradingHours,
+  ITransactionsRate,
+} from './system-configuration.interface';
 
-@Entity({ name: "system_configuration" })
+@Entity({ name: 'system_configuration' })
 export class SystemConfiguration extends EntityHelper {
-    @PrimaryGeneratedColumn()
-    id: number
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    transaction_fee: number
+  @Column({ type: 'json' })
+  deposits_and_withdrawals: IDepositsAndWithdrawals;
 
-    @Column()
-    withdrawal_fee: number
+  @Column({ type: 'json' })
+  transactions_rate: ITransactionsRate;
 
-    @Column()
-    minimum_transaction_balance: number
+  @Column({ type: 'json' })
+  trading_hours: ITradingHours;
 
-    @Column({ default: false })
-    is_main_config: boolean
+  @Column({ type: 'json' })
+  new_shares: INewShares;
+
+  @Column({ type: 'text' })
+  online_customer_service: string;
+
+  @Column({ default: false, type: 'boolean' })
+  is_main_config: boolean;
 }

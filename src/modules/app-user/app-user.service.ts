@@ -5,58 +5,51 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import * as bcrypt from 'bcryptjs';
+import { Repository } from 'typeorm';
 import { CreateAppUserDto } from './dto/create-app-user.dto';
 import { UpdateAppUserDto } from './dto/update-app-user.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import AppUser from './entities/app-user.entity';
-import { LocalFileDto } from '../local-file/dto/local-file.dto';
-import { LocalFilesService } from '../local-file/local-file.service';
-import * as bcrypt from 'bcryptjs';
-
 
 @Injectable()
 export class AppUserService {
   constructor(
     @InjectRepository(AppUser)
     private _appUserRepo: Repository<AppUser>,
-    private localFilesService: LocalFilesService,
-  ) { }
+  ) {}
 
-  async update_customer_profit(id: number) {
-
-  }
-  async update_customer_hold_value(id: number) {
-
-  }
-  async update_customer_balance_frozen(id: number) {
-
-  }
-  async update_customer_balance_avail(id: number) {
-
-  }
+  async update_customer_profit(id: number) {}
+  async update_customer_hold_value(id: number) {}
+  async update_customer_balance_frozen(id: number) {}
+  async update_customer_balance_avail(id: number) {}
   async freeze_account(id: number) {
-    let { is_freeze } = await this._appUserRepo.findOne({ where: { id } })
+    let { is_freeze } = await this._appUserRepo.findOne({ where: { id } });
     if (is_freeze === true) {
-      is_freeze = false
+      is_freeze = false;
     } else {
-      is_freeze = true
+      is_freeze = true;
     }
-
   }
 
-  async addFrontBackCCCD(user_id: number, fileData: LocalFileDto, dto: {
-    type: number
-  }) {
-
+  async addFrontBackCCCD(
+    user_id: number,
+    fileData: any,
+    dto: {
+      type: number;
+    },
+  ) {
     if (dto['type'] === 1) {
-      await this._appUserRepo.update(user_id, { id_front_cccd: fileData.filename })
-
+      await this._appUserRepo.update(user_id, {
+        id_front_cccd: fileData.filename,
+      });
     } else if (dto['type'] === 0) {
-      await this._appUserRepo.update(user_id, { id_back_cccd: fileData.filename })
+      await this._appUserRepo.update(user_id, {
+        id_back_cccd: fileData.filename,
+      });
     }
 
-    return fileData.filename
+    return fileData.filename;
   }
 
   async modifiedBalance(
@@ -92,7 +85,7 @@ export class AppUserService {
     if (!user) {
       throw new NotFoundException('User is not found.');
     }
-    return await this._appUserRepo.update(id, { is_verified: true })
+    return await this._appUserRepo.update(id, { is_verified: true });
   }
 
   async create(createAppUserDto: CreateAppUserDto) {
@@ -135,7 +128,7 @@ export class AppUserService {
       app_users = await this._appUserRepo.find({
         where: {
           is_active: true,
-          username: `%${query.search}%`
+          username: `%${query.search}%`,
         },
         take,
         skip,
@@ -144,7 +137,7 @@ export class AppUserService {
 
     app_users = await this._appUserRepo.find({
       where: {
-        is_active: true
+        is_active: true,
       },
       take,
       skip,
@@ -187,7 +180,10 @@ export class AppUserService {
     }
     if (dto['withdraw_password']) {
       const salt = await bcrypt.genSalt();
-      dto['withdraw_password'] = await bcrypt.hash(dto['withdraw_password'], salt);
+      dto['withdraw_password'] = await bcrypt.hash(
+        dto['withdraw_password'],
+        salt,
+      );
     }
 
     await this._appUserRepo.update(id, dto);

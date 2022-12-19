@@ -1,15 +1,18 @@
-import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
-import { CreateWithdrawDto } from './dto/create-withdraw.dto';
-import { UpdateWithdrawDto } from './dto/update-withdraw.dto';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Withdraw } from './entities/withdraw.entity';
-import { AppUserService } from '../app-user/app-user.service';
-import { PayLoad } from '../auth/dto/PayLoad';
-import CmsUser from '../cms-user/entities/cms-user.entity';
-import AppUser from '../app-user/entities/app-user.entity';
 import * as bcrypt from 'bcryptjs';
 import { INVALID_PASSWORD } from 'src/common/constant/error-message';
+import { DEPOSIT_WITHDRAWAL_STATUS } from 'src/common/enums';
+import { Repository } from 'typeorm';
+import { AppUserService } from '../../modules/app-user/app-user.service';
+import AppUser from '../../modules/app-user/entities/app-user.entity';
+import { PayLoad } from '../auth/dto/PayLoad';
+import { Withdraw } from './entities/withdraw.entity';
 
 @Injectable()
 export class WithdrawService {
@@ -17,34 +20,7 @@ export class WithdrawService {
     @InjectRepository(Withdraw)
     private readonly _withdrawRepo: Repository<Withdraw>,
     private readonly _appUserService: AppUserService,
-  ) { }
-
-  async approve(withdraw_id: number, user_id: number, amount: number) {
-    await this._withdrawRepo.update({ id: withdraw_id }, { is_approved: true });
-    await this._appUserService.update(user_id, {
-      is_freeze: true,
-      balance_frozen: amount,
-    });
-  }
-
-  async cmsPerformWithdraw(dto: CreateWithdrawDto) {
-    const user = await this._appUserService.findByUsername(dto['username']);
-    const { balance } = user;
-    const compare = balance - dto['amount'];
-
-    if (compare < 0) {
-      throw new HttpException(
-        'Do not enough money to withdraw.',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-    dto['before'] = balance;
-    dto['after'] = compare
-    await this._appUserService.update(user.id, { balance: compare });
-    const response = this._withdrawRepo.create(dto);
-    await this._withdrawRepo.save(response);
-    return response;
-  }
+  ) {}
 
   async validatePassword(
     user: AppUser,
@@ -53,51 +29,38 @@ export class WithdrawService {
     return bcrypt.compareSync(withdraw_password, user.withdraw_password);
   }
 
-  async userPerformWithdraw(dto: any, userFromToken: PayLoad) {
-    const { username } = userFromToken;
-
-    dto['username'] = username;
-    dto['created_at'] = new Date();
-    const { amount } = dto;
+  async create(dto: any, byCms?: boolean) {
+    const { amount, username } = dto;
     const user = await this._appUserService.findByUsername(username);
+    dto['user_id'] = user['id'];
 
-    if (!(await this.validatePassword(user, dto['withdraw_password']))) {
+    if (
+      !byCms &&
+      !(await this.validatePassword(user, dto['withdraw_password']))
+    ) {
       throw new NotFoundException(INVALID_PASSWORD);
     }
 
-    let { balance, balance_avail, balance_frozen } = user;
-
-    const compare = Number(balance) - Number(amount);
-
-    if (compare < 0) {
+    if (+user['balance'] < +amount) {
       throw new HttpException(
         'Do not enough money to withdraw.',
         HttpStatus.BAD_REQUEST,
       );
     }
 
-    balance_frozen = balance_frozen + dto['amount']
-    balance_avail = balance - balance_frozen
-    balance = balance_avail + balance_frozen
-
-
-
-    dto['before'] = balance;
-    dto['after'] = compare.toString();
     await this._appUserService.update(user.id, {
-      balance_frozen,
-      balance,
-      balance_avail,
-      is_freeze: true,
-
+      balance_frozen: +user['balance_frozen'] + +amount,
+      balance_avail: +user['balance_avail'] - +amount,
     });
     const response = this._withdrawRepo.create(dto);
     await this._withdrawRepo.save(response);
     return response;
   }
 
-  async findAll(user: PayLoad) {
-    return this._withdrawRepo.find({ where: { username: user.username } });
+  async findAll(query: any, user_id?: number) {
+    const whereConditions = {};
+    user_id && Object.assign(whereConditions, { id: user_id });
+    return this._withdrawRepo.find({ where: whereConditions });
   }
 
   async findOne(id: number) {
@@ -108,19 +71,37 @@ export class WithdrawService {
     throw new HttpException('Withdraw not found', HttpStatus.NOT_FOUND);
   }
 
-  async update(id: number, dto: UpdateWithdrawDto) {
-    await this._withdrawRepo.update(id, dto);
-    const updated = await this._withdrawRepo.findOne({ where: { id: id } });
-    if (updated) {
-      return updated;
+  async reviewByCms(withdraw_id: number, isAccept: boolean) {
+    const withdrawal = await this.findOne(withdraw_id);
+    if (withdrawal['status'] !== DEPOSIT_WITHDRAWAL_STATUS.PENDING) {
+      throw new HttpException(
+        'Withdrawal is not pending',
+        HttpStatus.BAD_REQUEST,
+      );
     }
-    throw new HttpException('Withdraw not found', HttpStatus.NOT_FOUND);
-  }
+    const user = await this._appUserService.findOne(withdrawal['user_id']);
+    if (isAccept) {
+      await Promise.all([
+        this._withdrawRepo.update(withdraw_id, {
+          status: DEPOSIT_WITHDRAWAL_STATUS.SUCCESS,
+        }),
+        this._appUserService.update(withdrawal['user_id'], {
+          balance: +user['balance'] - +withdrawal['amount'],
+          balance_frozen: 0,
+        }),
+      ]);
+    } else {
+      await Promise.all([
+        this._withdrawRepo.update(withdraw_id, {
+          status: DEPOSIT_WITHDRAWAL_STATUS.FAIL,
+        }),
+        this._appUserService.update(withdrawal['user_id'], {
+          balance_avail: +user['balance_avail'] + +withdrawal['amount'],
+          balance_frozen: 0,
+        }),
+      ]);
+    }
 
-  async remove(id: number) {
-    const deleteResponse = await this._withdrawRepo.delete(id);
-    if (!deleteResponse.affected) {
-      throw new HttpException('Withdraw not found', HttpStatus.NOT_FOUND);
-    }
+    return { isSuccess: true };
   }
 }

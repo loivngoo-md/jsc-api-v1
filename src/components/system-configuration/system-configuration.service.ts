@@ -7,27 +7,33 @@ import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class SystemConfigurationService {
-
   constructor(
     @InjectRepository(SystemConfiguration)
-    private readonly _systemConfiguration: Repository<SystemConfiguration>
-  ) { }
+    private readonly _systemConfiguration: Repository<SystemConfiguration>,
+  ) {}
 
   async create(dto: CreateSystemConfigurationDto) {
-    const transaction = this._systemConfiguration.create(dto)
-    await this._systemConfiguration.save(transaction)
-    return transaction
+    const transaction = this._systemConfiguration.create(dto);
+    await this._systemConfiguration.save(transaction);
+    return transaction;
   }
 
   findAll() {
-    return this._systemConfiguration.find()
+    return this._systemConfiguration.find();
   }
 
   findOne() {
-    return this._systemConfiguration.find({ where: { is_main_config: true } })
+    return this._systemConfiguration.find({ where: { is_main_config: true } });
   }
 
-  update(id: number, updateSystemConfigurationDto: UpdateSystemConfigurationDto) {
+  async update(
+    id: number,
+    updateSystemConfigurationDto: UpdateSystemConfigurationDto,
+  ) {
+    await this._systemConfiguration.update(
+      { id: id },
+      updateSystemConfigurationDto,
+    );
     return `This action updates a #${id} systemConfiguration`;
   }
 

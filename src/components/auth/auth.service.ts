@@ -19,10 +19,10 @@ import { LoginReturnDto } from './dto/LoginReturnDto';
 import { PayLoad } from './dto/PayLoad';
 import * as fetch from 'node-fetch';
 import { LoginRecordService } from '../login-record/login-record.service';
-import { CmsUserService } from '../cms-user/cms-user.service';
-import CmsUser from '../cms-user/entities/cms-user.entity';
-import { AppUserService } from '../app-user/app-user.service';
-import AppUser from '../app-user/entities/app-user.entity';
+import { CmsUserService } from '../../modules/cms-user/cms-user.service';
+import { AppUserService } from '../../modules/app-user/app-user.service';
+import CmsUser from '../../modules/cms-user/entities/cms-user.entity';
+import AppUser from '../../modules/app-user/entities/app-user.entity';
 
 @Injectable()
 export class AuthService {
@@ -31,13 +31,10 @@ export class AuthService {
   constructor(
     @Inject(forwardRef(() => CmsUserService))
     private readonly _cmsUserService: CmsUserService,
-
     private readonly _jwtService: JwtService,
-
     private readonly _loginRecord: LoginRecordService,
-
     private readonly _appUserService: AppUserService,
-  ) { }
+  ) {}
 
   async validateCmsUser(payload: PayLoad): Promise<any> {
     const { username } = payload;
@@ -63,75 +60,70 @@ export class AuthService {
     LoginByUsernameDto: LoginByUsernameDto,
     ip: string,
   ): Promise<LoginReturnDto> {
-    try {
-      const { username } = LoginByUsernameDto;
+    const { username } = LoginByUsernameDto;
 
-      const user = await this._appUserService.findByUsername(username);
+    const user = await this._appUserService.findByUsername(username);
 
-      if (!user) {
-        throw new NotFoundException(INVALID_USERNAME);
-      }
-
-      if (!(await this.validatePassword(user, LoginByUsernameDto.password))) {
-        throw new NotFoundException(INVALID_PASSWORD);
-      }
-
-      const requestOptions = {
-        method: 'GET',
-      };
-
-      const ipgeo = await fetch(
-        `https://api.geoapify.com/v1/ipinfo?&apiKey=c93f71baa0ed44c09ba7ae01a7a76f5b&ip=${ip}`,
-        requestOptions,
-      )
-        .then((response) => response.json())
-        .then((result) => result)
-        .catch((error) => console.log('error', error));
-
-      const location = {
-        user_id: user['id'],
-        password: '',
-        ip: ip,
-        location: ipgeo.city?.name || "",
-        created_at: new Date(),
-      };
-
-      await this._loginRecord.insert(location);
-
-      this.logger.log(
-        `username '${user.username}' is currently logged into the app system`,
-      );
-
-      return this.createToken(user);
-    } catch (error) {
-      console.log(error);
+    if (!user) {
+      throw new NotFoundException(INVALID_USERNAME);
     }
+
+    if (!(await this.validatePassword(user, LoginByUsernameDto.password))) {
+      throw new NotFoundException(INVALID_PASSWORD);
+    }
+
+    const requestOptions = {
+      method: 'GET',
+    };
+
+    const ipgeo = await fetch(
+      `https://api.geoapify.com/v1/ipinfo?&apiKey=c93f71baa0ed44c09ba7ae01a7a76f5b&ip=${ip}`,
+      requestOptions,
+    )
+      .then((response) => response.json())
+      .then((result) => result)
+      .catch((error) => console.log('error', error));
+
+    const location = {
+      user_id: user['id'],
+      password: '',
+      ip: ip,
+      location: ipgeo.city?.name || '',
+      created_at: new Date(),
+    };
+
+    await this._loginRecord.insert(location);
+
+    this.logger.log(
+      `username '${user.username}' is currently logged into the app system`,
+    );
+
+    return this.createToken(user);
   }
 
   async loginCmsViaUsername(
     LoginByUsernameDto: LoginByUsernameDto,
     ip: string,
   ): Promise<LoginReturnDto> {
-      const { username } = LoginByUsernameDto;
+    const { username } = LoginByUsernameDto;
 
-      const user = await this._cmsUserService.findByUsername(username);
+    const user = await this._cmsUserService.findByUsername(username);
 
-      console.log(user);
-      
+    console.log(user);
 
-      if (!user) {
-        throw new NotFoundException(INVALID_USERNAME);
-      }
+    if (!user) {
+      throw new NotFoundException(INVALID_USERNAME);
+    }
 
-      if (!(await this.validatePassword(user, LoginByUsernameDto.password))) {
-        throw new NotFoundException(INVALID_PASSWORD);
-      }
+    if (!(await this.validatePassword(user, LoginByUsernameDto.password))) {
+      throw new NotFoundException(INVALID_PASSWORD);
+    }
 
-      this.logger.log(
-        `username '${user.username}' is currently logged into the cms system`,
-      );
+    this.logger.log(
+      `username '${user.username}' is currently logged into the cms system`,
+    );
 
-      return this.createToken(user);
+    return this.createToken(user);
   }
 
   async validatePassword(

@@ -4,18 +4,20 @@ import { OrderController } from './order.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Order } from './entities/order.entity';
 import { StockModule } from '../stock/stock.module';
-import { AppUserModule } from '../app-user/app-user.module';
 import { StockStorageModule } from '../stock-storage/stock-storage.module';
+import { TradingSessionModule } from '../trading-session/trading-session.module';
+import { AppUserModule } from '../../modules/app-user/app-user.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Order]),
     StockModule,
     forwardRef(() => AppUserModule),
-    StockStorageModule
+    TradingSessionModule,
+    StockStorageModule,
   ],
   controllers: [OrderController],
   providers: [OrderService],
-  exports: [OrderService]
+  exports: [OrderService],
 })
-export class OrderModule { }
+export class OrderModule {}

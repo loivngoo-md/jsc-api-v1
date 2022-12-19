@@ -1,8 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module';
-import { CmsUserModule } from './components/cms-user/cms-user.module';
-import { AppUserModule } from './components/app-user/app-user.module';
 import * as Joi from '@hapi/joi';
 import { AuthModule } from './components/auth/auth.module';
 import { LoginRecordModule } from './components/login-record/login-record.module';
@@ -13,12 +11,14 @@ import { DepositAccountModule } from './components/deposit-account/deposit-accou
 import { StockModule } from './components/stock/stock.module';
 import { HttpModule } from '@nestjs/axios';
 import { OrderModule } from './components/order/order.module';
-import { LocalFileModule } from './components/local-file/local-file.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { StockStorageModule } from './components/stock-storage/stock-storage.module';
 import { SystemConfigurationModule } from './components/system-configuration/system-configuration.module';
-import { FavoriteStockModule } from './modules/favorite-stock/favorite-stock.module';
+import { FavoriteStockModule } from './components/favorite-stock/favorite-stock.module';
+import { TradingSessionModule } from './components/trading-session/trading-session.module';
+import { CmsUserModule } from './modules/cms-user/cms-user.module';
+import { AppUserModule } from './modules/app-user/app-user.module';
 
 @Module({
   imports: [
@@ -48,12 +48,12 @@ import { FavoriteStockModule } from './modules/favorite-stock/favorite-stock.mod
     DepositAccountModule,
     StockModule,
     OrderModule,
-    LocalFileModule,
     StockStorageModule,
     SystemConfigurationModule,
     FavoriteStockModule,
+    TradingSessionModule,
   ],
   controllers: [],
   providers: [],
 })
-export class AppModule { }
+export class AppModule {}

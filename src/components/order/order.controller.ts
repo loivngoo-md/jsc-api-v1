@@ -71,13 +71,9 @@ export class OrderController {
 
   @Post("/cms/sell")
   async sellStockOnCms(
-    @Body() dto: CreateOrderDto
+    @Param() position_id: string,
   ) {
-    if (dto['type'] != ORDER_TYPE.SELL) {
-      throw new BadRequestException()
-    }
-
-    return this._orderService.sellOnCms(dto)
+    return this._orderService.sellOnCms(position_id)
   }
 
   @UseGuards(AppAuthGuard)

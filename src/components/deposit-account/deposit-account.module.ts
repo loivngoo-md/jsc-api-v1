@@ -8,5 +8,6 @@ import DepositAccount from './entities/deposit-account.entity';
   imports: [TypeOrmModule.forFeature([DepositAccount])],
   controllers: [DepositAccountController],
   providers: [DepositAccountService],
+  exports: [DepositAccountService],
 })
 export class DepositAccountModule {}

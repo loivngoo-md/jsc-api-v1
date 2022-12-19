@@ -1,17 +1,13 @@
 import {
-  forwardRef,
   HttpException,
-  HttpStatus,
-  Inject,
-  Injectable,
-  NotFoundException,
+  HttpStatus, Injectable,
+  NotFoundException
 } from '@nestjs/common';
-import { CreateCmsUserDto } from './dto/create-cms-user.dto';
-import { UpdateCmsUserDto } from './dto/update-cms-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { CreateCmsUserDto } from './dto/create-cms-user.dto';
+import { UpdateCmsUserDto } from './dto/update-cms-user.dto';
 import CmsUser from './entities/cms-user.entity';
-import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class CmsUserService {
