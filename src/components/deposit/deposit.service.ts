@@ -1,10 +1,17 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DEPOSIT_WITHDRAWAL_STATUS } from 'src/common/enums';
-import { Repository } from 'typeorm';
+import {
+  Between,
+  LessThanOrEqual,
+  MoreThan,
+  MoreThanOrEqual,
+  Repository,
+} from 'typeorm';
 import { AppUserService } from '../../modules/app-user/app-user.service';
 import { DepositAccountService } from '../deposit-account/deposit-account.service';
 import { CreateDepositDto } from './dto/create-deposit.dto';
+import { DepositQuery } from './dto/query-deposit.dto';
 import Deposit from './entities/deposit.entity';
 
 @Injectable()
@@ -27,10 +34,36 @@ export class DepositService {
     return response;
   }
 
-  async findAll(query: any, user_id?: number) {
-    const whereConditions = {};
-    user_id && Object.assign(whereConditions, { user_id: user_id });
-    return this._depositRepo.find({ where: whereConditions });
+  async findAll(query: DepositQuery, user_id?: number) {
+    const page = query['page'] || 1;
+    const limit = query['limit'] || 10;
+
+    const end_time = query['end_time']
+      ? new Date(query['end_time'])
+      : new Date();
+    const start_time = query['start_time']
+      ? new Date(query['start_time'])
+      : null;
+
+    if (user_id) {
+      query['user_id'] = user_id;
+      delete query['username'];
+    }
+
+    query['created_at'] = start_time
+      ? Between(start_time, end_time)
+      : LessThanOrEqual(end_time);
+
+    delete query['start_time'];
+    delete query['end_time'];
+    delete query['page'];
+    delete query['limit'];
+
+    return this._depositRepo.find({
+      where: query,
+      take: limit,
+      skip: (page - 1) * limit,
+    });
   }
 
   async findOne(id: number) {

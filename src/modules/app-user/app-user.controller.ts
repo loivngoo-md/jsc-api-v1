@@ -19,11 +19,13 @@ import { GetCurrentAppUser } from '../../components/auth/guards/app-user.decorat
 import { AppAuthGuard } from '../../components/auth/guards/appAuth.guard';
 import { DepositService } from '../../components/deposit/deposit.service';
 import { CreateDepositDto } from '../../components/deposit/dto/create-deposit.dto';
+import { DepositQuery } from '../../components/deposit/dto/query-deposit.dto';
 import { FavoriteStockService } from '../../components/favorite-stock/favorite-stock.service';
 import { CreateOrderDto } from '../../components/order/dto/create-order.dto';
 import { OrderService } from '../../components/order/order.service';
 import { StockStorageService } from '../../components/stock-storage/stock-storage.service';
 import { CreateWithdrawDto } from '../../components/withdraw/dto/create-withdraw.dto';
+import { WithdrawalQuery } from '../../components/withdraw/dto/query-withdrawal.dto';
 import { WithdrawService } from '../../components/withdraw/withdraw.service';
 import LocalFilesInterceptor from '../../middleware/localFiles.interceptor';
 import { AppUserService } from './app-user.service';
@@ -137,8 +139,11 @@ export class AppUserController {
   // Deposit
   @UseGuards(AppAuthGuard)
   @Get('/deposit')
-  async getAllDeposits(@GetCurrentAppUser() userFromToken: PayLoad) {
-    return this.depositService.findAll(userFromToken['id']);
+  async getAllDeposits(
+    @Query() query: DepositQuery,
+    @GetCurrentAppUser() userFromToken: PayLoad,
+  ) {
+    return this.depositService.findAll(query, userFromToken['id']);
   }
 
   @UseGuards(AppAuthGuard)
@@ -153,9 +158,12 @@ export class AppUserController {
 
   // Withdrawal
   @UseGuards(AppAuthGuard)
-  @Get('/deposit')
-  async getAllWithdrawals(@GetCurrentAppUser() userFromToken: PayLoad) {
-    return this.withdrawService.findAll(userFromToken);
+  @Get('/withdrawal')
+  async getAllWithdrawals(
+    @Query() query: WithdrawalQuery,
+    @GetCurrentAppUser() userFromToken: PayLoad,
+  ) {
+    return this.withdrawService.findAll(query, userFromToken['id']);
   }
 
   @UseGuards(AppAuthGuard)

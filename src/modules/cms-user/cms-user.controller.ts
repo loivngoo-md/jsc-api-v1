@@ -16,9 +16,11 @@ import { GetCurrentCmsUser } from '../../components/auth/guards/cms-user.decorat
 import { CmsAuthGuard } from '../../components/auth/guards/cmsAuth.guard';
 import { DepositService } from '../../components/deposit/deposit.service';
 import { CreateDepositDto } from '../../components/deposit/dto/create-deposit.dto';
+import { DepositQuery } from '../../components/deposit/dto/query-deposit.dto';
 import { MoneyLogService } from '../../components/money-log/money-log.service';
 import { OrderService } from '../../components/order/order.service';
 import { CreateWithdrawDto } from '../../components/withdraw/dto/create-withdraw.dto';
+import { WithdrawalQuery } from '../../components/withdraw/dto/query-withdrawal.dto';
 import { WithdrawService } from '../../components/withdraw/withdraw.service';
 import { AppUserService } from '../app-user/app-user.service';
 import { CreateAppUserDto } from '../app-user/dto/create-app-user.dto';
@@ -141,9 +143,7 @@ export class CmsUserController {
   // Deposit
   @UseGuards(CmsAuthGuard)
   @Get('/deposit')
-  async getAllDeposits(
-    @Query() query: { page: number; limit: number; search?: string },
-  ) {
+  async getAllDeposits(@Query() query: DepositQuery) {
     return this.depositService.findAll(query);
   }
 
@@ -174,9 +174,7 @@ export class CmsUserController {
   // Withdrawal
   @UseGuards(CmsAuthGuard)
   @Get('/withdrawal')
-  async getAllWithdrawals(
-    @Query() query: { page: number; limit: number; search?: string },
-  ) {
+  async getAllWithdrawals(@Query() query: WithdrawalQuery) {
     return this.withdrawalService.findAll(query);
   }
 

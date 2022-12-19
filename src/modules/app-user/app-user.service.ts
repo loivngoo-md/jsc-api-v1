@@ -96,7 +96,7 @@ export class AppUserService {
       throw new BadRequestException('Username is existed.');
     }
 
-    const newUser = await this._appUserRepo.create(createAppUserDto);
+    const newUser = this._appUserRepo.create(createAppUserDto);
     await this._appUserRepo.save(newUser);
     return newUser;
   }

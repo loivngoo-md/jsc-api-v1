@@ -9,29 +9,29 @@ import { CreateDepositDto } from './dto/create-deposit.dto';
 export class DepositController {
   constructor(private readonly depositService: DepositService) {}
 
-  @Post('/cms')
-  appCreate(@Body() createDepositDto: CreateDepositDto) {
-    return this.depositService.create(createDepositDto);
-  }
+  // @Post('/cms')
+  // appCreate(@Body() createDepositDto: CreateDepositDto) {
+  //   return this.depositService.create(createDepositDto);
+  // }
 
-  @UseGuards(AppAuthGuard)
-  @Post('/app')
-  cmsCreate(
-    @Body() dto: CreateDepositDto,
-    @GetCurrentAppUser() appUser: PayLoad,
-  ) {
-    dto['user_id'] = Number(appUser['id']);
-    return this.depositService.create(dto);
-  }
+  // @UseGuards(AppAuthGuard)
+  // @Post('/app')
+  // cmsCreate(
+  //   @Body() dto: CreateDepositDto,
+  //   @GetCurrentAppUser() appUser: PayLoad,
+  // ) {
+  //   dto['user_id'] = Number(appUser['id']);
+  //   return this.depositService.create(dto);
+  // }
 
-  @UseGuards(AppAuthGuard)
-  @Get()
-  findAll(@GetCurrentAppUser() user: PayLoad) {
-    return this.depositService.findAll(user.id);
-  }
+  // @UseGuards(AppAuthGuard)
+  // @Get()
+  // findAll(@GetCurrentAppUser() user: PayLoad) {
+  //   return this.depositService.findAll(user.id);
+  // }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.depositService.findOne(+id);
-  }
+  // @Get(':id')
+  // findOne(@Param('id') id: string) {
+  //   return this.depositService.findOne(+id);
+  // }
 }

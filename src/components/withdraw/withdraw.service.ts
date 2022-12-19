@@ -8,10 +8,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
 import { INVALID_PASSWORD } from 'src/common/constant/error-message';
 import { DEPOSIT_WITHDRAWAL_STATUS } from 'src/common/enums';
-import { Repository } from 'typeorm';
+import { Between, LessThanOrEqual, Repository } from 'typeorm';
 import { AppUserService } from '../../modules/app-user/app-user.service';
 import AppUser from '../../modules/app-user/entities/app-user.entity';
-import { PayLoad } from '../auth/dto/PayLoad';
+import { WithdrawalQuery } from './dto/query-withdrawal.dto';
 import { Withdraw } from './entities/withdraw.entity';
 
 @Injectable()
@@ -57,10 +57,36 @@ export class WithdrawService {
     return response;
   }
 
-  async findAll(query: any, user_id?: number) {
-    const whereConditions = {};
-    user_id && Object.assign(whereConditions, { id: user_id });
-    return this._withdrawRepo.find({ where: whereConditions });
+  async findAll(query: WithdrawalQuery, user_id?: number) {
+    const page = query['page'] || 1;
+    const limit = query['limit'] || 10;
+
+    const end_time = query['end_time']
+      ? new Date(query['end_time'])
+      : new Date();
+    const start_time = query['start_time']
+      ? new Date(query['start_time'])
+      : null;
+
+    if (user_id) {
+      query['user_id'] = user_id;
+      delete query['username'];
+    }
+
+    query['created_at'] = start_time
+      ? Between(start_time, end_time)
+      : LessThanOrEqual(end_time);
+
+    delete query['start_time'];
+    delete query['end_time'];
+    delete query['page'];
+    delete query['limit'];
+
+    return this._withdrawRepo.find({
+      where: query,
+      take: limit,
+      skip: (page - 1) * limit,
+    });
   }
 
   async findOne(id: number) {
