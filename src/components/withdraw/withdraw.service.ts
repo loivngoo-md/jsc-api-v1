@@ -11,6 +11,7 @@ import { DEPOSIT_WITHDRAWAL_STATUS } from 'src/common/enums';
 import { Between, LessThanOrEqual, Repository } from 'typeorm';
 import { AppUserService } from '../../modules/app-user/app-user.service';
 import AppUser from '../../modules/app-user/entities/app-user.entity';
+import { SystemConfigurationService } from '../system-configuration/system-configuration.service';
 import { WithdrawalQuery } from './dto/query-withdrawal.dto';
 import { Withdraw } from './entities/withdraw.entity';
 
@@ -20,6 +21,7 @@ export class WithdrawService {
     @InjectRepository(Withdraw)
     private readonly _withdrawRepo: Repository<Withdraw>,
     private readonly _appUserService: AppUserService,
+    private readonly _sysConfigService: SystemConfigurationService,
   ) {}
 
   async validatePassword(
@@ -32,7 +34,10 @@ export class WithdrawService {
   async create(dto: any, byCms?: boolean) {
     const { amount, username } = dto;
     const user = await this._appUserService.findByUsername(username);
-    dto['user_id'] = user['id'];
+    const systemConfig = await this._sysConfigService.findOne();
+    const { withdrawal_fees } = systemConfig['transactions_rate'][0];
+    const { withdrawal_max, withdrawal_min } =
+      systemConfig['deposits_and_withdrawals'][0];
 
     if (
       !byCms &&
@@ -41,12 +46,23 @@ export class WithdrawService {
       throw new NotFoundException(INVALID_PASSWORD);
     }
 
+    if (+amount < withdrawal_min || +amount > withdrawal_max) {
+      throw new HttpException(
+        `Withdrawal should be in range (${withdrawal_min}, ${withdrawal_max})`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     if (+user['balance'] < +amount) {
       throw new HttpException(
         'Do not enough money to withdraw.',
         HttpStatus.BAD_REQUEST,
       );
     }
+
+    dto['user_id'] = user['id'];
+    dto['fee_rate'] = withdrawal_fees;
+    dto['actual_amount'] = +amount * (1 - withdrawal_fees / 100);
 
     await this._appUserService.update(user.id, {
       balance_frozen: +user['balance_frozen'] + +amount,
@@ -97,7 +113,8 @@ export class WithdrawService {
     throw new HttpException('Withdraw not found', HttpStatus.NOT_FOUND);
   }
 
-  async reviewByCms(withdraw_id: number, isAccept: boolean) {
+  async reviewByCms(withdraw_id: number, dto: any) {
+    const { status } = dto;
     const withdrawal = await this.findOne(withdraw_id);
     if (withdrawal['status'] !== DEPOSIT_WITHDRAWAL_STATUS.PENDING) {
       throw new HttpException(
@@ -106,11 +123,9 @@ export class WithdrawService {
       );
     }
     const user = await this._appUserService.findOne(withdrawal['user_id']);
-    if (isAccept) {
+    if (status === DEPOSIT_WITHDRAWAL_STATUS.SUCCESS) {
       await Promise.all([
-        this._withdrawRepo.update(withdraw_id, {
-          status: DEPOSIT_WITHDRAWAL_STATUS.SUCCESS,
-        }),
+        this._withdrawRepo.update(withdraw_id, dto),
         this._appUserService.update(withdrawal['user_id'], {
           balance: +user['balance'] - +withdrawal['amount'],
           balance_frozen: 0,
@@ -118,9 +133,7 @@ export class WithdrawService {
       ]);
     } else {
       await Promise.all([
-        this._withdrawRepo.update(withdraw_id, {
-          status: DEPOSIT_WITHDRAWAL_STATUS.FAIL,
-        }),
+        this._withdrawRepo.update(withdraw_id, dto),
         this._appUserService.update(withdrawal['user_id'], {
           balance_avail: +user['balance_avail'] + +withdrawal['amount'],
           balance_frozen: 0,

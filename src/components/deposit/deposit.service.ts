@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { AppUserService } from '../../modules/app-user/app-user.service';
 import { DepositAccountService } from '../deposit-account/deposit-account.service';
+import { SystemConfigurationService } from '../system-configuration/system-configuration.service';
 import { CreateDepositDto } from './dto/create-deposit.dto';
 import { DepositQuery } from './dto/query-deposit.dto';
 import Deposit from './entities/deposit.entity';
@@ -21,13 +22,24 @@ export class DepositService {
     private readonly _depositRepo: Repository<Deposit>,
     private readonly _appUserService: AppUserService,
     private readonly _depositAccountService: DepositAccountService,
+    private readonly _sysConfigService: SystemConfigurationService,
   ) {}
 
-  async create(dto: CreateDepositDto) {
-    const [user, _] = await Promise.all([
+  async create(dto: any) {
+    const { amount } = dto;
+    const [user, _, sysConfig] = await Promise.all([
       this._appUserService.findOne(dto['user_id']),
       this._depositAccountService.findOne(dto['deposit_account_id']),
+      this._sysConfigService.findOne(),
     ]);
+    const { deposit_max, deposit_min } =
+      sysConfig['deposits_and_withdrawals'][0];
+    if (+amount < deposit_min || +amount > deposit_max) {
+      throw new HttpException(
+        `Deposit should be in range (${deposit_min}, ${deposit_max})`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     dto['username'] = user['username'];
     const response = this._depositRepo.create(dto);
     await this._depositRepo.save(response);
@@ -74,27 +86,25 @@ export class DepositService {
     throw new HttpException('Deposit not found', HttpStatus.NOT_FOUND);
   }
 
-  async reviewByCms(deposit_id: number, isAccept: boolean) {
+  async reviewByCms(deposit_id: number, dto: any) {
+    const { status } = dto;
     const deposit = await this.findOne(deposit_id);
     if (deposit.status !== DEPOSIT_WITHDRAWAL_STATUS.PENDING) {
       throw new HttpException('Deposit is not pending', HttpStatus.BAD_REQUEST);
     }
-    if (isAccept) {
+    
+    if (status === DEPOSIT_WITHDRAWAL_STATUS.SUCCESS) {
       const user = await this._appUserService.findOne(deposit['user_id']);
 
       await Promise.all([
+        this._depositRepo.update(deposit_id, dto),
         this._appUserService.update(user['id'], {
           balance: user['balance'] + deposit['amount'],
           balance_avail: user['balance_avail'] + deposit['amount'],
         }),
-        this._depositRepo.update(deposit_id, {
-          status: DEPOSIT_WITHDRAWAL_STATUS.SUCCESS,
-        }),
       ]);
     } else {
-      await this._depositRepo.update(deposit_id, {
-        status: DEPOSIT_WITHDRAWAL_STATUS.FAIL,
-      });
+      await this._depositRepo.update(deposit_id, dto);
     }
     return { isSuccess: true };
   }

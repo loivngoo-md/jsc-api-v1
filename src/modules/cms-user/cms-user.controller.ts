@@ -12,6 +12,7 @@ import {
 import { RealIP } from 'nestjs-real-ip';
 import { AuthService } from '../../components/auth/auth.service';
 import { LoginByUsernameDto } from '../../components/auth/dto/LoginByUsernameDto';
+import { PayLoad } from '../../components/auth/dto/PayLoad';
 import { GetCurrentCmsUser } from '../../components/auth/guards/cms-user.decorator';
 import { CmsAuthGuard } from '../../components/auth/guards/cmsAuth.guard';
 import { DepositService } from '../../components/deposit/deposit.service';
@@ -22,6 +23,7 @@ import { OrderService } from '../../components/order/order.service';
 import { CreateWithdrawDto } from '../../components/withdraw/dto/create-withdraw.dto';
 import { WithdrawalQuery } from '../../components/withdraw/dto/query-withdrawal.dto';
 import { WithdrawService } from '../../components/withdraw/withdraw.service';
+import { chinaDate } from '../../helpers/helper-date';
 import { AppUserService } from '../app-user/app-user.service';
 import { CreateAppUserDto } from '../app-user/dto/create-app-user.dto';
 import { CmsUserService } from './cms-user.service';
@@ -142,63 +144,63 @@ export class CmsUserController {
 
   // Deposit
   @UseGuards(CmsAuthGuard)
-  @Get('/deposit')
+  @Get('/deposit/list')
   async getAllDeposits(@Query() query: DepositQuery) {
     return this.depositService.findAll(query);
   }
 
   @UseGuards(CmsAuthGuard)
-  @Get('/deposit/:deposit_id')
+  @Get('/deposit/detail/:deposit_id')
   async getDeposit(@Param('deposit_id') deposit_id: number) {
     return this.depositService.findOne(deposit_id);
   }
 
   @UseGuards(CmsAuthGuard)
-  @Post('/deposit')
+  @Post('/deposit/create')
   async createDeposit(@Body() dto: CreateDepositDto) {
     return this.depositService.create(dto);
   }
 
   @UseGuards(CmsAuthGuard)
-  @Post('/deposit/approve/:deposit_id')
-  async approveDeposit(@Param('deposit_id') deposit_id: number) {
-    return this.depositService.reviewByCms(deposit_id, true);
-  }
-
-  @UseGuards(CmsAuthGuard)
-  @Post('/deposit/approve')
-  async rejectDeposit(@Param('deposit_id') deposit_id: number) {
-    return this.depositService.reviewByCms(deposit_id, false);
+  @Post('/deposit/review/:deposit_id')
+  async reviewDeposit(
+    @Param('deposit_id') deposit_id: number,
+    @Body() dto: any,
+    @GetCurrentCmsUser() cms: PayLoad,
+  ) {
+    dto['reviewed_by'] = cms['username'];
+    dto['reviewed_at'] = new Date();
+    return this.depositService.reviewByCms(deposit_id, dto);
   }
 
   // Withdrawal
   @UseGuards(CmsAuthGuard)
-  @Get('/withdrawal')
+  @Get('/withdrawal/list')
   async getAllWithdrawals(@Query() query: WithdrawalQuery) {
     return this.withdrawalService.findAll(query);
   }
 
   @UseGuards(CmsAuthGuard)
-  @Get('/withdrawal/:withdrawal_id')
+  @Get('/withdrawal/detail/:withdrawal_id')
   async getWithdrawal(@Param('withdrawal_id') withdrawal_id: number) {
     return this.withdrawalService.findOne(withdrawal_id);
   }
 
   @UseGuards(CmsAuthGuard)
-  @Post('/withdrawal')
+  @Post('/withdrawal/create')
   async createWithdrawal(@Body() dto: CreateWithdrawDto) {
     return this.withdrawalService.create(dto);
   }
 
   @UseGuards(CmsAuthGuard)
-  @Post('/withdrawal/approve/:withdrawal_id')
-  async approveWithdrawal(@Param('withdrawal_id') withdrawal_id: number) {
-    return this.withdrawalService.reviewByCms(withdrawal_id, true);
-  }
-
-  @UseGuards(CmsAuthGuard)
-  @Post('/withdrawal/reject/:withdrawal_id')
-  async rejectWithdrawal(@Param('withdrawal_id') withdrawal_id: number) {
-    return this.withdrawalService.reviewByCms(withdrawal_id, false);
+  @Post('/withdrawal/review/:withdrawal_id')
+  async reviewWithdrawal(
+    @Param('withdrawal_id') withdrawal_id: number,
+    @Body() dto: any,
+    @GetCurrentCmsUser() cms: PayLoad,
+  ) {
+    dto['reviewed_by'] = cms['username'];
+    dto['reviewed_at'] = new Date();
+    return this.withdrawalService.reviewByCms(withdrawal_id, dto);
   }
 }

@@ -25,6 +25,9 @@ export class Withdraw extends EntityHelper {
   @Column('varchar', { default: DEPOSIT_WITHDRAWAL_STATUS.PENDING })
   status: DEPOSIT_WITHDRAWAL_STATUS;
 
+  @Column('boolean', { default: false })
+  is_virtual_deposit: boolean;
+
   @Column('varchar', { default: '' })
   comments: string;
 

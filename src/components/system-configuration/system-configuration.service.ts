@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CreateSystemConfigurationDto } from './dto/create-system-configuration.dto';
 import { UpdateSystemConfigurationDto } from './dto/update-system-configuration.dto';
 import { SystemConfiguration } from './entities/system-configuration.entity';
-import { Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class SystemConfigurationService {
@@ -19,7 +19,9 @@ export class SystemConfigurationService {
   }
 
   findOne() {
-    return this._systemConfiguration.find({ where: { is_main_config: true } });
+    return this._systemConfiguration.findOne({
+      where: { is_main_config: true },
+    });
   }
 
   async update(
