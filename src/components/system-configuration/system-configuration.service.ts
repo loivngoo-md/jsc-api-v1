@@ -18,10 +18,6 @@ export class SystemConfigurationService {
     return transaction;
   }
 
-  findAll() {
-    return this._systemConfiguration.find();
-  }
-
   findOne() {
     return this._systemConfiguration.find({ where: { is_main_config: true } });
   }

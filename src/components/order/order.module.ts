@@ -11,10 +11,10 @@ import { AppUserModule } from '../../modules/app-user/app-user.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Order]),
-    StockModule,
+    forwardRef(() => StockModule),
     forwardRef(() => AppUserModule),
     TradingSessionModule,
-    StockStorageModule,
+    forwardRef(() =>StockStorageModule),
   ],
   controllers: [OrderController],
   providers: [OrderService],

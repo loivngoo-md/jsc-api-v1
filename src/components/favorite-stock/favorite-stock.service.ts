@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { NOT_FOUND } from 'src/common/constant/error-message';
 import { StockService } from 'src/components/stock/stock.service';
 import { Repository } from 'typeorm';
+import { QueryFavorite } from './dto/query-favorite.dto';
 import { FavoriteStock } from './entities/favorite-stock.entity';
 
 @Injectable()
@@ -13,13 +14,17 @@ export class FavoriteStockService {
     private readonly _stockService: StockService,
   ) {}
 
-  public get_list = async (query?: {}, offset?: number, limit?: number) => {
+  public get_list = async (query: QueryFavorite) => {
+    const page = query['page'] || 1;
+    const limit = query['limit'] || 10;
+
+    delete query['page'];
+    delete query['limit'];
+
     return await this._repo.find({
-      where: {
-        ...query,
-      },
-      skip: offset,
+      where: query,
       take: limit,
+      skip: (page - 1) * limit,
     });
   };
 

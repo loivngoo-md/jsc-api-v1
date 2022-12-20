@@ -1,90 +1,31 @@
 import { Type } from 'class-transformer';
 import {
-  IsArray,
-  IsBoolean,
-  IsDate,
-  IsEnum,
-  IsNotEmpty,
-  IsNumber,
-  IsString,
-  ValidateNested,
+  IsNotEmpty, IsString,
+  ValidateNested
 } from 'class-validator';
-import { DAYS_IN_WEEK } from 'src/common/enums';
 import {
-  INewShares,
-  ITradingHours,
-  ITransactionsRate,
-} from '../entities/system-configuration.interface';
+  DepositsAndWithdrawalsDto,
+  NewSharesDto,
+  TradingHoursDto,
+  TransactionRateDto
+} from './system-configuration-element.dto';
 
-class DepositsAndWithdrawalsDto {
-  @IsNumber()
-  @IsNotEmpty()
-  deposit_min: number;
-
-  @IsNumber()
-  @IsNotEmpty()
-  deposit_max: number;
-
-  @IsNumber()
-  @IsNotEmpty()
-  withdrawal_min: number;
-
-  @IsNumber()
-  @IsNotEmpty()
-  withdrawal_max: number;
-
-  @IsBoolean()
-  @IsNotEmpty()
-  deposit_permission: boolean;
-
-  @IsBoolean()
-  @IsNotEmpty()
-  withdrawal_permission: boolean;
-
-  @IsNumber()
-  @IsNotEmpty()
-  insitutional_code: number;
-
-  @IsString()
-  @IsNotEmpty()
-  deposit_prompt: string;
-
-  @IsBoolean()
-  @IsNotEmpty()
-  upload_deposit_voucher: boolean;
-
-  @IsBoolean()
-  @IsNotEmpty()
-  transfer_account_detail: boolean;
-
-  @IsString()
-  @IsNotEmpty()
-  withdrawal_prompt: string;
-
-  @IsArray()
-  @IsEnum(DAYS_IN_WEEK)
-  Withdrawal_data_available: string[];
-
-  @IsDate()
-  @IsNotEmpty()
-  start_time: Date;
-
-  @IsDate()
-  @IsNotEmpty()
-  end_time: Date;
-}
 export class CreateSystemConfigurationDto {
+  @ValidateNested({ each: true })
   @Type(() => DepositsAndWithdrawalsDto)
-  deposits_and_withdrawals: DepositsAndWithdrawalsDto;
+  deposits_and_withdrawals: DepositsAndWithdrawalsDto[];
 
-  @ValidateNested()
-  transactions_rate: ITransactionsRate;
+  @ValidateNested({ each: true })
+  @Type(() => TransactionRateDto)
+  transactions_rate: TransactionRateDto[];
 
-  @ValidateNested()
-  tranding_hours: ITradingHours;
+  @ValidateNested({ each: true })
+  @Type(() => TradingHoursDto)
+  tranding_hours: TradingHoursDto[];
 
-  @ValidateNested()
-  new_shares: INewShares;
+  @ValidateNested({ each: true })
+  @Type(() => NewSharesDto)
+  new_shares: NewSharesDto[];
 
   @IsString()
   @IsNotEmpty()

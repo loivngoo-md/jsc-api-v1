@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module';
 import * as Joi from '@hapi/joi';
@@ -40,18 +40,7 @@ import { AppUserModule } from './modules/app-user/app-user.module';
     DatabaseModule,
     CmsUserModule,
     AppUserModule,
-    AuthModule,
-    LoginRecordModule,
-    MoneyLogModule,
-    DepositModule,
-    WithdrawModule,
-    DepositAccountModule,
-    StockModule,
-    OrderModule,
-    StockStorageModule,
     SystemConfigurationModule,
-    FavoriteStockModule,
-    TradingSessionModule,
   ],
   controllers: [],
   providers: [],

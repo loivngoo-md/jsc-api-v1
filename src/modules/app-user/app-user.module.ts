@@ -8,15 +8,16 @@ import { StockStorageModule } from '../../components/stock-storage/stock-storage
 import { DepositModule } from '../../components/deposit/deposit.module';
 import { WithdrawModule } from '../../components/withdraw/withdraw.module';
 import { OrderModule } from '../../components/order/order.module';
+import { CmsUserModule } from '../cms-user/cms-user.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([AppUser]),
     forwardRef(() => OrderModule),
-    forwardRef(() => WithdrawModule),
-    forwardRef(() => DepositModule),
-    StockStorageModule,
+    WithdrawModule,
+    forwardRef(() => StockStorageModule),
     FavoriteStockModule,
+    DepositModule,
   ],
   controllers: [AppUserController],
   providers: [AppUserService],

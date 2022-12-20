@@ -20,6 +20,7 @@ import { AppAuthGuard } from '../../components/auth/guards/appAuth.guard';
 import { DepositService } from '../../components/deposit/deposit.service';
 import { CreateDepositDto } from '../../components/deposit/dto/create-deposit.dto';
 import { DepositQuery } from '../../components/deposit/dto/query-deposit.dto';
+import { QueryFavorite } from '../../components/favorite-stock/dto/query-favorite.dto';
 import { FavoriteStockService } from '../../components/favorite-stock/favorite-stock.service';
 import { CreateOrderDto } from '../../components/order/dto/create-order.dto';
 import { OrderService } from '../../components/order/order.service';
@@ -53,18 +54,18 @@ export class AppUserController {
     return this.appUserService.create(createAppUserDto);
   }
 
-  @Get()
+  @Get('user')
   findAll() {
     return this.appUserService.findAll();
   }
 
-  @Get(':id')
+  @Get('user/:id')
   findOne(@Param('id') id: string) {
     return this.appUserService.findOne(+id);
   }
 
   @UseGuards(AppAuthGuard)
-  @Patch()
+  @Patch('user')
   update(
     @GetCurrentAppUser() user: PayLoad,
     @Body() updateAppUserDto: UpdateAppUserDto,
@@ -72,13 +73,13 @@ export class AppUserController {
     return this.appUserService.update(user.id, updateAppUserDto);
   }
 
-  @Delete(':id')
+  @Delete('user/:id')
   remove(@Param('id') id: string) {
     return this.appUserService.remove(+id);
   }
 
   // Add CCCD
-  @Post('upload')
+  @Post('user/upload')
   @UseGuards(AppAuthGuard)
   @UseInterceptors(
     LocalFilesInterceptor({
@@ -105,25 +106,25 @@ export class AppUserController {
 
   // User Account
   @UseGuards(AppAuthGuard)
-  @Patch('profit')
+  @Patch('account/profit')
   async update_customer_profit(@GetCurrentAppUser() customer: PayLoad) {
     return this.appUserService.update_customer_profit(customer['id']);
   }
 
   @UseGuards(AppAuthGuard)
-  @Patch('hold-value')
+  @Patch('account/hold-value')
   async update_customer_hold_value(@GetCurrentAppUser() customer: PayLoad) {
     return this.appUserService.update_customer_hold_value(customer['id']);
   }
 
   @UseGuards(AppAuthGuard)
-  @Patch('balance-frozen')
+  @Patch('account/balance-frozen')
   async update_customer_balance_frozen(@GetCurrentAppUser() customer: PayLoad) {
     return this.appUserService.update_customer_balance_frozen(customer['id']);
   }
 
   @UseGuards(AppAuthGuard)
-  @Patch('balance-avail')
+  @Patch('account/balance-avail')
   async update_customer_balance_avail(
     @GetCurrentAppUser() customer: PayLoad,
   ): Promise<any> {
@@ -131,14 +132,14 @@ export class AppUserController {
   }
 
   @UseGuards(AppAuthGuard)
-  @Patch('freeze')
+  @Patch('account/freeze')
   async update_customer_is_freeze(@GetCurrentAppUser() customer: PayLoad) {
     return this.appUserService.freeze_account(customer['id']);
   }
 
   // Deposit
   @UseGuards(AppAuthGuard)
-  @Get('/deposit')
+  @Get('deposit/list')
   async getAllDeposits(
     @Query() query: DepositQuery,
     @GetCurrentAppUser() userFromToken: PayLoad,
@@ -147,7 +148,7 @@ export class AppUserController {
   }
 
   @UseGuards(AppAuthGuard)
-  @Post('/deposit')
+  @Post('deposit/create')
   async createDeposit(
     @Body() dto: CreateDepositDto,
     @GetCurrentAppUser() userFromToken: PayLoad,
@@ -158,7 +159,7 @@ export class AppUserController {
 
   // Withdrawal
   @UseGuards(AppAuthGuard)
-  @Get('/withdrawal')
+  @Get('withdrawal/list')
   async getAllWithdrawals(
     @Query() query: WithdrawalQuery,
     @GetCurrentAppUser() userFromToken: PayLoad,
@@ -167,7 +168,7 @@ export class AppUserController {
   }
 
   @UseGuards(AppAuthGuard)
-  @Post('withdrawal')
+  @Post('withdrawal/create')
   createOnApp(
     @Body() dto: CreateWithdrawDto,
     @GetCurrentAppUser() user: PayLoad,
@@ -178,7 +179,7 @@ export class AppUserController {
 
   // Order
   @UseGuards(AppAuthGuard)
-  @Post('buy')
+  @Post('order/buy')
   async buyStock(
     @Body() dto: CreateOrderDto,
     @GetCurrentAppUser() userFromToken: PayLoad,
@@ -192,7 +193,7 @@ export class AppUserController {
   }
 
   @UseGuards(AppAuthGuard)
-  @Get('positions')
+  @Get('order/positions')
   async getUserPosition(
     @Query() query: PositionQuery,
     @GetCurrentAppUser() userFromToken: PayLoad,
@@ -204,7 +205,7 @@ export class AppUserController {
   }
 
   @UseGuards(AppAuthGuard)
-  @Post('sell/:position_id')
+  @Post('order/sell/:position_id')
   async sellStock(
     @Param('position_id') position_id: string,
     @GetCurrentAppUser() userFromToken: PayLoad,
@@ -213,7 +214,7 @@ export class AppUserController {
   }
 
   @UseGuards(AppAuthGuard)
-  @Get('positions/sellable')
+  @Get('order/positions-sellable')
   async getSellablePositions(
     @Query() query: SellablePositionsQuery,
     @GetCurrentAppUser() userFromToken: PayLoad,
@@ -229,17 +230,17 @@ export class AppUserController {
   }
 
   @UseGuards(AppAuthGuard)
-  @Get('/favorite-list-stock')
+  @Get('/favorite/list')
   async getFavoriteListStock(
-    @Query() query: {},
+    @Query() query: QueryFavorite,
     @GetCurrentAppUser() userFromToken: PayLoad,
   ) {
-    const r = { ...query };
-    return await this.favoriteStockService.get_list();
+    query['user_id'] = +userFromToken['id'];
+    return this.favoriteStockService.get_list(query);
   }
 
   @UseGuards(AppAuthGuard)
-  @Patch('/like-stock/:fs')
+  @Patch('/favorite/like/:fs')
   async addFavoriteStock(
     @Param('fs') fs: string,
     @GetCurrentAppUser() userFromToken: PayLoad,
@@ -248,7 +249,7 @@ export class AppUserController {
   }
 
   @UseGuards(AppAuthGuard)
-  @Patch('/dislike-stock/:fs')
+  @Patch('/favorite/dislike/:fs')
   async removeFavoriteStock(
     @Param('fs') fs: string,
     @GetCurrentAppUser() userFromToken: PayLoad,
@@ -256,25 +257,3 @@ export class AppUserController {
     return this.favoriteStockService.remove(userFromToken.id, fs);
   }
 }
-
-const response = {
-  data: [
-    {
-      fs: 'SH8222',
-      count: 10,
-      position_price: 22.3,
-    },
-    {
-      fs: 'SH8222',
-      count: 7,
-      position_price: 24.7,
-    },
-    {
-      fs: 'SH8222',
-      count: 5,
-      position_price: 25.9,
-    },
-  ],
-  status: 200,
-  message: null,
-};

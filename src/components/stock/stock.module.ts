@@ -12,11 +12,10 @@ import { StockStorageModule } from '../stock-storage/stock-storage.module';
     TypeOrmModule.forFeature([Stock]),
     HttpModule,
     forwardRef(()=> OrderModule),
-    forwardRef(()=> StockStorageModule),
-    
+    forwardRef(() => StockStorageModule),
   ],
   controllers: [StockController],
   providers: [StockService],
-  exports: [StockService]
+  exports: [StockService],
 })
-export class StockModule { }
+export class StockModule {}

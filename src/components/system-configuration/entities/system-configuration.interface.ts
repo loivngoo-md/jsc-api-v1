@@ -3,54 +3,54 @@ export interface ISystemConfiguration {
   transactions_rate: ITransactionsRate;
   trading_hours: ITradingHours;
   new_shares: INewShares;
-  online_customer_service: String;
+  online_customer_service: string;
 }
 
 export interface IDepositsAndWithdrawals {
-  deposit_min: Number;
-  deposit_max: Number;
-  withdrawal_min: Number;
-  withdrawal_max: Number;
-  deposit_permission: Boolean;
-  withdrawal_permission: Boolean;
-  insitutional_code: Number;
-  deposit_prompt: String;
-  upload_deposit_voucher: Boolean;
-  transfer_account_detail: Boolean;
-  withdrawal_prompt: String;
-  Withdrawal_date_available: String[];
-  start_time: Date;
-  end_time: Date;
+  deposit_min: number;
+  deposit_max: number;
+  withdrawal_min: number;
+  withdrawal_max: number;
+  deposit_permission: boolean;
+  withdrawal_permission: boolean;
+  insitutional_code: number;
+  deposit_prompt: string;
+  upload_deposit_voucher: boolean;
+  transfer_account_detail: boolean;
+  withdrawal_prompt: string;
+  Withdrawal_date_available: string[];
+  start_time: string;
+  end_time: string;
 }
 
 export interface ITransactionsRate {
-  transaction_fees: Number;
-  withdrawal_fees: Number;
-  min_trans_balance: Number;
+  transaction_fees: number;
+  withdrawal_fees: number;
+  min_trans_balance: number;
 }
 
 export interface ITradingHours {
-  nor_start_mor: Date;
-  nor_end_mor: Date;
-  nor_start_aft: Date;
-  nor_end_aft: Date;
-  nor_trading: String[];
-  large_start_mor: Date;
-  large_end_mor: Date;
-  large_start_aft: Date;
-  large_end_aft: Date;
-  large_trading: String[];
+  nor_start_mor: string;
+  nor_end_mor: string;
+  nor_start_aft: string;
+  nor_end_aft: string;
+  nor_trading: string[];
+  large_start_mor: string;
+  large_end_mor: string;
+  large_start_aft: string;
+  large_end_aft: string;
+  large_trading: string[];
 }
 
 export interface INewShares {
-  date_new_share: Number;
-  ipo_signed_on_purchased: Number;
-  ipo_shenzhen: Number;
-  ipo_beijing: Number;
-  ipo_app_min: Number;
-  ipo_app_max: Number;
-  hit_new_min_deposit_require: Boolean;
-  hit_new_min_deposit_amount: Number;
-  multi_app: Boolean;
-  sufficient_available: Boolean;
+  date_new_share: number;
+  ipo_signed_on_purchased: number;
+  ipo_shenzhen: number;
+  ipo_beijing: number;
+  ipo_app_min: number;
+  ipo_app_max: number;
+  hit_new_min_deposit_require: boolean;
+  hit_new_min_deposit_amount: number;
+  multi_app: boolean;
+  sufficient_available: boolean;
 }

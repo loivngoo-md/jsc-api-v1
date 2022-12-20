@@ -7,14 +7,18 @@ import { AppUserModule } from '../app-user/app-user.module';
 import { MoneyLogModule } from '../../components/money-log/money-log.module';
 import { OrderModule } from '../../components/order/order.module';
 import { AuthModule } from '../../components/auth/auth.module';
+import { DepositModule } from '../../components/deposit/deposit.module';
+import { WithdrawModule } from '../../components/withdraw/withdraw.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([CmsUser]),
-    forwardRef(() => AppUserModule),
-    MoneyLogModule,
+    AppUserModule,
     OrderModule,
-    forwardRef(() => AuthModule),
+    AuthModule,
+    DepositModule,
+    WithdrawModule,
+    MoneyLogModule,
   ],
   controllers: [CmsUserController],
   providers: [CmsUserService],
