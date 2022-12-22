@@ -1,8 +1,8 @@
 export type PositionQuery = {
-    page: string,
-    ps: string
-}
+  page: string;
+  limit: string;
+};
 
 export type SellablePositionsQuery = {
-    stock_code: string
-}
+  stock_code: string;
+};

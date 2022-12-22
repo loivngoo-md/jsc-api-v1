@@ -1,9 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ORDER_TYPE, POSITION_STATUS } from 'src/common/enums';
+import { POSITION_STATUS } from 'src/common/enums';
 import { dateFormatter } from 'src/helpers/moment';
 import { DeepPartial, LessThan, MoreThanOrEqual, Repository } from 'typeorm';
-import { PositionQuery, SellablePositionsQuery } from '../../modules/app-user/dto/positions-pagination.dto';
+import {
+  PositionQuery,
+  SellablePositionsQuery,
+} from '../../modules/app-user/dto/positions-pagination.dto';
 
 import { StockService } from '../stock/stock.service';
 import { StockStorage } from './entities/stock-storage.entity';
@@ -95,7 +98,7 @@ export class StockStorageService {
     query: PositionQuery,
   ) {
     const page = +query.page || 1;
-    const pageSize = +query.ps || 20;
+    const pageSize = +query.limit || 20;
     const skip = (page - 1) * pageSize;
     const positions = await this._stockStorageRepo.find({
       where: {

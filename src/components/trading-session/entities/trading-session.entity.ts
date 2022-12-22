@@ -11,17 +11,17 @@ export class TradingSession extends EntityHelper {
   @Column({ default: SESSION_STATUS.PENDING })
   status: SESSION_STATUS;
 
-  @Column('varchar', { nullable: true })
-  mor_start_time: string;
+  @Column({ nullable: true })
+  mor_start_time: Date;
 
-  @Column('varchar', { nullable: true })
-  mor_end_time: string;
+  @Column({ nullable: true })
+  mor_end_time: Date;
 
-  @Column('varchar', { nullable: true })
-  aft_start_time: string;
+  @Column({ nullable: true })
+  aft_start_time: Date;
 
-  @Column('varchar', { nullable: true })
-  aft_end_time: string;
+  @Column({ nullable: true })
+  aft_end_time: Date;
 
   @Column('varchar', { nullable: true })
   day_of_week: string;

@@ -35,9 +35,10 @@ export class WithdrawService {
     const { amount, username } = dto;
     const user = await this._appUserService.findByUsername(username);
     const systemConfig = await this._sysConfigService.findOne();
-    const { withdrawal_fees } = systemConfig['transactions_rate'][0];
-    const { withdrawal_max, withdrawal_min } =
-      systemConfig['deposits_and_withdrawals'][0];
+    const { withdrawal_fees } = systemConfig['transactions_rate'] as any;
+    const { withdrawal_max, withdrawal_min } = systemConfig[
+      'deposits_and_withdrawals'
+    ] as any;
 
     if (
       !byCms &&
@@ -98,11 +99,15 @@ export class WithdrawService {
     delete query['page'];
     delete query['limit'];
 
-    return this._withdrawRepo.find({
+    const res = await this._withdrawRepo.find({
       where: query,
       take: limit,
       skip: (page - 1) * limit,
     });
+    return {
+      count: res.length,
+      data: res,
+    };
   }
 
   async findOne(id: number) {

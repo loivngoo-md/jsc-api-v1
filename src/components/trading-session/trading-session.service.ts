@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule/dist';
 import { InjectRepository } from '@nestjs/typeorm';
+import { dateFormatter } from 'src/helpers/moment';
 import { Repository } from 'typeorm';
 import { SESSION_STATUS } from '../../common/enums';
-import { chinaDate, DAYS, getDates } from '../../helpers/helper-date';
+import { DAYS, getDates } from '../../helpers/helper-date';
 import { SystemConfigurationService } from '../system-configuration/system-configuration.service';
 import { CreateTradingSessionDto } from './dto/create-trading-session.dto';
 import { UpdateTradingSessionDto } from './dto/update-trading-session.dto';
@@ -47,43 +48,46 @@ export class TradingSessionService {
     return `This action removes a #${id} tradingSession`;
   }
 
-  @Cron('* * * * * *')
-  async handle() {}
+  // @Cron('* */1 * * * *')
+  // async handle() {
+  //   console.log(dateFormatter('12/22/2022 09:30:00 +8').format('MM/DD/YYYY'));
+  // }
 
   @Cron('0 0/30 5 * * 1-5')
   async startSession() {
-    const date = new Date();
-    const currentDate = date.toLocaleDateString();
+    const date = dateFormatter();
+    const currentDate = date.format('MM/DD/YYYY');
     const session = await this._tradingSessionRepo.findOne({
       where: { date: currentDate },
     });
     let status: SESSION_STATUS = session['status'];
     if (!session['detail']) {
       const systemConfig = await this._systemConfigService.findOne();
-      const tradingHours = systemConfig['trading_hours'][0];
+      const tradingHours = systemConfig['trading_hours'];
       await this._tradingSessionRepo.update(
         { id: session['id'] },
         {
           detail: systemConfig,
-          mor_start_time: chinaDate(
-            `${currentDate} ${tradingHours['nor_start_mor']}`,
+          mor_start_time: dateFormatter(
+            `${currentDate} ${tradingHours['nor_start_mor']} +8`,
           ),
-          mor_end_time: chinaDate(
-            `${currentDate} ${tradingHours['nor_end_mor']}`,
+          mor_end_time: dateFormatter(
+            `${currentDate} ${tradingHours['nor_end_mor']} +8`,
           ),
-          aft_start_time: chinaDate(
-            `${currentDate} ${tradingHours['nor_start_aft']}`,
+          aft_start_time: dateFormatter(
+            `${currentDate} ${tradingHours['nor_start_aft']} +8`,
           ),
-          aft_end_time: chinaDate(
-            `${currentDate} ${tradingHours['nor_end_aft']}`,
+          aft_end_time: dateFormatter(
+            `${currentDate} ${tradingHours['nor_end_aft']} +8`,
           ),
         },
       );
     } else {
-      const morStart = new Date(session['mor_start_time']);
-      const morEnd = new Date(session['mor_end_time']);
-      const aftStart = new Date(session['aft_start_time']);
-      const aftEnd = new Date(session['aft_end_time']);
+      const morStart = dateFormatter(`${session['mor_start_time']} +0`);
+      const morEnd = dateFormatter(`${session['mor_end_time']} +0`);
+      const aftStart = dateFormatter(`${session['aft_start_time']} +0`);
+      const aftEnd = dateFormatter(`${session['aft_end_time']} +0`);
+
       if (morStart <= date && date < morEnd) {
         status = SESSION_STATUS.OPENING;
       } else if (morEnd <= date && date < aftStart) {

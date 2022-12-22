@@ -21,11 +21,24 @@ export class FavoriteStockService {
     delete query['page'];
     delete query['limit'];
 
-    return await this._repo.find({
-      where: query,
-      take: limit,
-      skip: (page - 1) * limit,
-    });
+    const rec = await this._repo
+      .createQueryBuilder('fs')
+      .innerJoinAndSelect('stocks', 's', 's.FS = fs.fs')
+      .select([
+        'fs.*',
+        's.*',
+        'fs.created_at as created_at',
+        'fs.updated_at as updated_at',
+      ])
+      .where(query)
+      .take(limit)
+      .skip((page - 1) * limit)
+      .getRawMany();
+
+    return {
+      count: rec.length,
+      data: rec,
+    };
   };
 
   public get_list_by_user = async (user_id: number) => {

@@ -14,8 +14,7 @@ const dateIsValid = (date: any) => {
 };
 
 export const chinaDate = (value?: any) => {
-  const date = dateIsValid(new Date(value)) ? new Date(value) : new Date();
-  return date.toLocaleString('en-US', { timeZone: 'Asia/Shanghai' });
+  return dateIsValid(new Date(value)) ? new Date(`${value} +8`) : new Date();
 };
 
 export const DAYS = {
