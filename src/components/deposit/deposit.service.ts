@@ -1,17 +1,10 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DEPOSIT_WITHDRAWAL_STATUS } from 'src/common/enums';
-import {
-  Between,
-  LessThanOrEqual,
-  MoreThan,
-  MoreThanOrEqual,
-  Repository,
-} from 'typeorm';
+import { Between, LessThanOrEqual, Repository } from 'typeorm';
 import { AppUserService } from '../../modules/app-user/app-user.service';
 import { DepositAccountService } from '../deposit-account/deposit-account.service';
 import { SystemConfigurationService } from '../system-configuration/system-configuration.service';
-import { CreateDepositDto } from './dto/create-deposit.dto';
 import { DepositQuery } from './dto/query-deposit.dto';
 import Deposit from './entities/deposit.entity';
 
@@ -71,11 +64,24 @@ export class DepositService {
     delete query['page'];
     delete query['limit'];
 
-    return this._depositRepo.find({
-      where: query,
-      take: limit,
-      skip: (page - 1) * limit,
-    });
+    const rec = await this._depositRepo
+      .createQueryBuilder('d')
+      .innerJoin('app_users', 'u', 'd.user_id = u.id')
+      .select([
+        'd.*',
+        'u.account_name as realname',
+        'd.created_at as created_at',
+        'd.updated_at as updated_at',
+      ])
+      .where(query)
+      .take(limit)
+      .skip((page - 1) * limit)
+      .getRawMany();
+
+    return {
+      count: rec.length,
+      data: rec,
+    };
   }
 
   async findOne(id: number) {
@@ -92,7 +98,7 @@ export class DepositService {
     if (deposit.status !== DEPOSIT_WITHDRAWAL_STATUS.PENDING) {
       throw new HttpException('Deposit is not pending', HttpStatus.BAD_REQUEST);
     }
-    
+
     if (status === DEPOSIT_WITHDRAWAL_STATUS.SUCCESS) {
       const user = await this._appUserService.findOne(deposit['user_id']);
 

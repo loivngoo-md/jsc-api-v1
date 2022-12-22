@@ -138,14 +138,23 @@ export class StockService {
     };
   }
 
-  // TODO: FIX FINDONE
   async findOne(fs: string) {
-    const stock = await this._stockRepo.findOne({ where: { FS: fs } });
-    if (stock) {
-      delete stock['__entity'];
-      delete stock['id'];
-      await this._stockRepo.update({ FS: stock.FS }, stock);
-      return stock;
+    const ROUT = 'CNST';
+    const APP_KEY = `AppCode ${process.env.APP_CODE_3RD}`;
+    const uri = process.env.HOST_STOCK_3RD;
+    let url = `${uri}/query/comrmsvol?symbols=${fs}&rout=${ROUT}&sort=ZF&sorttype=0`;
+    const config = {
+      headers: {
+        Authorization: `${APP_KEY}`,
+      },
+    };
+
+    const { data } = await firstValueFrom(this.httpService.get(url, config));
+    const listStocks: any[] = data.Obj;
+
+    if (listStocks) {
+      await this._stockRepo.upsert([...listStocks], ['FS']);
+      return listStocks[0];
     }
 
     throw new HttpException('Stock not found', HttpStatus.NOT_FOUND);

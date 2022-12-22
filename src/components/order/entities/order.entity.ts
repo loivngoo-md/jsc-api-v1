@@ -31,6 +31,9 @@ export class Order extends EntityHelper {
   @Column('integer')
   user_id: number;
 
+  @Column('varchar')
+  username: string;
+
   @Column('bool', { nullable: true })
   is_resolved: boolean;
 

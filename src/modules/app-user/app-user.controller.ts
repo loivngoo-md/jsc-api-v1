@@ -23,6 +23,7 @@ import { DepositQuery } from '../../components/deposit/dto/query-deposit.dto';
 import { QueryFavorite } from '../../components/favorite-stock/dto/query-favorite.dto';
 import { FavoriteStockService } from '../../components/favorite-stock/favorite-stock.service';
 import { CreateOrderDto } from '../../components/order/dto/create-order.dto';
+import { OrderQuery } from '../../components/order/dto/query-order.dto';
 import { OrderService } from '../../components/order/order.service';
 import { StockStorageService } from '../../components/stock-storage/stock-storage.service';
 import { CreateWithdrawDto } from '../../components/withdraw/dto/create-withdraw.dto';
@@ -179,17 +180,22 @@ export class AppUserController {
 
   // Order
   @UseGuards(AppAuthGuard)
-  @Post('order/buy')
-  async buyStock(
-    @Body() dto: CreateOrderDto,
+  @Post('order/list')
+  async getListOrder(
+    @Query() query: OrderQuery,
     @GetCurrentAppUser() userFromToken: PayLoad,
   ) {
-    if (dto['type'] != ORDER_TYPE.BUY) {
-      throw new BadRequestException();
-    }
-    dto['user_id'] = userFromToken['id'];
+    return this.orderService.listAllOrders(query, userFromToken['id']);
+  }
 
-    return this.orderService.buyOnApp(dto);
+  @UseGuards(AppAuthGuard)
+  @Post('order/buy')
+  async buyStock(
+    @Body() dto: any,
+    @GetCurrentAppUser() userFromToken: PayLoad,
+  ) {
+    dto['user_id'] = userFromToken['id'];
+    return this.orderService.buy(dto);
   }
 
   @UseGuards(AppAuthGuard)
@@ -210,7 +216,7 @@ export class AppUserController {
     @Param('position_id') position_id: string,
     @GetCurrentAppUser() userFromToken: PayLoad,
   ) {
-    return this.orderService.sellOnApp(position_id, userFromToken['id']);
+    return this.orderService.sell(position_id, userFromToken['id']);
   }
 
   @UseGuards(AppAuthGuard)

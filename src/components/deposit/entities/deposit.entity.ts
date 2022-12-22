@@ -1,7 +1,6 @@
-import Decimal from 'decimal.js';
 import { DEPOSIT_WITHDRAWAL_STATUS } from 'src/common/enums';
 import { EntityHelper } from 'src/helpers/entity-helper';
-import { AfterLoad, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 export class ColumnNumericTransformer {
   to(data: number): number {

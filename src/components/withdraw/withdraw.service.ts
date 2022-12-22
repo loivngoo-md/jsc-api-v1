@@ -99,15 +99,24 @@ export class WithdrawService {
     delete query['page'];
     delete query['limit'];
 
-    const res = await this._withdrawRepo.find({
-      where: query,
-      take: limit,
-      skip: (page - 1) * limit,
-    });
-    return {
-      count: res.length,
-      data: res,
-    };
+    const rec = await this._withdrawRepo
+    .createQueryBuilder('w')
+    .innerJoin('app_users', 'u', 'w.user_id = u.id')
+    .select([
+      'w.*',
+      'u.account_name as realname',
+      'w.created_at as created_at',
+      'w.updated_at as updated_at',
+    ])
+    .where(query)
+    .take(limit)
+    .skip((page - 1) * limit)
+    .getRawMany();
+
+  return {
+    count: rec.length,
+    data: rec,
+  };
   }
 
   async findOne(id: number) {

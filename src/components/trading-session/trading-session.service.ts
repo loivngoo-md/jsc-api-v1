@@ -35,8 +35,13 @@ export class TradingSessionService {
   }
 
   async findOne(id: string) {
-    console.log(id);
     return this._tradingSessionRepo.findOne({ where: { id: id } });
+  }
+
+  async findOpeningSession() {
+    return this._tradingSessionRepo.findOne({
+      where: { status: SESSION_STATUS.OPENING },
+    });
   }
 
   async update(id: string, dto: UpdateTradingSessionDto) {

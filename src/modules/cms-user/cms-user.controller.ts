@@ -19,6 +19,7 @@ import { DepositService } from '../../components/deposit/deposit.service';
 import { CreateDepositDto } from '../../components/deposit/dto/create-deposit.dto';
 import { DepositQuery } from '../../components/deposit/dto/query-deposit.dto';
 import { MoneyLogService } from '../../components/money-log/money-log.service';
+import { OrderQuery } from '../../components/order/dto/query-order.dto';
 import { OrderService } from '../../components/order/order.service';
 import { CreateWithdrawDto } from '../../components/withdraw/dto/create-withdraw.dto';
 import { WithdrawalQuery } from '../../components/withdraw/dto/query-withdrawal.dto';
@@ -127,19 +128,34 @@ export class CmsUserController {
   }
 
   // Order
-  @Get('/orders/histories')
-  async list_orders() {
-    return this._orderService.list_all_orders();
+  @UseGuards(CmsAuthGuard)
+  @Get('/orders/list/histories')
+  async listOrders(@Query() query: OrderQuery) {
+    return this._orderService.listAllOrders(query);
   }
 
-  @Get('/orders/today')
-  async list_orders_by_user_from_today(@Body() dto: { user_id: number }) {
-    return this._orderService.list_orders_today_for_user(dto['user_id']);
+  @UseGuards(CmsAuthGuard)
+  @Get('/orders/list/today')
+  async lsit(@Body() dto: { user_id: number }) {
+    return this._orderService.listAllToday(dto['user_id']);
   }
 
-  @Get('/orders/:id')
+  @UseGuards(CmsAuthGuard)
+  @Get('/orders/detail/:id')
   async view_detail_order(@Param('id') id: string) {
     return this._orderService.view_detail_order(+id);
+  }
+
+  @UseGuards(CmsAuthGuard)
+  @Post('order/buy')
+  async buyStock(@Body() dto: any) {
+    return this._orderService.buy(dto);
+  }
+
+  @UseGuards(CmsAuthGuard)
+  @Post('order/sell/:position_id')
+  async sellStock(@Param('position_id') position_id: string) {
+    return this._orderService.sell(position_id);
   }
 
   // Deposit
