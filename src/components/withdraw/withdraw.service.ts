@@ -7,11 +7,12 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
 import { INVALID_PASSWORD } from 'src/common/constant/error-message';
-import { DEPOSIT_WITHDRAWAL_STATUS } from 'src/common/enums';
+import { DEPOSIT_WITHDRAWAL_STATUS, TRANSACTION_TYPE } from 'src/common/enums';
 import { Between, LessThanOrEqual, Repository } from 'typeorm';
 import { AppUserService } from '../../modules/app-user/app-user.service';
 import AppUser from '../../modules/app-user/entities/app-user.entity';
 import { SystemConfigurationService } from '../system-configuration/system-configuration.service';
+import { TransactionsService } from './../transactions/transactions.service';
 import { WithdrawalQuery } from './dto/query-withdrawal.dto';
 import { Withdraw } from './entities/withdraw.entity';
 
@@ -22,6 +23,7 @@ export class WithdrawService {
     private readonly _withdrawRepo: Repository<Withdraw>,
     private readonly _appUserService: AppUserService,
     private readonly _sysConfigService: SystemConfigurationService,
+    private readonly _trxService: TransactionsService,
   ) {}
 
   async validatePassword(
@@ -76,7 +78,7 @@ export class WithdrawService {
 
   async findAll(query: WithdrawalQuery, user_id?: number) {
     const page = query['page'] || 1;
-    const limit = query['limit'] || 10;
+    const pageSize = query['pageSize'] || 10;
 
     const end_time = query['end_time']
       ? new Date(query['end_time'])
@@ -97,26 +99,26 @@ export class WithdrawService {
     delete query['start_time'];
     delete query['end_time'];
     delete query['page'];
-    delete query['limit'];
+    delete query['pageSize'];
 
     const rec = await this._withdrawRepo
-    .createQueryBuilder('w')
-    .innerJoin('app_users', 'u', 'w.user_id = u.id')
-    .select([
-      'w.*',
-      'u.account_name as realname',
-      'w.created_at as created_at',
-      'w.updated_at as updated_at',
-    ])
-    .where(query)
-    .take(limit)
-    .skip((page - 1) * limit)
-    .getRawMany();
+      .createQueryBuilder('w')
+      .innerJoin('app_users', 'u', 'w.user_id = u.id')
+      .select([
+        'w.*',
+        'u.real_name as real_name',
+        'w.created_at as created_at',
+        'w.updated_at as updated_at',
+      ])
+      .where(query)
+      .take(pageSize)
+      .skip((page - 1) * pageSize)
+      .getRawMany();
 
-  return {
-    count: rec.length,
-    data: rec,
-  };
+    return {
+      count: rec.length,
+      data: rec,
+    };
   }
 
   async findOne(id: number) {
@@ -138,8 +140,17 @@ export class WithdrawService {
     }
     const user = await this._appUserService.findOne(withdrawal['user_id']);
     if (status === DEPOSIT_WITHDRAWAL_STATUS.SUCCESS) {
+      const trxInfo = {
+        trx_id: withdraw_id,
+        type: TRANSACTION_TYPE.WITHDRAWAL,
+        user_id: withdrawal['user_id'],
+        before: +user['balance'],
+        after: +user['balance'] - +withdrawal['amount'],
+      };
+
       await Promise.all([
         this._withdrawRepo.update(withdraw_id, dto),
+        this._trxService.addTrx(trxInfo),
         this._appUserService.update(withdrawal['user_id'], {
           balance: +user['balance'] - +withdrawal['amount'],
           balance_frozen: 0,

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import MoneyLog from './entities/money-log.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import MoneyLog from './entities/money-log.entity';
 
 @Injectable()
 export class MoneyLogService {
@@ -16,7 +16,9 @@ export class MoneyLogService {
     return newLog;
   }
 
-  async list() {
-    return this._MoneyLogRepo.find();
+  async list(user_id: number) {
+    return this._MoneyLogRepo.find({
+      where: { user_id },
+    });
   }
 }

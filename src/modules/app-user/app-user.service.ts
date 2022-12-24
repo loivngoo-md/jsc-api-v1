@@ -8,7 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
 import { Repository } from 'typeorm';
-import { CreateAppUserDto } from './dto/create-app-user.dto';
+import { MoneyLogService } from '../../components/money-log/money-log.service';
 import { UpdateAppUserDto } from './dto/update-app-user.dto';
 import AppUser from './entities/app-user.entity';
 
@@ -17,11 +17,44 @@ export class AppUserService {
   constructor(
     @InjectRepository(AppUser)
     private _appUserRepo: Repository<AppUser>,
+    private _moneyLogService: MoneyLogService,
   ) {}
+
+  async setPassword(id: number, pw: string) {
+    const user = await this._appUserRepo.findOneByOrFail({ id });
+    if (user) {
+      const salt = await bcrypt.genSalt();
+      const password = await bcrypt.hash(pw, salt);
+      return await this._appUserRepo.update(id, { password });
+    }
+
+    throw new NotFoundException('Not Found User');
+  }
+
+  async setWithdrawalPassword(id: number, pw: string) {
+    const user = await this._appUserRepo.findOneByOrFail({ id });
+    if (user) {
+      const salt = await bcrypt.genSalt();
+      const withdraw_password = await bcrypt.hash(pw, salt);
+      return await this._appUserRepo.update(id, { withdraw_password });
+    }
+
+    throw new NotFoundException('Not Found User');
+  }
 
   async update_customer_profit(id: number) {}
   async update_customer_hold_value(id: number) {}
-  async update_customer_balance_frozen(id: number) {}
+
+  async get_customer_balance_frozen(id: number) {
+    const user = await this._appUserRepo.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('User is not found.');
+    }
+
+    return {
+      amount: user['balance_frozen'],
+    };
+  }
   async update_customer_balance_avail(id: number) {}
   async freeze_account(id: number) {
     let { is_freeze } = await this._appUserRepo.findOne({ where: { id } });
@@ -41,11 +74,11 @@ export class AppUserService {
   ) {
     if (dto['type'] === 1) {
       await this._appUserRepo.update(user_id, {
-        id_front_cccd: fileData.filename,
+        id_front: fileData.filename,
       });
     } else if (dto['type'] === 0) {
       await this._appUserRepo.update(user_id, {
-        id_back_cccd: fileData.filename,
+        id_back: fileData.filename,
       });
     }
 
@@ -62,12 +95,28 @@ export class AppUserService {
     },
   ) {
     const { type, amount, comments, remark } = body;
-    const { balance } = await this._appUserRepo.findOne({ where: { id } });
+    const { balance, balance_avail } = await this._appUserRepo.findOne({
+      where: { id },
+    });
 
     const newBalance = !!type
       ? Number(balance) + amount
       : Number(balance) - amount;
-    await this.update(id, { balance: newBalance });
+    const newBalanceAvail = !!type
+      ? Number(balance_avail) + amount
+      : Number(balance_avail) - amount;
+    await Promise.all([
+      this.update(id, { balance: newBalance, balance_avail: newBalanceAvail }),
+      this._moneyLogService.insert({
+        user_id: id,
+        amount,
+        before: balance,
+        after: newBalance,
+        type: type,
+        comments,
+        remark,
+      }),
+    ]);
 
     return {
       user_id: id,
@@ -88,13 +137,18 @@ export class AppUserService {
     return await this._appUserRepo.update(id, { is_verified: true });
   }
 
-  async create(createAppUserDto: CreateAppUserDto) {
+  async create(createAppUserDto: any) {
     const isExistedUser = await this._appUserRepo.findOne({
       where: { username: createAppUserDto['username'] },
     });
     if (!!isExistedUser) {
       throw new BadRequestException('Username is existed.');
     }
+    const salt = await bcrypt.genSalt();
+    createAppUserDto['password'] = await bcrypt.hash(
+      createAppUserDto['password'],
+      salt,
+    );
 
     const newUser = this._appUserRepo.create(createAppUserDto);
     await this._appUserRepo.save(newUser);
@@ -115,14 +169,14 @@ export class AppUserService {
 
   async getAppUserWithPagging(query: {
     page: number;
-    limit: number;
+    pageSize: number;
     search?: string;
   }) {
     let app_users: any[];
 
-    const { page, limit } = query;
-    const take = +limit;
-    const skip = +limit * (+page - 1);
+    const { page, pageSize } = query;
+    const take = +pageSize || 10;
+    const skip = +pageSize * (+page - 1) || 0;
 
     if (query.search) {
       app_users = await this._appUserRepo.find({
@@ -199,5 +253,43 @@ export class AppUserService {
     if (!deleteResponse.affected) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
+  }
+
+  async updatePassword(id: number, dto: any) {
+    const user = await this._appUserRepo.findOne({
+      where: { id },
+    });
+    if (!user) {
+      throw new BadRequestException('Not found user.');
+    }
+    const compare = await bcrypt.compare(dto['old_password'], user['password']);
+    if (!compare) {
+      throw new BadRequestException('Wrong old password');
+    }
+
+    const salt = await bcrypt.genSalt();
+    const password = await bcrypt.hash(dto['new_password'], salt);
+
+    return await this._appUserRepo.update(id, { password });
+  }
+
+  async updateWithdrawalPassword(id: number, dto: any) {
+    const user = await this._appUserRepo.findOne({ where: { id } });
+    if (!user) {
+      throw new BadRequestException('Not found user.');
+    }
+
+    const compare = await bcrypt.compare(
+      dto['old_password'],
+      user['withdraw_password'],
+    );
+    if (!compare) {
+      throw new BadRequestException('Wrong old password');
+    }
+
+    const salt = await bcrypt.genSalt();
+    const withdraw_password = await bcrypt.hash(dto['new_password'], salt);
+
+    return this._appUserRepo.update(id, { withdraw_password });
   }
 }

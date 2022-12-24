@@ -1,8 +1,1 @@
-export class CreateAppUserDto {
-    balance?: number;
-    is_freeze?: boolean;
-    balance_frozen?: number;
-    is_active?: boolean;
-    is_verified?: boolean;
-    balance_avail: number
-}
+export class CreateAppUserDto {}

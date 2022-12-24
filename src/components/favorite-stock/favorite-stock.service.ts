@@ -16,10 +16,10 @@ export class FavoriteStockService {
 
   public get_list = async (query: QueryFavorite) => {
     const page = query['page'] || 1;
-    const limit = query['limit'] || 10;
+    const pageSize = query['pageSize'] || 10;
 
     delete query['page'];
-    delete query['limit'];
+    delete query['pageSize'];
 
     const rec = await this._repo
       .createQueryBuilder('fs')
@@ -31,8 +31,8 @@ export class FavoriteStockService {
         'fs.updated_at as updated_at',
       ])
       .where(query)
-      .take(limit)
-      .skip((page - 1) * limit)
+      .take(pageSize)
+      .skip((page - 1) * pageSize)
       .getRawMany();
 
     return {

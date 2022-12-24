@@ -6,5 +6,5 @@ export type WithdrawalQuery = {
   start_time?: Date;
   end_time?: Date;
   page?: number;
-  limit?: number;
+  pageSize?: number;
 };

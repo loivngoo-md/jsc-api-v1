@@ -1,12 +1,12 @@
 import { forwardRef, Module } from '@nestjs/common';
-import { OrderService } from './order.service';
-import { OrderController } from './order.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Order } from './entities/order.entity';
-import { StockModule } from '../stock/stock.module';
-import { StockStorageModule } from '../stock-storage/stock-storage.module';
-import { TradingSessionModule } from '../trading-session/trading-session.module';
 import { AppUserModule } from '../../modules/app-user/app-user.module';
+import { StockStorageModule } from '../stock-storage/stock-storage.module';
+import { StockModule } from '../stock/stock.module';
+import { TradingSessionModule } from '../trading-session/trading-session.module';
+import { TransactionsModule } from '../transactions/transactions.module';
+import { Order } from './entities/order.entity';
+import { OrderService } from './order.service';
 
 @Module({
   imports: [
@@ -14,9 +14,9 @@ import { AppUserModule } from '../../modules/app-user/app-user.module';
     forwardRef(() => StockModule),
     forwardRef(() => AppUserModule),
     TradingSessionModule,
-    forwardRef(() =>StockStorageModule),
+    forwardRef(() => StockStorageModule),
+    TransactionsModule,
   ],
-  controllers: [OrderController],
   providers: [OrderService],
   exports: [OrderService],
 })

@@ -1,19 +1,15 @@
-import { forwardRef, Module } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
-import { JwtModule } from '@nestjs/jwt';
+import { Module, forwardRef } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { CmsStrategy } from './cms-jwt.strategy';
-import { LoginRecordModule } from '../login-record/login-record.module';
-import { AppStrategy } from './app-jwt.strategy';
+import { JwtModule } from '@nestjs/jwt';
 import { AppUserModule } from '../../modules/app-user/app-user.module';
 import { CmsUserModule } from '../../modules/cms-user/cms-user.module';
+import { LoginRecordModule } from '../login-record/login-record.module';
+import { AppStrategy } from './app-jwt.strategy';
+import { AuthService } from './auth.service';
+import { CmsStrategy } from './cms-jwt.strategy';
 
 @Module({
   imports: [
-    AppUserModule,
-    forwardRef(() => CmsUserModule),
-    LoginRecordModule,
     ConfigModule.forRoot({
       envFilePath: '.env',
     }),
@@ -23,11 +19,11 @@ import { CmsUserModule } from '../../modules/cms-user/cms-user.module';
         expiresIn: '24h',
       },
     }),
-
-
+    forwardRef(() => CmsUserModule),
+    forwardRef(() => AppUserModule),
+    LoginRecordModule,
   ],
   providers: [AuthService, CmsStrategy, AppStrategy],
-  controllers: [AuthController],
   exports: [AuthService],
 })
-export class AuthModule { }
+export class AuthModule {}

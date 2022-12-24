@@ -24,18 +24,11 @@ export class SystemConfigurationService {
     });
   }
 
-  async update(
-    id: number,
-    updateSystemConfigurationDto: UpdateSystemConfigurationDto,
-  ) {
+  async update(updateSystemConfigurationDto: UpdateSystemConfigurationDto) {
     await this._systemConfiguration.update(
-      { id: id },
+      { is_main_config: true },
       updateSystemConfigurationDto,
     );
-    return `This action updates a #${id} systemConfiguration`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} systemConfiguration`;
+    return { isSuccess: true };
   }
 }

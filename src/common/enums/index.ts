@@ -1,6 +1,6 @@
 export enum ORDER_TYPE {
-  BUY = 'B',
-  SELL = 'S',
+  BUY = 0,
+  SELL = 1,
 }
 
 export enum POSITION_STATUS {
@@ -25,14 +25,14 @@ export enum SESSION_STATUS {
 }
 
 export enum DEPOSIT_WITHDRAWAL_STATUS {
-  PENDING = 'pending',
-  SUCCESS = 'success',
-  FAIL = 'fail',
+  PENDING = 0,
+  SUCCESS = 1,
+  FAIL = 2,
 }
 
 export enum TRANSACTION_TYPE {
-  DEPOSIT = 'deposit',
-  WITHDRAWAL = 'withdrawal',
-  BUY = 'buy',
-  SELL = 'sell',
+  DEPOSIT = 3,
+  WITHDRAWAL = 2,
+  BUY = 0,
+  SELL = 1,
 }

@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { POSITION_STATUS } from 'src/common/enums';
+import { POSITION_STATUS, SESSION_STATUS } from 'src/common/enums';
 import { dateFormatter } from 'src/helpers/moment';
-import { DeepPartial, LessThan, MoreThanOrEqual, Repository } from 'typeorm';
+import { DeepPartial, MoreThanOrEqual, Repository } from 'typeorm';
+import { PaginationQuery } from '../../helpers/dto-helper';
 import {
   PositionQuery,
   SellablePositionsQuery,
@@ -19,8 +20,20 @@ export class StockStorageService {
     private readonly _stockService: StockService,
   ) {}
 
-  public async list_for_user(user_id: number) {
-    return this._stockStorageRepo.find({ where: { user_id } });
+  public async list_for_user(query: PaginationQuery, user_id: number) {
+    const page = query['page'] || 1;
+    const pageSize = query['pageSize'] || 10;
+
+    const rec = await this._stockStorageRepo.find({
+      where: { user_id },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    });
+
+    return {
+      count: rec.length,
+      data: rec,
+    };
   }
 
   public async store(dto: DeepPartial<StockStorage>) {
@@ -98,49 +111,46 @@ export class StockStorageService {
     query: PositionQuery,
   ) {
     const page = +query.page || 1;
-    const pageSize = +query.limit || 20;
+    const pageSize = +query.pageSize || 20;
     const skip = (page - 1) * pageSize;
-    const positions = await this._stockStorageRepo.find({
-      where: {
+    const positions = await this._stockStorageRepo
+      .createQueryBuilder('ss')
+      .innerJoinAndSelect('stocks', 's', 'ss.stock_code = s.FS')
+      .innerJoinAndSelect('app_users', 'u', 'ss.user_id = u.id')
+      .select([
+        'ss.*',
+        'row_to_json(u.*) as app_user',
+        'row_to_json(s.*) as stock',
+      ])
+      .where({
         user_id: Number(user_id),
         status: POSITION_STATUS.OPEN,
-      },
-      skip,
-      take: pageSize,
-    });
+      })
+      .skip(skip)
+      .take(pageSize)
+      .getRawMany();
 
-    const stockCodes = positions.reduce((codes: string[], position) => {
-      if (!codes.includes(position.stock_code)) {
-        codes.push(position.stock_code);
-      }
-      return codes;
-    }, []);
-
-    const stocks = await this._stockService.getStocksUsingCodes(stockCodes);
-
-    return { positions, stocks };
+    return { data: positions, count: positions.length };
   }
 
   public async getSellablePositions(
     user_id: number,
     query: SellablePositionsQuery,
   ) {
-    const today_timestamp = dateFormatter().valueOf();
-    const today = new Date(today_timestamp);
+    const positions = await this._stockStorageRepo
+      .createQueryBuilder('ss')
+      .innerJoinAndSelect(
+        'trading-session',
+        'ts',
+        'ss.trading_session = ts.id::text',
+      )
+      .innerJoinAndSelect('stocks', 's', 'ss.stock_code = s.FS')
+      .select(['ss.*', 'row_to_json(s.*) as stock'])
+      .where(
+        `ss.stock_code = '${query.stock_code}' and ts.status = '${SESSION_STATUS.CLOSED}' and ss.status = ${POSITION_STATUS.OPEN} and ss.user_id = ${user_id}`,
+      )
+      .getRawMany();
 
-    const positions = await this._stockStorageRepo.find({
-      where: {
-        user_id,
-        stock_code: query.stock_code,
-        status: POSITION_STATUS.OPEN,
-        created_at: LessThan(today),
-      },
-    });
-
-    const stocks = await this._stockService.getStocksUsingCodes([
-      query.stock_code,
-    ]);
-
-    return { positions, stocks };
+    return { data: positions, count: positions.length };
   }
 }

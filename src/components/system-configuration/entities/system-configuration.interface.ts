@@ -13,12 +13,12 @@ export interface IDepositsAndWithdrawals {
   withdrawal_max: number;
   deposit_permission: boolean;
   withdrawal_permission: boolean;
-  insitutional_code: number;
+  institutional_code: number;
   deposit_prompt: string;
   upload_deposit_voucher: boolean;
   transfer_account_detail: boolean;
   withdrawal_prompt: string;
-  Withdrawal_date_available: string[];
+  withdrawal_date_available: string[];
   start_time: string;
   end_time: string;
 }

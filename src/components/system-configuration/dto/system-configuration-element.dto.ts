@@ -1,5 +1,12 @@
-import { IsArray, IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsString } from "class-validator";
-import { DAYS_IN_WEEK } from "../../../common/enums";
+import {
+  IsArray,
+  IsBoolean,
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+} from 'class-validator';
+import { DAYS_IN_WEEK } from '../../../common/enums';
 
 export class DepositsAndWithdrawalsDto {
   @IsNumber()
@@ -26,7 +33,7 @@ export class DepositsAndWithdrawalsDto {
 
   @IsNumber()
   @IsNotEmpty()
-  insitutional_code: number;
+  institutional_code: number;
 
   @IsString()
   @IsNotEmpty()
@@ -46,7 +53,7 @@ export class DepositsAndWithdrawalsDto {
 
   @IsArray()
   @IsEnum(DAYS_IN_WEEK, { each: true })
-  Withdrawal_date_available: DAYS_IN_WEEK[];
+  withdrawal_date_available: DAYS_IN_WEEK[];
 
   @IsString()
   @IsNotEmpty()

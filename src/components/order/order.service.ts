@@ -6,16 +6,18 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ORDER_TYPE, POSITION_STATUS, SESSION_STATUS } from 'src/common/enums';
-import { dateFormatter } from 'src/helpers/moment';
-import { Between, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
+import {
+  ORDER_TYPE,
+  POSITION_STATUS,
+  TRANSACTION_TYPE,
+} from 'src/common/enums';
+import { Between, LessThanOrEqual, Repository } from 'typeorm';
 import { AppUserService } from '../../modules/app-user/app-user.service';
 import { StockStorageService } from '../stock-storage/stock-storage.service';
 import { StockService } from '../stock/stock.service';
 import { TradingSessionService } from '../trading-session/trading-session.service';
-import { ClosePositionDto, CreateOrderDto } from './dto/create-order.dto';
-import { OrderQuery } from './dto/query-order.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
+import { TransactionsService } from '../transactions/transactions.service';
+import { OrderQuery, OrderTodayQuery } from './dto/query-order.dto';
 import { Order } from './entities/order.entity';
 
 @Injectable()
@@ -27,6 +29,7 @@ export class OrderService {
     private readonly _appUserService: AppUserService,
     private readonly _tradingSessionService: TradingSessionService,
     private readonly _stockStorageService: StockStorageService,
+    private readonly _trxService: TransactionsService,
   ) {}
 
   async list_orders_by_user(user_id: number) {
@@ -39,7 +42,7 @@ export class OrderService {
 
   async listAllOrders(query: OrderQuery, user_id?: number) {
     const page = +query['page'] || 1;
-    const limit = +query['limit'] || 10;
+    const pageSize = +query['pageSize'] || 10;
 
     const end_time = query['end_time']
       ? new Date(query['end_time'])
@@ -62,15 +65,15 @@ export class OrderService {
       .innerJoinAndSelect('app_users', 'u', 'o.user_id = u.id')
       .select([
         'o.*',
-        'u.account_name as realname',
+        'u.real_name as real_name',
         'u.agent_code as agent',
         'u.superior as superior',
         'o.created_at as created_at',
         'o.updated_at as updated_at',
       ])
-      .where(query)
-      .take(limit)
-      .skip((page - 1) * limit)
+      .where({})
+      .take(pageSize)
+      .skip((page - 1) * pageSize)
       .getRawMany();
 
     return {
@@ -79,8 +82,32 @@ export class OrderService {
     };
   }
 
-  async listAllToday(query: OrderQuery, user_id?: number) {
-  
+  async listAllToday(query: OrderTodayQuery, user_id?: number) {
+    const page = +query['page'] || 1;
+    const pageSize = +query['pageSize'] || 10;
+
+    user_id && (query['user_id'] = user_id);
+
+    const rec = await this._orderRepo
+      .createQueryBuilder('o')
+      .innerJoinAndSelect('app_users', 'u', 'o.user_id = u.id')
+      .select([
+        'o.*',
+        'u.real_name as real_name',
+        'u.agent_code as agent',
+        'u.superior as superior',
+        'o.created_at as created_at',
+        'o.updated_at as updated_at',
+      ])
+      .where(query)
+      .take(pageSize)
+      .skip((page - 1) * pageSize)
+      .getRawMany();
+
+    return {
+      count: rec.length,
+      data: rec,
+    };
   }
 
   async viewDetailOrder(id: number, user_id?: number) {
@@ -108,11 +135,11 @@ export class OrderService {
     }
 
     const { detail } = session;
-    const { transactions_rate } = detail['transactions_rate'] as any;
+    const { transaction_fees } = detail['transactions_rate'] as any;
     const { P, M, N, ZT, DT } = stock;
 
     const amount = quantity * P;
-    const actual_amount = amount * (1 + transactions_rate / 100);
+    const actual_amount = amount * (1 + transaction_fees / 100);
 
     if (+user['balance_avail'] < actual_amount) {
       throw new HttpException(
@@ -126,19 +153,29 @@ export class OrderService {
       stock_code: stock_code,
       quantity: quantity,
       price: P,
-      fee_rate: transactions_rate['transaction_fee'],
+      fee_rate: transaction_fees,
       amount: amount,
       actual_amount: actual_amount,
       user_id: user_id,
+      username: user['username'],
       stock_market: M,
       stock_name: N,
       zhangting: ZT,
       dieting: DT,
       trading_session: session['id'],
     });
+
+    const trxInfo = {
+      trx_id: data['id'],
+      type: TRANSACTION_TYPE.BUY,
+      user_id: data['user_id'],
+      before: user['balance'],
+      after: user['balance'] - data['actual_amount'],
+    };
     // TODO: store in transaction
     await Promise.all([
       this._orderRepo.save(data),
+      this._trxService.addTrx(trxInfo),
       this._stockStorageService.store({
         stock_code: stock_code,
         amount: amount,
@@ -197,18 +234,19 @@ export class OrderService {
 
     const { quantity } = position;
     const { detail } = currentSession;
-    const { transactions_rate } = detail['transactions_rate'] as any;
+    const { transaction_fees } = detail['transactions_rate'] as any;
     const { P, M, N, ZT, DT } = stock;
 
     const amount = P * quantity;
-    const actual_amount = amount * (1 - transactions_rate['transaction_fee']);
+    const actual_amount = amount * (1 - transaction_fees);
 
     const created_order = this._orderRepo.create({
       type: ORDER_TYPE.SELL,
       stock_code: position['stock_code'],
       quantity: quantity,
       price: P,
-      fee_rate: transactions_rate['transaction_fee'],
+      username: user['username'],
+      fee_rate: transaction_fees,
       amount: amount,
       actual_amount: actual_amount,
       user_id: position['user_id'],
@@ -218,11 +256,20 @@ export class OrderService {
       dieting: DT,
       trading_session: currentSession['id'],
     });
+
+    const trxInfo = {
+      trx_id: created_order['id'],
+      type: TRANSACTION_TYPE.SELL,
+      user_id: created_order['user_id'],
+      before: user['balance'],
+      after: +user['balance'] + +created_order['actual_amount'],
+    };
     await Promise.all([
       this._appUserService.update(user_id, {
         balance: +user['balance'] + +amount,
         balance_avail: +user['balance_avail'] + +amount,
       }),
+      this._trxService.addTrx(trxInfo),
       this._stockStorageService.update(position_id, {
         status: POSITION_STATUS.CLOSED,
       }),
@@ -230,21 +277,5 @@ export class OrderService {
     ]);
 
     return created_order;
-  }
-
-  findAll() {
-    return this._orderRepo.find();
-  }
-
-  findOne(id: number) {
-    return this._orderRepo.findOne({ where: { id } });
-  }
-
-  update(id: number, updateOrderDto: UpdateOrderDto) {
-    return `This action updates a #${id} order`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} order`;
   }
 }

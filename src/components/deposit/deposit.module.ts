@@ -1,11 +1,11 @@
 import { forwardRef, Module } from '@nestjs/common';
-import { DepositService } from './deposit.service';
-import { DepositController } from './deposit.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import Deposit from './entities/deposit.entity';
-import { DepositAccountModule } from '../deposit-account/deposit-account.module';
 import { AppUserModule } from '../../modules/app-user/app-user.module';
+import { DepositAccountModule } from '../deposit-account/deposit-account.module';
 import { SystemConfigurationModule } from '../system-configuration/system-configuration.module';
+import { TransactionsModule } from '../transactions/transactions.module';
+import { DepositService } from './deposit.service';
+import Deposit from './entities/deposit.entity';
 
 @Module({
   imports: [
@@ -13,8 +13,8 @@ import { SystemConfigurationModule } from '../system-configuration/system-config
     forwardRef(() => AppUserModule),
     DepositAccountModule,
     SystemConfigurationModule,
+    TransactionsModule,
   ],
-  controllers: [DepositController],
   providers: [DepositService],
   exports: [DepositService],
 })

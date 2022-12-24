@@ -1,35 +1,32 @@
 import {
-  INVALID_PASSWORD,
-  INVALID_TOKEN,
-  INVALID_USERNAME,
-} from './../../common/constant/error-message';
-import { TOKEN_EXPIRES_IN } from './../../common/constant/constants';
-import {
-  forwardRef,
-  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { BackendLogger } from '../logger/BackendLogger';
 import * as bcrypt from 'bcryptjs';
+import * as fetch from 'node-fetch';
+import { AppUserService } from '../../modules/app-user/app-user.service';
+import AppUser from '../../modules/app-user/entities/app-user.entity';
+import { CmsUserService } from '../../modules/cms-user/cms-user.service';
+import CmsUser from '../../modules/cms-user/entities/cms-user.entity';
+import { BackendLogger } from '../logger/BackendLogger';
+import { LoginRecordService } from '../login-record/login-record.service';
+import { TOKEN_EXPIRES_IN } from './../../common/constant/constants';
+import {
+  INVALID_PASSWORD,
+  INVALID_TOKEN,
+  INVALID_USERNAME,
+} from './../../common/constant/error-message';
 import { LoginByUsernameDto } from './dto/LoginByUsernameDto';
 import { LoginReturnDto } from './dto/LoginReturnDto';
 import { PayLoad } from './dto/PayLoad';
-import * as fetch from 'node-fetch';
-import { LoginRecordService } from '../login-record/login-record.service';
-import { CmsUserService } from '../../modules/cms-user/cms-user.service';
-import { AppUserService } from '../../modules/app-user/app-user.service';
-import CmsUser from '../../modules/cms-user/entities/cms-user.entity';
-import AppUser from '../../modules/app-user/entities/app-user.entity';
 
 @Injectable()
 export class AuthService {
   private readonly logger = new BackendLogger(AuthService.name);
 
   constructor(
-    @Inject(forwardRef(() => CmsUserService))
     private readonly _cmsUserService: CmsUserService,
     private readonly _jwtService: JwtService,
     private readonly _loginRecord: LoginRecordService,
@@ -142,7 +139,7 @@ export class AuthService {
       { secret: process.env.SECRET_KEY_JWT },
     );
     const response: LoginReturnDto = {
-      token,
+      access_token: token,
       expiresIn: TOKEN_EXPIRES_IN,
     };
 

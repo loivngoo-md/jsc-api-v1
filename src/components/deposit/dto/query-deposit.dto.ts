@@ -7,5 +7,5 @@ export type DepositQuery = {
   start_time?: Date;
   end_time?: Date;
   page?: number;
-  limit?: number;
+  pageSize?: number;
 };

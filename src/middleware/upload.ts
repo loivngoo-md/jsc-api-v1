@@ -1,29 +1,29 @@
-import { Request } from "express";
+import { Request } from 'express';
 
-import fs from "fs";
+import fs from 'fs';
 
-import path from "path";
+import path from 'path';
 
-import util from "util";
+import util from 'util';
 
-import multer from "multer";
+import multer from 'multer';
 
 const multerConfig = {
   maxSize: 1024 * 1024 * 5,
   fileMime: [
-    "image/jpg",
-    "image/png",
-    "image/jpeg",
-    "application/octet-stream",
+    'image/jpg',
+    'image/png',
+    'image/jpeg',
+    'application/octet-stream',
   ],
-  fileExt: [".jpg", ".png", ".jpeg", ".mp4", ".mov", ".flv", ".wmv", ".avi"],
+  fileExt: ['.jpg', '.png', '.jpeg', '.mp4', '.mov', '.flv', '.wmv', '.avi'],
 };
 
 class ConfigurationAvatar {
   private storage = multer.diskStorage({
     destination: (req: Request, file: Express.Multer.File, callback) => {
       try {
-        const dir = "./public/avatars/";
+        const dir = './public/uploads/';
 
         fs.mkdirSync(dir, { recursive: true });
 
@@ -41,13 +41,13 @@ class ConfigurationAvatar {
   private fileFilter = (
     req: Request,
     file: Express.Multer.File,
-    callback: multer.FileFilterCallback
+    callback: multer.FileFilterCallback,
   ) => {
     try {
       const mimetype = multerConfig.fileMime.includes(file.mimetype);
 
       const extname = multerConfig.fileExt.includes(
-        path.extname(file.originalname)
+        path.extname(file.originalname),
       );
 
       if (mimetype && extname) {
@@ -63,7 +63,7 @@ class ConfigurationAvatar {
 
     fileFilter: this.fileFilter,
 
-    // limits: { fileSize: 1024 * 1024 * 5 },
+    // pageSizes: { fileSize: 1024 * 1024 * 5 },
   });
 }
 
@@ -71,4 +71,4 @@ Object.seal(ConfigurationAvatar);
 
 export const upload = new ConfigurationAvatar().upload;
 
-export const uploadAvatar = util.promisify(upload.single("file"));
+export const uploadAvatar = util.promisify(upload.single('file'));

@@ -22,7 +22,7 @@ export class Withdraw extends EntityHelper {
   @Column('float8')
   actual_amount: number;
 
-  @Column('varchar', { default: DEPOSIT_WITHDRAWAL_STATUS.PENDING })
+  @Column('integer', { default: DEPOSIT_WITHDRAWAL_STATUS.PENDING })
   status: DEPOSIT_WITHDRAWAL_STATUS;
 
   @Column('boolean', { default: false })

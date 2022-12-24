@@ -1,12 +1,10 @@
 import { Module } from '@nestjs/common';
-import { DepositAccountService } from './deposit-account.service';
-import { DepositAccountController } from './deposit-account.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { DepositAccountService } from './deposit-account.service';
 import DepositAccount from './entities/deposit-account.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([DepositAccount])],
-  controllers: [DepositAccountController],
   providers: [DepositAccountService],
   exports: [DepositAccountService],
 })

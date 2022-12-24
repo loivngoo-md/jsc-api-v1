@@ -1,6 +1,6 @@
 export type PositionQuery = {
   page: string;
-  limit: string;
+  pageSize: string;
 };
 
 export type SellablePositionsQuery = {

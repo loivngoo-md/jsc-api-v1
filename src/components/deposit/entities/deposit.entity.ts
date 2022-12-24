@@ -25,10 +25,10 @@ class Deposit extends EntityHelper {
   @Column('float8')
   amount: number;
 
-  @Column('varchar', { default: DEPOSIT_WITHDRAWAL_STATUS.PENDING })
+  @Column('integer', { default: DEPOSIT_WITHDRAWAL_STATUS.PENDING })
   status: DEPOSIT_WITHDRAWAL_STATUS;
 
-  @Column('integer')
+  @Column('integer', { nullable: true })
   deposit_account_id: number;
 
   @Column('boolean', { default: false })

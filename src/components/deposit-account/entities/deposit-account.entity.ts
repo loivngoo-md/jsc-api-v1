@@ -10,16 +10,22 @@ class DepositAccount extends EntityHelper {
   bank_name: string;
 
   @Column()
-  bank_branch: string;
+  branch: string;
 
   @Column()
   bank_card: string;
 
-  @Column({ default: true })
-  isPublic: boolean;
+  @Column()
+  account_holder: string;
+
+  @Column()
+  account_number: string;
 
   @Column({ default: true })
-  isEnable: boolean;
+  is_public: boolean;
+
+  @Column({ default: true })
+  is_enabled: boolean;
 }
 
 export default DepositAccount;

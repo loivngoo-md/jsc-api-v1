@@ -1,10 +1,17 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DEPOSIT_WITHDRAWAL_STATUS } from 'src/common/enums';
+import { DEPOSIT_WITHDRAWAL_STATUS, TRANSACTION_TYPE } from 'src/common/enums';
 import { Between, LessThanOrEqual, Repository } from 'typeorm';
+import { dateFormatter } from '../../helpers/moment';
 import { AppUserService } from '../../modules/app-user/app-user.service';
 import { DepositAccountService } from '../deposit-account/deposit-account.service';
 import { SystemConfigurationService } from '../system-configuration/system-configuration.service';
+import { TransactionsService } from '../transactions/transactions.service';
 import { DepositQuery } from './dto/query-deposit.dto';
 import Deposit from './entities/deposit.entity';
 
@@ -16,17 +23,26 @@ export class DepositService {
     private readonly _appUserService: AppUserService,
     private readonly _depositAccountService: DepositAccountService,
     private readonly _sysConfigService: SystemConfigurationService,
+    private readonly _trxService: TransactionsService,
   ) {}
 
   async create(dto: any) {
     const { amount } = dto;
-    const [user, _, sysConfig] = await Promise.all([
+    if (dto['deposit_account_id']) {
+      const depAcc = await this._depositAccountService.findOne(
+        dto['deposit_account_id'],
+      );
+      if (!depAcc) {
+        throw new NotFoundException('Deposit Account Not Found');
+      }
+    }
+    const [user, sysConfig] = await Promise.all([
       this._appUserService.findOne(dto['user_id']),
-      this._depositAccountService.findOne(dto['deposit_account_id']),
       this._sysConfigService.findOne(),
     ]);
-    const { deposit_max, deposit_min } =
-      sysConfig['deposits_and_withdrawals'][0];
+    const { deposit_max, deposit_min } = sysConfig[
+      'deposits_and_withdrawals'
+    ] as any;
     if (+amount < deposit_min || +amount > deposit_max) {
       throw new HttpException(
         `Deposit should be in range (${deposit_min}, ${deposit_max})`,
@@ -41,13 +57,13 @@ export class DepositService {
 
   async findAll(query: DepositQuery, user_id?: number) {
     const page = query['page'] || 1;
-    const limit = query['limit'] || 10;
+    const pageSize = query['pageSize'] || 10;
 
     const end_time = query['end_time']
-      ? new Date(query['end_time'])
-      : new Date();
+      ? dateFormatter(query['end_time'])
+      : dateFormatter();
     const start_time = query['start_time']
-      ? new Date(query['start_time'])
+      ? dateFormatter(query['start_time'])
       : null;
 
     if (user_id) {
@@ -62,22 +78,21 @@ export class DepositService {
     delete query['start_time'];
     delete query['end_time'];
     delete query['page'];
-    delete query['limit'];
+    delete query['pageSize'];
 
     const rec = await this._depositRepo
       .createQueryBuilder('d')
       .innerJoin('app_users', 'u', 'd.user_id = u.id')
       .select([
         'd.*',
-        'u.account_name as realname',
+        'u.real_name as real_name',
         'd.created_at as created_at',
         'd.updated_at as updated_at',
       ])
       .where(query)
-      .take(limit)
-      .skip((page - 1) * limit)
+      .take(pageSize)
+      .skip((page - 1) * pageSize)
       .getRawMany();
-
     return {
       count: rec.length,
       data: rec,
@@ -101,9 +116,16 @@ export class DepositService {
 
     if (status === DEPOSIT_WITHDRAWAL_STATUS.SUCCESS) {
       const user = await this._appUserService.findOne(deposit['user_id']);
-
+      const trxInfo = {
+        trx_id: deposit_id,
+        type: TRANSACTION_TYPE.DEPOSIT,
+        user_id: deposit['user_id'],
+        before: +user['balance'],
+        after: +user['balance'] + +deposit['amount'],
+      };
       await Promise.all([
         this._depositRepo.update(deposit_id, dto),
+        this._trxService.addTrx(trxInfo),
         this._appUserService.update(user['id'], {
           balance: user['balance'] + deposit['amount'],
           balance_avail: user['balance_avail'] + deposit['amount'],

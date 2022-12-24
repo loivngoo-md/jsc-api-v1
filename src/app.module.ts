@@ -4,10 +4,9 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
-import { SystemConfigurationModule } from './components/system-configuration/system-configuration.module';
 import { DatabaseModule } from './database/database.module';
-import { AppUserModule } from './modules/app-user/app-user.module';
 import { CmsUserModule } from './modules/cms-user/cms-user.module';
+import { TransactionsModule } from './components/transactions/transactions.module';
 
 @Module({
   imports: [
@@ -24,12 +23,15 @@ import { CmsUserModule } from './modules/cms-user/cms-user.module';
       isGlobal: true,
     }),
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'public'),
+      rootPath: join(__dirname, '../..', 'public'),
+      serveRoot: '/',
     }),
     DatabaseModule,
     CmsUserModule,
-    AppUserModule,
-    SystemConfigurationModule,
+    TransactionsModule,
+    // AppUserModule,
+
+    // AuthModule,
   ],
   controllers: [],
   providers: [],

@@ -3,7 +3,6 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { firstValueFrom } from 'rxjs';
 import { Repository } from 'typeorm';
-import { CreateStockDto } from './dto/create-stock.dto';
 import { UpdateStockDto } from './dto/update-stock.dto';
 import Stock from './entities/stock.entity';
 
@@ -51,17 +50,13 @@ export class StockService {
     return formattedStock;
   }
 
-  async create(createStockDto: CreateStockDto) {
-    return 'This action adds a new stock';
-  }
-
   async pullLatestStock(query: {
     page: number;
-    limit: number;
+    pageSize: number;
     where?: string;
   }) {
     const ROUT = 'CNST';
-    const { page, limit, where } = query;
+    const { page, pageSize, where } = query;
     const APP_KEY = `AppCode ${process.env.APP_CODE_3RD}`;
     const uri = process.env.HOST_STOCK_3RD;
     const config = {
@@ -71,7 +66,7 @@ export class StockService {
     };
 
     for (let i = 1; i <= page; i++) {
-      const url = `${uri}/query/compvol?p=${i}&ps=${limit}&rout=${ROUT}&sort=ZF&sorttype=0`;
+      const url = `${uri}/query/compvol?p=${i}&ps=${pageSize}&rout=${ROUT}&sort=ZF&sorttype=0`;
       const { data } = await firstValueFrom(this.httpService.get(url, config));
       const listStocks: any[] = data.Obj;
 
@@ -85,10 +80,10 @@ export class StockService {
 
   async findAll(query: any, user_app_id?: number) {
     const ROUT = 'CNST';
-    const { page, limit, where } = query;
+    const { page, pageSize, where } = query;
     const APP_KEY = `AppCode ${process.env.APP_CODE_3RD}`;
     const uri = process.env.HOST_STOCK_3RD;
-    let url = `${uri}/query/compvol?p=${page}&ps=${limit}&rout=${ROUT}&sort=ZF&sorttype=0`;
+    let url = `${uri}/query/compvol?p=${page}&ps=${pageSize}&rout=${ROUT}&sort=ZF&sorttype=0`;
     const config = {
       headers: {
         Authorization: `${APP_KEY}`,
@@ -117,13 +112,13 @@ export class StockService {
         )
         .select([
           's.*',
-          'fs.*',
+          'fs.user_id as user_id',
           's.created_at as created_at',
           's.updated_at as updated_at',
         ])
         .where('s.FS IN (:...ids)', { ids: FSs })
-        .take(limit)
-        .skip((page - 1) * limit)
+        .take(pageSize)
+        .skip((page - 1) * pageSize)
         .getRawMany();
 
       return {

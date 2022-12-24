@@ -1,29 +1,30 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { EntityHelper } from '../../../helpers/entity-helper';
 
 @Entity({ name: 'money_log' })
-class MoneyLog {
+class MoneyLog extends EntityHelper {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column("integer")
+  @Column('integer', { nullable: true })
   user_id: number;
 
-  @Column("float8")
+  @Column('float8')
   amount: number;
 
-  @Column("float8")
+  @Column('float8')
   before: number;
 
-  @Column("float8")
+  @Column('float8')
   after: number;
 
-  @Column("varchar")
+  @Column('varchar')
   type: string;
 
-  @Column({ default: "" })
+  @Column({ default: '' })
   comments: string;
 
-  @Column({ default: "" })
+  @Column({ default: '' })
   remark: string;
 }
 

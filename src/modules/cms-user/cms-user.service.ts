@@ -1,9 +1,12 @@
 import {
+  BadRequestException,
   HttpException,
-  HttpStatus, Injectable,
-  NotFoundException
+  HttpStatus,
+  Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import * as bcrypt from 'bcryptjs';
 import { Repository } from 'typeorm';
 import { CreateCmsUserDto } from './dto/create-cms-user.dto';
 import { UpdateCmsUserDto } from './dto/update-cms-user.dto';
@@ -14,8 +17,7 @@ export class CmsUserService {
   constructor(
     @InjectRepository(CmsUser)
     private _cmsUserRepo: Repository<CmsUser>,
-
-  ) { }
+  ) {}
 
   async create(createCmsUserDto: CreateCmsUserDto) {
     const newUser = await this._cmsUserRepo.create(createCmsUserDto);
@@ -57,5 +59,25 @@ export class CmsUserService {
     if (!deleteResponse.affected) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
+  }
+
+  async updatePassword(id: number, dto: any) {
+    const user = await this._cmsUserRepo.findOne({ where: { id } });
+    if (!user) {
+      throw new BadRequestException('Not found user.');
+    }
+
+    const compare = await bcrypt.compare(
+      dto['old_password'],
+      user['withdraw_password'],
+    );
+    if (!compare) {
+      throw new BadRequestException('Wrong old password');
+    }
+
+    const salt = await bcrypt.genSalt();
+    const password = await bcrypt.hash(dto['new_password'], salt);
+
+    return this._cmsUserRepo.update(id, { password });
   }
 }

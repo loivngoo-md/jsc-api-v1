@@ -3,8 +3,7 @@ import { Cron } from '@nestjs/schedule/dist';
 import { InjectRepository } from '@nestjs/typeorm';
 import { dateFormatter } from 'src/helpers/moment';
 import { Repository } from 'typeorm';
-import { SESSION_STATUS } from '../../common/enums';
-import { DAYS, getDates } from '../../helpers/helper-date';
+import { DAYS_IN_WEEK, SESSION_STATUS } from '../../common/enums';
 import { SystemConfigurationService } from '../system-configuration/system-configuration.service';
 import { CreateTradingSessionDto } from './dto/create-trading-session.dto';
 import { UpdateTradingSessionDto } from './dto/update-trading-session.dto';
@@ -53,18 +52,22 @@ export class TradingSessionService {
     return `This action removes a #${id} tradingSession`;
   }
 
-  // @Cron('* */1 * * * *')
-  // async handle() {
-  //   console.log(dateFormatter('12/22/2022 09:30:00 +8').format('MM/DD/YYYY'));
-  // }
-
-  @Cron('0 0/30 5 * * 1-5')
+  @Cron('*/30 * * * 1-5')
   async startSession() {
     const date = dateFormatter();
     const currentDate = date.format('MM/DD/YYYY');
     const session = await this._tradingSessionRepo.findOne({
       where: { date: currentDate },
     });
+    if (!session) {
+      const sessionInfo = this._tradingSessionRepo.create({
+        date: currentDate,
+        day_of_week: DAYS_IN_WEEK[date.day()],
+      });
+      await this._tradingSessionRepo.save(sessionInfo);
+      return `Create trading session for ${currentDate} successful.`;
+    }
+
     let status: SESSION_STATUS = session['status'];
     if (!session['detail']) {
       const systemConfig = await this._systemConfigService.findOne();
@@ -73,26 +76,26 @@ export class TradingSessionService {
         { id: session['id'] },
         {
           detail: systemConfig,
-          mor_start_time: dateFormatter(
+          mor_start_time: new Date(
             `${currentDate} ${tradingHours['nor_start_mor']} +8`,
           ),
-          mor_end_time: dateFormatter(
+          mor_end_time: new Date(
             `${currentDate} ${tradingHours['nor_end_mor']} +8`,
           ),
-          aft_start_time: dateFormatter(
+          aft_start_time: new Date(
             `${currentDate} ${tradingHours['nor_start_aft']} +8`,
           ),
-          aft_end_time: dateFormatter(
+          aft_end_time: new Date(
             `${currentDate} ${tradingHours['nor_end_aft']} +8`,
           ),
         },
       );
     } else {
-      const morStart = dateFormatter(`${session['mor_start_time']} +0`);
-      const morEnd = dateFormatter(`${session['mor_end_time']} +0`);
-      const aftStart = dateFormatter(`${session['aft_start_time']} +0`);
-      const aftEnd = dateFormatter(`${session['aft_end_time']} +0`);
-
+      const morStart = dateFormatter(`${session['mor_start_time']}`);
+      const morEnd = dateFormatter(`${session['mor_end_time']}`);
+      const aftStart = dateFormatter(`${session['aft_start_time']}`);
+      const aftEnd = dateFormatter(`${session['aft_end_time']}`);
+      console.log(morStart <= date);
       if (morStart <= date && date < morEnd) {
         status = SESSION_STATUS.OPENING;
       } else if (morEnd <= date && date < aftStart) {
@@ -107,18 +110,5 @@ export class TradingSessionService {
         { status: status },
       );
     }
-  }
-
-  @Cron('0 0 0 * * 1')
-  async createWeekSession() {
-    const dates = getDates(new Date(), 4);
-    const infoDates = dates.map((date: Date) => {
-      return {
-        day_of_week: DAYS[date.getDay()],
-        date: date.toLocaleDateString(),
-      };
-    });
-    await this.createMany(infoDates);
-    return 'Create week session completed!!!';
   }
 }

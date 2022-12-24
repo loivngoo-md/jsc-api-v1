@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class LoginReturnDto {
   @ApiProperty()
-  token: string;
+  access_token: string;
 
   @ApiProperty()
   expiresIn: string;
