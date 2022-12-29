@@ -117,8 +117,8 @@ export class StockService {
           's.updated_at as updated_at',
         ])
         .where('s.FS IN (:...ids)', { ids: FSs })
-        .take(pageSize)
-        .skip((page - 1) * pageSize)
+        .limit(pageSize)
+        .offset((page - 1) * pageSize)
         .getRawMany();
 
       return {
@@ -178,17 +178,5 @@ export class StockService {
     });
 
     return o;
-  }
-
-  async getStocksUsingCodes(codes: string[]) {
-    return Promise.all(
-      codes.map((code) =>
-        this._stockRepo.findOne({
-          where: {
-            FS: code,
-          },
-        }),
-      ),
-    );
   }
 }

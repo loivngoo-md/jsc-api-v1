@@ -2,11 +2,11 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsString } from 'class-validator';
 
 export class LoginByUsernameDto {
-  @ApiProperty({ default: 'admin' })
+  @ApiProperty({ default: 'cmsusertest' })
   @IsString()
   username: string;
 
-  @ApiProperty({ default: 'admin' })
+  @ApiProperty({ default: 'secret' })
   @IsString()
   password: string;
 }

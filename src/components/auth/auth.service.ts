@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -10,14 +11,12 @@ import { AppUserService } from '../../modules/app-user/app-user.service';
 import AppUser from '../../modules/app-user/entities/app-user.entity';
 import { CmsUserService } from '../../modules/cms-user/cms-user.service';
 import CmsUser from '../../modules/cms-user/entities/cms-user.entity';
+import { AgentService } from '../agent/agent.service';
+import { Agent } from '../agent/entities/agent.entity';
 import { BackendLogger } from '../logger/BackendLogger';
 import { LoginRecordService } from '../login-record/login-record.service';
 import { TOKEN_EXPIRES_IN } from './../../common/constant/constants';
-import {
-  INVALID_PASSWORD,
-  INVALID_TOKEN,
-  INVALID_USERNAME,
-} from './../../common/constant/error-message';
+import { INVALID_TOKEN } from './../../common/constant/error-message';
 import { LoginByUsernameDto } from './dto/LoginByUsernameDto';
 import { LoginReturnDto } from './dto/LoginReturnDto';
 import { PayLoad } from './dto/PayLoad';
@@ -31,12 +30,23 @@ export class AuthService {
     private readonly _jwtService: JwtService,
     private readonly _loginRecord: LoginRecordService,
     private readonly _appUserService: AppUserService,
+    private readonly _agentUserService: AgentService,
   ) {}
 
   async validateCmsUser(payload: PayLoad): Promise<any> {
     const { username } = payload;
 
     const user = await this._cmsUserService.findByUsername(username);
+    if (!user) {
+      throw new UnauthorizedException(INVALID_TOKEN);
+    }
+    return payload;
+  }
+
+  async validateAgentUser(payload: PayLoad): Promise<any> {
+    const { username } = payload;
+
+    const user = await this._agentUserService.findByUsername(username);
     if (!user) {
       throw new UnauthorizedException(INVALID_TOKEN);
     }
@@ -57,16 +67,18 @@ export class AuthService {
     LoginByUsernameDto: LoginByUsernameDto,
     ip: string,
   ): Promise<LoginReturnDto> {
-    const { username } = LoginByUsernameDto;
+    const { username, password } = LoginByUsernameDto;
 
-    const user = await this._appUserService.findByUsername(username);
+    const user = await this._appUserService.findByUsername(username, true);
+    const userPw = user ? user.password : '';
+    const comparePw = await bcrypt.compare(password, userPw);
 
-    if (!user) {
-      throw new NotFoundException(INVALID_USERNAME);
+    if (!user || !comparePw) {
+      throw new NotFoundException('Wrong password or username');
     }
 
-    if (!(await this.validatePassword(user, LoginByUsernameDto.password))) {
-      throw new NotFoundException(INVALID_PASSWORD);
+    if (!user.is_active) {
+      throw new BadRequestException('User not active.');
     }
 
     const requestOptions = {
@@ -98,22 +110,46 @@ export class AuthService {
     return this.createToken(user);
   }
 
+  async loginAgentViaUsername(
+    LoginByUsernameDto: LoginByUsernameDto,
+  ): Promise<LoginReturnDto> {
+    const { username, password } = LoginByUsernameDto;
+
+    const user = await this._agentUserService.findByUsername(username, true);
+    const userPw = user ? user.password : '';
+    const comparePw = await bcrypt.compare(password, userPw);
+
+    if (!user || !comparePw) {
+      throw new NotFoundException('Wrong password or username');
+    }
+
+    if (!user.is_active) {
+      throw new BadRequestException('User not active.');
+    }
+
+    this.logger.log(
+      `username '${user.username}' is currently logged into the agent system`,
+    );
+
+    return this.createToken(user);
+  }
+
   async loginCmsViaUsername(
     LoginByUsernameDto: LoginByUsernameDto,
     ip: string,
   ): Promise<LoginReturnDto> {
-    const { username } = LoginByUsernameDto;
+    const { username, password } = LoginByUsernameDto;
 
-    const user = await this._cmsUserService.findByUsername(username);
+    const user = await this._cmsUserService.findByUsername(username, true);
+    const userPw = user ? user.password : '';
+    const comparePw = await bcrypt.compare(password, userPw);
 
-    console.log(user);
-
-    if (!user) {
-      throw new NotFoundException(INVALID_USERNAME);
+    if (!user || !comparePw) {
+      throw new NotFoundException('Wrong password or username');
     }
 
-    if (!(await this.validatePassword(user, LoginByUsernameDto.password))) {
-      throw new NotFoundException(INVALID_PASSWORD);
+    if (!user.is_active) {
+      throw new BadRequestException('User not active.');
     }
 
     this.logger.log(
@@ -123,14 +159,7 @@ export class AuthService {
     return this.createToken(user);
   }
 
-  async validatePassword(
-    user: CmsUser | AppUser,
-    password: string,
-  ): Promise<boolean> {
-    return await bcrypt.compareSync(password, user.password);
-  }
-
-  async createToken(user: CmsUser | AppUser): Promise<LoginReturnDto> {
+  async createToken(user: CmsUser | AppUser | Agent): Promise<LoginReturnDto> {
     const token = this._jwtService.sign(
       {
         username: user.username,

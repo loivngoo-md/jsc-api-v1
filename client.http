@@ -1,0 +1,13 @@
+###
+POST http://127.0.0.1:8000/api/v1/agent/user/signin HTTP/1.1
+Content-Type: application/json
+
+{
+    "username": "agent1",
+    "password": "secret"
+}
+
+### App-user List by Agent
+GET http://127.0.0.1:8000/api/v1/agent/app-users/list?page=1&pageSize=2&agent=8 HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFnZW50MSIsImlkIjo1LCJpYXQiOjE2NzIzNDI0MjYsImV4cCI6MTY3MjQyODgyNn0.DIQawusCOUJ6zqj4rMTuZJfPpPiHD0rCiP2Tqnn6xs4

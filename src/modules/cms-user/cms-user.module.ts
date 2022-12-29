@@ -1,5 +1,6 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AgentModule } from '../../components/agent/agent.module';
 import { AuthModule } from '../../components/auth/auth.module';
 import { StockModule } from '../../components/stock/stock.module';
 import { TransactionsModule } from '../../components/transactions/transactions.module';
@@ -31,6 +32,7 @@ import CmsUser from './entities/cms-user.entity';
     TradingSessionModule,
     DepositAccountModule,
     TransactionsModule,
+    AgentModule,
   ],
   controllers: [CmsUserController],
   providers: [CmsUserService],

@@ -50,8 +50,8 @@ export class TransactionsService {
         'row_to_json(w.*) as withdrawal',
       ])
       .where(whereCondition)
-      .take(pageSize)
-      .skip((page - 1) * pageSize)
+      .limit(pageSize)
+      .offset((page - 1) * pageSize)
       .getRawMany();
     return {
       data: transactions,

@@ -13,7 +13,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(new SerializerInterceptor());
 
   app.useGlobalPipes(new ValidationPipe());
-  
+
   const options = new DocumentBuilder()
     .setTitle('API')
     .setDescription('API docs')

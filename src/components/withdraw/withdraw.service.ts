@@ -67,7 +67,7 @@ export class WithdrawService {
     dto['fee_rate'] = withdrawal_fees;
     dto['actual_amount'] = +amount * (1 - withdrawal_fees / 100);
 
-    await this._appUserService.update(user.id, {
+    await this._appUserService.updateBalance(user.id, {
       balance_frozen: +user['balance_frozen'] + +amount,
       balance_avail: +user['balance_avail'] - +amount,
     });
@@ -104,15 +104,10 @@ export class WithdrawService {
     const rec = await this._withdrawRepo
       .createQueryBuilder('w')
       .innerJoin('app_users', 'u', 'w.user_id = u.id')
-      .select([
-        'w.*',
-        'u.real_name as real_name',
-        'w.created_at as created_at',
-        'w.updated_at as updated_at',
-      ])
+      .select(['w.*', 'row_to_json(u.*) as user_detail'])
       .where(query)
-      .take(pageSize)
-      .skip((page - 1) * pageSize)
+      .limit(pageSize)
+      .offset((page - 1) * pageSize)
       .getRawMany();
 
     return {
@@ -151,7 +146,7 @@ export class WithdrawService {
       await Promise.all([
         this._withdrawRepo.update(withdraw_id, dto),
         this._trxService.addTrx(trxInfo),
-        this._appUserService.update(withdrawal['user_id'], {
+        this._appUserService.updateBalance(withdrawal['user_id'], {
           balance: +user['balance'] - +withdrawal['amount'],
           balance_frozen: 0,
         }),
@@ -159,7 +154,7 @@ export class WithdrawService {
     } else {
       await Promise.all([
         this._withdrawRepo.update(withdraw_id, dto),
-        this._appUserService.update(withdrawal['user_id'], {
+        this._appUserService.updateBalance(withdrawal['user_id'], {
           balance_avail: +user['balance_avail'] + +withdrawal['amount'],
           balance_frozen: 0,
         }),

@@ -31,8 +31,8 @@ export class FavoriteStockService {
         'fs.updated_at as updated_at',
       ])
       .where(query)
-      .take(pageSize)
-      .skip((page - 1) * pageSize)
+      .limit(pageSize)
+      .offset((page - 1) * pageSize)
       .getRawMany();
 
     return {

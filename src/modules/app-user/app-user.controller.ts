@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -14,6 +15,7 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { RealIP } from 'nestjs-real-ip';
 import { StockService } from 'src/components/stock/stock.service';
+import { AgentService } from '../../components/agent/agent.service';
 import { AuthService } from '../../components/auth/auth.service';
 import { LoginByUsernameDto } from '../../components/auth/dto/LoginByUsernameDto';
 import { PayLoad } from '../../components/auth/dto/PayLoad';
@@ -31,17 +33,15 @@ import { TradingSessionService } from '../../components/trading-session/trading-
 import { CreateWithdrawDto } from '../../components/withdraw/dto/create-withdraw.dto';
 import { WithdrawalQuery } from '../../components/withdraw/dto/query-withdrawal.dto';
 import { WithdrawService } from '../../components/withdraw/withdraw.service';
-import { PaginationQuery } from '../../helpers/dto-helper';
+import { PaginationQuery, UpdatePassword } from '../../helpers/dto-helper';
 import LocalFilesInterceptor from '../../middleware/localFiles.interceptor';
 import { id } from './../../common/constant/router.constant';
 import { DepositQuery } from './../../components/deposit/dto/query-deposit.dto';
 import { TransactionsService } from './../../components/transactions/transactions.service';
 import { AppUserService } from './app-user.service';
-import {
-  PositionQuery,
-  SellablePositionsQuery,
-} from './dto/positions-pagination.dto';
-import { UpdateAppUserDto } from './dto/update-app-user.dto';
+import { SellablePositionsQuery } from './dto/app-user-query.dto';
+import { AppUserRegister } from './dto/create-app-user.dto';
+import { AppUserUpdateProfile } from './dto/update-app-user.dto';
 
 @ApiTags('APP')
 @Controller('app')
@@ -58,12 +58,13 @@ export class AppUserController {
     private readonly tradingSessionService: TradingSessionService,
     private readonly depositAccountService: DepositAccountService,
     private readonly trxService: TransactionsService,
+    private readonly agentService: AgentService,
   ) {}
 
   // CRUD
   @Post('user/signup')
-  create(@Body() createAppUserDto: any) {
-    return this.appUserService.create(createAppUserDto);
+  create(@Body() body: AppUserRegister) {
+    return this.appUserService.register(body);
   }
 
   @Post('user/signin')
@@ -83,11 +84,8 @@ export class AppUserController {
 
   @UseGuards(AppAuthGuard)
   @Patch('user/update')
-  update(
-    @GetCurrentAppUser() user: PayLoad,
-    @Body() updateAppUserDto: UpdateAppUserDto,
-  ) {
-    return this.appUserService.update(user.id, updateAppUserDto);
+  update(@GetCurrentAppUser() user: PayLoad, @Body() body: AppUserUpdateProfile) {
+    return this.appUserService.updateProfile(user.id, body);
   }
 
   // Add CCCD
@@ -119,7 +117,7 @@ export class AppUserController {
   @UseGuards(AppAuthGuard)
   @Patch('user/update-password')
   async updatePassword(
-    @Body() dto: object,
+    @Body() dto: UpdatePassword,
     @GetCurrentAppUser() userFromToken: PayLoad,
   ) {
     return this.appUserService.updatePassword(userFromToken['id'], dto);
@@ -128,7 +126,7 @@ export class AppUserController {
   @UseGuards(AppAuthGuard)
   @Patch('user/update-withdrawal-password')
   async updateWithdrawalPassword(
-    @Body() dto: object,
+    @Body() dto: UpdatePassword,
     @GetCurrentAppUser() userFromToken: PayLoad,
   ) {
     return this.appUserService.updateWithdrawalPassword(
@@ -138,11 +136,11 @@ export class AppUserController {
   }
 
   // User Account
-  @UseGuards(AppAuthGuard)
-  @Patch('account/freeze')
-  async update_customer_is_freeze(@GetCurrentAppUser() customer: PayLoad) {
-    return this.appUserService.freeze_account(customer['id']);
-  }
+  // @UseGuards(AppAuthGuard)
+  // @Patch('account/freeze')
+  // async update_customer_is_freeze(@GetCurrentAppUser() customer: PayLoad) {
+  //   return this.appUserService.freeze_account(customer['id']);
+  // }
 
   // @UseGuards(AppAuthGuard)
   // @Patch('account/profit')
@@ -233,10 +231,7 @@ export class AppUserController {
   @Get('withdrawal/check-has-password')
   async checkWithdrawalPassword(@GetCurrentAppUser() userFromToken: PayLoad) {
     const user = await this.appUserService.findOne(userFromToken['id']);
-    if (user['withdraw_password'].length > 0) {
-      return true;
-    }
-    return false;
+    return !!user['withdraw_password'];
   }
 
   // Order
@@ -262,7 +257,7 @@ export class AppUserController {
   @UseGuards(AppAuthGuard)
   @Get('order/positions')
   async getUserPosition(
-    @Query() query: PositionQuery,
+    @Query() query: PaginationQuery,
     @GetCurrentAppUser() userFromToken: PayLoad,
   ) {
     return this.stockStorageService.findUserPostions(
@@ -278,6 +273,24 @@ export class AppUserController {
     @GetCurrentAppUser() userFromToken: PayLoad,
   ) {
     return this.orderService.sell(position_id, userFromToken['id']);
+  }
+
+  @UseGuards(AppAuthGuard)
+  @Post('order/bulk-sell/:stock_code')
+  async bulkSellStock(
+    @Param('stock_code') stock_code: string,
+    @GetCurrentAppUser() userFromToken: PayLoad,
+    @Body() body: any,
+  ) {
+    const { position_ids } = body;
+    if (!position_ids) {
+      throw new BadRequestException('position_ids is required.');
+    }
+    return this.orderService.bulkSell(
+      position_ids,
+      stock_code,
+      userFromToken['id'],
+    );
   }
 
   @UseGuards(AppAuthGuard)
@@ -392,15 +405,28 @@ export class AppUserController {
   }
 
   //Trading Session
-  @UseGuards(AppAuthGuard)
-  @Get('trading-session/list')
-  getTradingSessionList() {
-    return this.tradingSessionService.findAll();
-  }
+  // @UseGuards(AppAuthGuard)
+  // @Get('trading-session/list')
+  // getTradingSessionList() {
+  //   return this.tradingSessionService.findAll();
+  // }
+
+  // @UseGuards(AppAuthGuard)
+  // @Get('trading-session/detail/:id')
+  // getDetailTradingSession(@Param('id') id: string) {
+  //   return this.tradingSessionService.findOne(id);
+  // }
 
   @UseGuards(AppAuthGuard)
-  @Get('trading-session/detail/:id')
-  getDetailTradingSession(@Param('id') id: string) {
-    return this.tradingSessionService.findOne(id);
+  @Get('trading-session/today')
+  getDetailTradingSession() {
+    return this.tradingSessionService.findToday();
+  }
+
+  // Agent
+  @UseGuards(AppAuthGuard)
+  @Get('agent/list')
+  getAgentList(@Query() query: PaginationQuery) {
+    return this.agentService.findAll(query);
   }
 }

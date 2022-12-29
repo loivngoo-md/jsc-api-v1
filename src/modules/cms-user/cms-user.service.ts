@@ -8,6 +8,8 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
 import { Repository } from 'typeorm';
+import { UpdatePassword } from '../../helpers/dto-helper';
+import { CmsUserListQuery } from './dto/cms-user-query.dto';
 import { CreateCmsUserDto } from './dto/create-cms-user.dto';
 import { UpdateCmsUserDto } from './dto/update-cms-user.dto';
 import CmsUser from './entities/cms-user.entity';
@@ -20,21 +22,58 @@ export class CmsUserService {
   ) {}
 
   async create(createCmsUserDto: CreateCmsUserDto) {
-    const newUser = await this._cmsUserRepo.create(createCmsUserDto);
-    await this._cmsUserRepo.save(newUser);
-    return newUser;
+    const { username, password, phone, real_name, is_active } =
+      createCmsUserDto;
+
+    const existUser = await this._cmsUserRepo.findOne({ where: { username } });
+    if (existUser) {
+      throw new BadRequestException('Exist user with this username.');
+    }
+
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const newCms = this._cmsUserRepo.create({
+      username,
+      password: hashedPassword,
+      real_name,
+      phone,
+      is_active,
+    });
+
+    await this._cmsUserRepo.save(newCms);
+    return newCms;
   }
 
-  async findByUsername(username: string) {
+  async findByUsername(username: string, findInLogin?: boolean) {
     const user = await this._cmsUserRepo.findOne({ where: { username } });
-    if (!user) {
+    if (!user && !findInLogin) {
       throw new NotFoundException('Not found cms user');
     }
     return user;
   }
 
-  findAll() {
-    return this._cmsUserRepo.find();
+  async findAll(query: CmsUserListQuery) {
+    const { username, phone, real_name, page, pageSize } = query;
+    const take = +pageSize || 10;
+    const skip = +pageSize * (+page - 1) || 0;
+
+    const whereConditions = {};
+
+    username && Object.assign(whereConditions, { username });
+    phone && Object.assign(whereConditions, { phone });
+    real_name && Object.assign(whereConditions, { real_name });
+
+    const recs = await this._cmsUserRepo.find({
+      where: whereConditions,
+      take,
+      skip,
+    });
+
+    return {
+      count: recs.length,
+      data: recs,
+    };
   }
 
   async findOne(id: number) {
@@ -46,6 +85,7 @@ export class CmsUserService {
   }
 
   async update(id: number, updateCmsUserDto: UpdateCmsUserDto) {
+    delete updateCmsUserDto['password'];
     await this._cmsUserRepo.update(id, updateCmsUserDto);
     const updatedUser = await this._cmsUserRepo.findOne({ where: { id: id } });
     if (updatedUser) {
@@ -61,23 +101,32 @@ export class CmsUserService {
     }
   }
 
-  async updatePassword(id: number, dto: any) {
+  async updatePassword(id: number, dto: UpdatePassword) {
+    const { old_password, new_password } = dto;
     const user = await this._cmsUserRepo.findOne({ where: { id } });
     if (!user) {
       throw new BadRequestException('Not found user.');
     }
+    const { password } = user;
+    const compare = await bcrypt.compare(old_password, password);
 
-    const compare = await bcrypt.compare(
-      dto['old_password'],
-      user['withdraw_password'],
-    );
     if (!compare) {
       throw new BadRequestException('Wrong old password');
     }
 
     const salt = await bcrypt.genSalt();
-    const password = await bcrypt.hash(dto['new_password'], salt);
+    user.password = await bcrypt.hash(new_password, salt);
+    await this._cmsUserRepo.save(user);
 
-    return this._cmsUserRepo.update(id, { password });
+    return { isSuccess: true };
+  }
+
+  async actionLockOnCms(id: number, isLock?: boolean) {
+    const cmsUser = await this.findOne(id);
+
+    cmsUser.is_active = !isLock;
+    await this._cmsUserRepo.save(cmsUser);
+
+    return { isSuccess: true };
   }
 }

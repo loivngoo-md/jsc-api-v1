@@ -72,8 +72,8 @@ export class OrderService {
         'o.updated_at as updated_at',
       ])
       .where({})
-      .take(pageSize)
-      .skip((page - 1) * pageSize)
+      .limit(pageSize)
+      .offset((page - 1) * pageSize)
       .getRawMany();
 
     return {
@@ -100,8 +100,8 @@ export class OrderService {
         'o.updated_at as updated_at',
       ])
       .where(query)
-      .take(pageSize)
-      .skip((page - 1) * pageSize)
+      .limit(pageSize)
+      .offset((page - 1) * pageSize)
       .getRawMany();
 
     return {
@@ -184,7 +184,7 @@ export class OrderService {
         price: P,
         trading_session: session['id'],
       }),
-      this._appUserService.update(user_id, {
+      this._appUserService.updateBalance(user_id, {
         balance_avail: +user['balance_avail'] - +actual_amount,
         balance: +user['balance'] - +actual_amount,
       }),
@@ -265,7 +265,7 @@ export class OrderService {
       after: +user['balance'] + +created_order['actual_amount'],
     };
     await Promise.all([
-      this._appUserService.update(user_id, {
+      this._appUserService.updateBalance(user_id, {
         balance: +user['balance'] + +amount,
         balance_avail: +user['balance_avail'] + +amount,
       }),
@@ -277,5 +277,77 @@ export class OrderService {
     ]);
 
     return created_order;
+  }
+
+  async bulkSell(position_ids: number[], stock_code: string, user_id: number) {
+    const [positions, currentSession] = await Promise.all([
+      this._stockStorageService.findBulkSell(position_ids, stock_code, user_id),
+      this._tradingSessionService.findOpeningSession(),
+    ]);
+
+    if (!currentSession) {
+      throw new HttpException(
+        'Not found opening session.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const [stock, user] = await Promise.all([
+      this._stockService.findOne(stock_code),
+      this._appUserService.findOne(user_id),
+    ]);
+
+    const { detail } = currentSession;
+    const { transaction_fees } = detail['transactions_rate'] as any;
+    const { P, M, N, ZT, DT } = stock;
+
+    const orderInfos = [];
+    const trxInfos = [];
+    let updateAmount = 0;
+    for (const position of positions) {
+      const { quantity } = position;
+
+      const amount = P * quantity;
+      const actual_amount = amount * (1 - transaction_fees);
+
+      const created_order = this._orderRepo.create({
+        type: ORDER_TYPE.SELL,
+        stock_code: stock_code,
+        quantity: quantity,
+        price: P,
+        username: user['username'],
+        fee_rate: transaction_fees,
+        amount: amount,
+        actual_amount: actual_amount,
+        user_id: user_id,
+        stock_market: M,
+        stock_name: N,
+        zhangting: ZT,
+        dieting: DT,
+        trading_session: currentSession['id'],
+      });
+      const trxInfo = {
+        trx_id: created_order['id'],
+        type: TRANSACTION_TYPE.SELL,
+        user_id: created_order['user_id'],
+        before: user['balance'],
+        after: +user['balance'] + +created_order['actual_amount'],
+      };
+      orderInfos.push(created_order);
+      trxInfos.push(trxInfo);
+      updateAmount += actual_amount;
+    }
+
+    await Promise.all([
+      this._appUserService.updateBalance(user_id, {
+        balance: +user['balance'] + +updateAmount,
+        balance_avail: +user['balance_avail'] + +updateAmount,
+      }),
+      this._trxService.addTrx(trxInfos),
+      this._stockStorageService.closePositions(position_ids),
+      this._orderRepo.save(orderInfos),
+    ]);
+
+    return orderInfos;
   }
 }
