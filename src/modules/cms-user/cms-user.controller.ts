@@ -18,10 +18,15 @@ import { LoginByUsernameDto } from '../../components/auth/dto/LoginByUsernameDto
 import { PayLoad } from '../../components/auth/dto/PayLoad';
 import { GetCurrentCmsUser } from '../../components/auth/guards/cms-user.decorator';
 import { CmsAuthGuard } from '../../components/auth/guards/cmsAuth.guard';
+import { BlockTransactionQuery } from '../../components/block-transactions/dto/block-transaction-query.dto';
+import { BlockTransactionUpdate } from '../../components/block-transactions/dto/update-block-transaction.dto';
 import { DepositAccountService } from '../../components/deposit-account/deposit-account.service';
 import { DepositService } from '../../components/deposit/deposit.service';
 import { CreateDepositDto } from '../../components/deposit/dto/create-deposit.dto';
 import { DepositQuery } from '../../components/deposit/dto/query-deposit.dto';
+import { IpoStockCreate } from '../../components/ipo-stock/dto/create-ipo-stock.dto';
+import { IpoStockListQuery } from '../../components/ipo-stock/dto/ipo-stock-list-query.dto';
+import { IpoStockUpdate } from '../../components/ipo-stock/dto/update-ipo-stock.dto';
 import { LoginRecordService } from '../../components/login-record/login-record.service';
 import { MoneyLogService } from '../../components/money-log/money-log.service';
 import { OrderQuery } from '../../components/order/dto/query-order.dto';
@@ -45,6 +50,9 @@ import { AppUserListQuery } from '../app-user/dto/app-user-query.dto';
 import { AppUserCreate } from '../app-user/dto/create-app-user.dto';
 import { AppUserUpdateDetail } from '../app-user/dto/update-app-user.dto';
 import { AgentService } from './../../components/agent/agent.service';
+import { BlockTransactionsService } from './../../components/block-transactions/block-transactions.service';
+import { BlockTransactionCreate } from './../../components/block-transactions/dto/create-block-transaction.dto';
+import { IpoStockService } from './../../components/ipo-stock/ipo-stock.service';
 import { MoneyLogCreate } from './../../components/money-log/dto/money-log-create.dto';
 import { CmsUserService } from './cms-user.service';
 import { CmsUserListQuery } from './dto/cms-user-query.dto';
@@ -69,6 +77,8 @@ export class CmsUserController {
     private readonly depositAccountService: DepositAccountService,
     private readonly trxService: TransactionsService,
     private readonly agentService: AgentService,
+    private readonly ipoStockService: IpoStockService,
+    private readonly blockTrxService: BlockTransactionsService,
   ) {}
 
   // CMS - User
@@ -159,6 +169,12 @@ export class CmsUserController {
   }
 
   @UseGuards(CmsAuthGuard)
+  @Patch('agent-users/set-password/:id')
+  setAgentPassword(@Param('id') id: number, @Body() dto: SetPassword) {
+    return this.agentService.setPassword(id, dto);
+  }
+
+  @UseGuards(CmsAuthGuard)
   @Patch('agent-users/remove/:id')
   removeAgent(@Param('id') id: number) {
     return this.agentService.remove(id);
@@ -193,7 +209,7 @@ export class CmsUserController {
   }
 
   @UseGuards(CmsAuthGuard)
-  @Post('app-users/verified/:id')
+  @Patch('app-users/verified/:id')
   async verificationAppUserAccount(@Param('id') id: string) {
     return this.appUserService.verifiedAccount(+id);
   }
@@ -397,6 +413,74 @@ export class CmsUserController {
   @Get('stock/pull')
   pullLatestStock(@Query() query: any) {
     return this.stockService.pullLatestStock(query);
+  }
+
+  //Ipo - Stock
+  @UseGuards(CmsAuthGuard)
+  @Get('ipo-stock/list')
+  async getIpoStockList(@Query() query: IpoStockListQuery) {
+    return this.ipoStockService.findAll(query);
+  }
+
+  @UseGuards(CmsAuthGuard)
+  @Get('ipo-stock/detail/:ipo_id')
+  async getIpoStockDetail(@Param('ipo_id') ipo_id: number) {
+    return this.ipoStockService.findOne(ipo_id);
+  }
+
+  @UseGuards(CmsAuthGuard)
+  @Post('ipo-stock/create')
+  async createIpoStock(@Body() body: IpoStockCreate) {
+    return this.ipoStockService.create(body);
+  }
+
+  @UseGuards(CmsAuthGuard)
+  @Patch('ipo-stock/update/:ipo_id')
+  async updateIpoStock(
+    @Param('ipo_id') ipo_id: number,
+    @Body() body: IpoStockUpdate,
+  ) {
+    return this.ipoStockService.update(ipo_id, body);
+  }
+
+  @UseGuards(CmsAuthGuard)
+  @Patch('ipo-stock/remove/:ipo_id')
+  async removeIpoStock(@Param('ipo_id') ipo_id: number) {
+    return this.ipoStockService.remove(ipo_id);
+  }
+
+  // Block - Trx
+  @UseGuards(CmsAuthGuard)
+  @Get('block-transaction/list')
+  getListBlocktrx(@Query() query: BlockTransactionQuery) {
+    return this.blockTrxService.findAll(query);
+  }
+
+  @UseGuards(CmsAuthGuard)
+  @Get('block-transaction/detail/:id')
+  getDetailBlocktrx(@Param('id') id: number) {
+    return this.blockTrxService.findOne(id);
+  }
+
+  @UseGuards(CmsAuthGuard)
+  @Post('block-transaction/create')
+  createBlocktrx(@Body() body: BlockTransactionCreate) {
+    return this.blockTrxService.create(body);
+  }
+
+  @UseGuards(CmsAuthGuard)
+  @Patch('block-transaction/update/:id')
+  updateBlocktrx(
+    @Param('id') id: number,
+    @Body() body: BlockTransactionUpdate,
+  ) {
+    return this.blockTrxService.update(id, body);
+  }
+
+  @UseGuards(CmsAuthGuard)
+  @Patch('block-transaction/remove/:id')
+  removeBlocktrx(@Param('id') id: number) {
+    return this.blockTrxService.remove(id);
   }
 
   //Systemconfig

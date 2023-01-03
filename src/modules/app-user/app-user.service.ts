@@ -187,6 +187,7 @@ export class AppUserService {
     phone && Object.assign(whereConditions, { phone: Like(`%${phone}%`) });
     is_real && Object.assign(whereConditions, { is_real });
 
+    const total = await this._appUserRepo.countBy(whereConditions);
     const app_users = await this._appUserRepo.find({
       where: whereConditions,
       take,
@@ -196,6 +197,7 @@ export class AppUserService {
     return {
       count: app_users.length,
       data: app_users,
+      total,
     };
   }
 
@@ -270,7 +272,7 @@ export class AppUserService {
     agent && Object.assign(user, { agent: agent.id, superior: agent.username });
     phone && Object.assign(user, { phone });
     real_name && Object.assign(user, { real_name });
-    is_active && Object.assign(user, { is_active });
+    typeof is_active !== 'undefined' && Object.assign(user, { is_active });
     is_freeze && Object.assign(user, { is_freeze });
 
     await this._appUserRepo.save(user);

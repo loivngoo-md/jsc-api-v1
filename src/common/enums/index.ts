@@ -52,3 +52,11 @@ export enum IMAGE_TYPE {
   BACK,
   FRONT,
 }
+
+export enum IPO_STOCK_TYPE {
+  沪,
+  深,
+  北,
+  科,
+  创,
+}

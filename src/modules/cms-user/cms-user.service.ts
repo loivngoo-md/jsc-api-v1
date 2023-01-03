@@ -64,6 +64,7 @@ export class CmsUserService {
     phone && Object.assign(whereConditions, { phone });
     real_name && Object.assign(whereConditions, { real_name });
 
+    const total = await this._cmsUserRepo.countBy(whereConditions);
     const recs = await this._cmsUserRepo.find({
       where: whereConditions,
       take,
@@ -73,6 +74,7 @@ export class CmsUserService {
     return {
       count: recs.length,
       data: recs,
+      total,
     };
   }
 

@@ -1,5 +1,10 @@
 import { HttpService } from '@nestjs/axios';
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { firstValueFrom } from 'rxjs';
 import { Repository } from 'typeorm';
@@ -153,6 +158,14 @@ export class StockService {
     }
 
     throw new HttpException('Stock not found', HttpStatus.NOT_FOUND);
+  }
+
+  async findByC(c: string) {
+    const stock = await this._stockRepo.findOne({ where: { C: c } });
+    if (!stock) {
+      throw new NotFoundException('Stock not found');
+    }
+    return await this.findOne(stock.FS);
   }
 
   async update(id: string, updateStockDto: UpdateStockDto) {

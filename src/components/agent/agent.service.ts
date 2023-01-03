@@ -31,7 +31,7 @@ export class AgentService {
 
   async create(body: AgentUserCreateByAdmin, isPartService?: boolean) {
     const { username, password, real_name, phone } = body;
-    const existAgent = await this.findByUsername(username);
+    const existAgent = await this.findByUsername(username, true);
     if (existAgent) {
       throw new HttpException('Exist Agent Code', HttpStatus.BAD_REQUEST);
     }
@@ -45,9 +45,13 @@ export class AgentService {
       real_name,
       phone,
     });
-    Object.assign(newAgent, { path: newAgent.id });
-    !isPartService && (await this._agentRepo.save(newAgent));
-    return newAgent;
+    if (isPartService) return newAgent;
+
+    const newSave = await this._agentRepo.save(newAgent);
+    newSave.path = newSave.id.toString();
+    await this._agentRepo.save(newSave);
+
+    return newSave;
   }
 
   async createByAgent(body: AgentUserCreateByAgent, agent_id: number) {
@@ -78,11 +82,13 @@ export class AgentService {
       poundage_scale,
       deferred_fees_scale,
       receive_dividends_scale,
-      path: `${parentAgent.path}.${newAgent.id}`,
     });
 
-    await this._agentRepo.save(newAgent);
-    return newAgent;
+    const newSave = await this._agentRepo.save(newAgent);
+    newSave.path = `${parentAgent.path}.${newAgent.id}`;
+    await this._agentRepo.save(newSave);
+
+    return newSave;
   }
 
   async findAll(
@@ -107,6 +113,7 @@ export class AgentService {
       };
     }
 
+    const total = await this._agentRepo.countBy(whereConditions);
     const recs = await this._agentRepo.find({
       where: whereConditions,
       take,
@@ -116,6 +123,7 @@ export class AgentService {
     return {
       count: recs.length,
       data: recs,
+      total,
     };
   }
 
@@ -162,7 +170,7 @@ export class AgentService {
     const rec = await this.findOne(id);
 
     real_name && Object.assign(rec, { real_name });
-    is_active && Object.assign(rec, { is_active });
+    typeof is_active !== 'undefined' && Object.assign(rec, { is_active });
     phone && Object.assign(rec, { phone });
 
     await this._agentRepo.save(rec);

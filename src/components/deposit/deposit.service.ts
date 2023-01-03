@@ -80,17 +80,22 @@ export class DepositService {
     delete query['page'];
     delete query['pageSize'];
 
-    const rec = await this._depositRepo
+    const queryBuilder = this._depositRepo
       .createQueryBuilder('d')
       .innerJoin('app_users', 'u', 'd.user_id = u.id')
       .select(['d.*', 'row_to_json(u.*) as user_detail'])
-      .where(query)
+      .where(query);
+
+    const total = await queryBuilder.clone().getCount();
+    const recs = await queryBuilder
       .limit(pageSize)
       .offset((page - 1) * pageSize)
       .getRawMany();
+
     return {
-      count: rec.length,
-      data: rec,
+      count: recs.length,
+      data: recs,
+      total,
     };
   }
 

@@ -1,10 +1,10 @@
-import { AgentModule } from './components/agent/agent.module';
 import * as Joi from '@hapi/joi';
 import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { IpoStockModule } from './components/ipo-stock/ipo-stock.module';
 import { TransactionsModule } from './components/transactions/transactions.module';
 import { DatabaseModule } from './database/database.module';
 import { CmsUserModule } from './modules/cms-user/cms-user.module';
@@ -30,6 +30,8 @@ import { CmsUserModule } from './modules/cms-user/cms-user.module';
     DatabaseModule,
     CmsUserModule,
     TransactionsModule,
+    IpoStockModule,
+    // BlockTransactionsModule,
   ],
   controllers: [],
   providers: [],

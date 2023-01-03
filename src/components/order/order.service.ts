@@ -60,7 +60,7 @@ export class OrderService {
       ? Between(start_time, end_time)
       : LessThanOrEqual(end_time);
 
-    const rec = await this._orderRepo
+    const queryBuilder = this._orderRepo
       .createQueryBuilder('o')
       .innerJoinAndSelect('app_users', 'u', 'o.user_id = u.id')
       .select([
@@ -71,14 +71,18 @@ export class OrderService {
         'o.created_at as created_at',
         'o.updated_at as updated_at',
       ])
-      .where({})
+      .where(query);
+
+    const total = await queryBuilder.clone().getCount();
+    const recs = await queryBuilder
       .limit(pageSize)
       .offset((page - 1) * pageSize)
       .getRawMany();
 
     return {
-      count: rec.length,
-      data: rec,
+      count: recs.length,
+      data: recs,
+      total,
     };
   }
 
@@ -88,7 +92,7 @@ export class OrderService {
 
     user_id && (query['user_id'] = user_id);
 
-    const rec = await this._orderRepo
+    const queryBuilder = this._orderRepo
       .createQueryBuilder('o')
       .innerJoinAndSelect('app_users', 'u', 'o.user_id = u.id')
       .select([
@@ -99,14 +103,18 @@ export class OrderService {
         'o.created_at as created_at',
         'o.updated_at as updated_at',
       ])
-      .where(query)
+      .where(query);
+
+    const total = await queryBuilder.clone().getCount();
+    const recs = await queryBuilder
       .limit(pageSize)
       .offset((page - 1) * pageSize)
       .getRawMany();
 
     return {
-      count: rec.length,
-      data: rec,
+      count: recs.length,
+      data: recs,
+      total,
     };
   }
 
