@@ -1,10 +1,7 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Not, Repository } from 'typeorm';
+import { MESSAGE } from '../../common/constant';
 import { IpoStockCreate } from './dto/create-ipo-stock.dto';
 import { IpoStockListQuery } from './dto/ipo-stock-list-query.dto';
 import { IpoStockUpdate } from './dto/update-ipo-stock.dto';
@@ -34,7 +31,7 @@ export class IpoStockService {
       where: [{ name }, { code }],
     });
     if (ipoStockExist.length) {
-      throw new BadRequestException('Exist Ipo Stock with name and code');
+      throw new BadRequestException(MESSAGE.BAD_REQUEST);
     }
 
     const ipoStockInfo = this._ipoStockRepo.create({
@@ -85,7 +82,7 @@ export class IpoStockService {
     });
 
     if (!ipoStock) {
-      throw new NotFoundException('Not found IPO Stock');
+      throw new BadRequestException(MESSAGE.BAD_REQUEST);
     }
     return ipoStock;
   }
@@ -110,7 +107,7 @@ export class IpoStockService {
       ],
     });
     if (ipoStockExist.length) {
-      throw new BadRequestException('Exist Ipo Stock with name and code');
+      throw new BadRequestException(MESSAGE.BAD_REQUEST);
     }
 
     name && Object.assign(ipoStock, { name });

@@ -1,4 +1,4 @@
-import { ORDER_TYPE, POSITION_STATUS } from 'src/common/enums';
+import { ORDER_TYPE, POSITION_STATUS, TRX_TYPE } from 'src/common/enums';
 import { EntityHelper } from 'src/helpers/entity-helper';
 import {
   BeforeInsert,
@@ -30,6 +30,9 @@ export class StockStorage extends EntityHelper {
 
   @Column({ default: POSITION_STATUS.OPEN, nullable: true })
   status: POSITION_STATUS;
+
+  @Column({ default: TRX_TYPE.NOR })
+  type: TRX_TYPE;
 
   // TODO: Remove nullable trading_session
   @Column('varchar', { nullable: true })

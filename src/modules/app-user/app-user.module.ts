@@ -1,3 +1,4 @@
+import { BlockTransactionsModule } from './../../components/block-transactions/block-transactions.module';
 import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AgentModule } from '../../components/agent/agent.module';
@@ -31,6 +32,7 @@ import AppUser from './entities/app-user.entity';
     MoneyLogModule,
     TransactionsModule,
     forwardRef(() => AgentModule),
+    BlockTransactionsModule,
   ],
   controllers: [AppUserController],
   providers: [AppUserService],

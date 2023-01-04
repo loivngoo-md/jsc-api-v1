@@ -1,14 +1,13 @@
 import {
-  HttpException,
-  HttpStatus,
+  BadGatewayException,
+  BadRequestException,
   Injectable,
-  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
-import { INVALID_PASSWORD } from 'src/common/constant/error-message';
 import { DEPOSIT_WITHDRAWAL_STATUS, TRANSACTION_TYPE } from 'src/common/enums';
 import { Between, LessThanOrEqual, Repository } from 'typeorm';
+import { MESSAGE } from '../../common/constant';
 import { AppUserService } from '../../modules/app-user/app-user.service';
 import AppUser from '../../modules/app-user/entities/app-user.entity';
 import { SystemConfigurationService } from '../system-configuration/system-configuration.service';
@@ -46,21 +45,17 @@ export class WithdrawService {
       !byCms &&
       !(await this.validatePassword(user, dto['withdraw_password']))
     ) {
-      throw new NotFoundException(INVALID_PASSWORD);
+      throw new BadRequestException(MESSAGE.BAD_REQUEST);
     }
 
     if (+amount < withdrawal_min || +amount > withdrawal_max) {
-      throw new HttpException(
-        `Withdrawal should be in range (${withdrawal_min}, ${withdrawal_max})`,
-        HttpStatus.BAD_REQUEST,
+      throw new BadRequestException(
+        `${MESSAGE.DEPOSIT_RANGE_VALID_IS} ${withdrawal_min}, ${withdrawal_max} `,
       );
     }
 
     if (+user['balance'] < +amount) {
-      throw new HttpException(
-        'Do not enough money to withdraw.',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new BadRequestException(`${MESSAGE.NOT_ENOUGH_MONEY}`);
     }
 
     dto['user_id'] = user['id'];
@@ -125,17 +120,14 @@ export class WithdrawService {
     if (response) {
       return response;
     }
-    throw new HttpException('Withdraw not found', HttpStatus.NOT_FOUND);
+    throw new BadRequestException(MESSAGE.BAD_REQUEST);
   }
 
   async reviewByCms(withdraw_id: number, dto: any) {
     const { status } = dto;
     const withdrawal = await this.findOne(withdraw_id);
     if (withdrawal['status'] !== DEPOSIT_WITHDRAWAL_STATUS.PENDING) {
-      throw new HttpException(
-        'Withdrawal is not pending',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new BadGatewayException(MESSAGE.BAD_REQUEST);
     }
     const user = await this._appUserService.findOne(withdrawal['user_id']);
     if (status === DEPOSIT_WITHDRAWAL_STATUS.SUCCESS) {

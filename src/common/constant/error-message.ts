@@ -2,7 +2,11 @@
  * Common constant
  */
 
-export const NOT_FOUND = 'Not found';
+export const NOT_FOUND = 'Not Found.';
+export const BAD_REQUEST = 'Bad Request.';
+export const UNAUTHORIZED = 'Unauthorized.';
+export const IS_LOGGED_IN = 'is logged in the system.';
+
 export const NOT_FOUND_TEAM = 'Team not exist';
 export const NOT_FOUND_USER = 'User not exist';
 export const NOT_FOUND_REQUEST = 'Request not exist';
@@ -24,7 +28,6 @@ export const INVALID_TOKEN = 'Invalid token';
 /**
  * Error occur when user login via Google failed
  */
-export const UNAUTHORIZED_MESSAGE = 'Not have permission to access it';
 export const LOGIN_ERR = 'The current user is not logged in to the system';
 /**-------------------------------------------------------------------- */
 
@@ -98,3 +101,21 @@ export const MISSING_PARAMS = `Missing required parameters`;
 export const UNAVAIL_DEVICE = `Unavailable device`;
 
 export const FORBIDDEN = `Forbidden resource.`;
+
+/** Trading Session Message */
+export const TRADING_SESSION_IS_NOT_OPEN = 'Trading Session is not Open.';
+export const BLOCK_TRANSACTION_IS_NOT_OPEN = 'Block Transaction is not Open.';
+export const MINIMUM_QUANTITY_IS = 'Minimum Quantity is';
+export const BALANCE_AVAILABLE_IS_NOT_ENOUGH =
+  'Balance Available is not Enough.';
+
+/**Position Message */
+export const POSITION_IS_CLOSED = 'Position is Closed.';
+export const NOT_FOUND_POSITION = 'Not found opening session.';
+
+/** Deposit Message */
+export const DEPOSIT_RANGE_VALID_IS = 'Deposit should be in range ';
+
+/**Withdrawal Messagage */
+export const WITHDRAWAL_RANGE_VALIS_IS = 'Withdrawal should be in range';
+export const NOT_ENOUGH_MONEY = 'Do not enough money to withdraw.';

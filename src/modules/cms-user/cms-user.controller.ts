@@ -270,8 +270,8 @@ export class CmsUserController {
 
   @UseGuards(CmsAuthGuard)
   @Post('order/buy')
-  async buyStock(@Body() dto: any) {
-    return this.orderService.buy(dto);
+  async buyStock(@Body() body: any) {
+    return this.orderService.buy(body);
   }
 
   @UseGuards(CmsAuthGuard)

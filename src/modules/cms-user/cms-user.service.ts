@@ -1,13 +1,8 @@
-import {
-  BadRequestException,
-  HttpException,
-  HttpStatus,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
 import { Repository } from 'typeorm';
+import { MESSAGE } from '../../common/constant';
 import { UpdatePassword } from '../../helpers/dto-helper';
 import { CmsUserListQuery } from './dto/cms-user-query.dto';
 import { CreateCmsUserDto } from './dto/create-cms-user.dto';
@@ -27,7 +22,7 @@ export class CmsUserService {
 
     const existUser = await this._cmsUserRepo.findOne({ where: { username } });
     if (existUser) {
-      throw new BadRequestException('Exist user with this username.');
+      throw new BadRequestException(MESSAGE.BAD_REQUEST);
     }
 
     const salt = await bcrypt.genSalt();
@@ -48,7 +43,7 @@ export class CmsUserService {
   async findByUsername(username: string, findInLogin?: boolean) {
     const user = await this._cmsUserRepo.findOne({ where: { username } });
     if (!user && !findInLogin) {
-      throw new NotFoundException('Not found cms user');
+      throw new BadRequestException(MESSAGE.BAD_REQUEST);
     }
     return user;
   }
@@ -83,7 +78,7 @@ export class CmsUserService {
     if (user) {
       return user;
     }
-    throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    throw new BadRequestException(MESSAGE.BAD_REQUEST);
   }
 
   async update(id: number, updateCmsUserDto: UpdateCmsUserDto) {
@@ -93,13 +88,13 @@ export class CmsUserService {
     if (updatedUser) {
       return updatedUser;
     }
-    throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    throw new BadRequestException(MESSAGE.BAD_REQUEST);
   }
 
   async remove(id: number) {
     const deleteResponse = await this._cmsUserRepo.delete(id);
     if (!deleteResponse.affected) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      throw new BadRequestException(MESSAGE.BAD_REQUEST);
     }
   }
 
@@ -107,13 +102,13 @@ export class CmsUserService {
     const { old_password, new_password } = dto;
     const user = await this._cmsUserRepo.findOne({ where: { id } });
     if (!user) {
-      throw new BadRequestException('Not found user.');
+      throw new BadRequestException(MESSAGE.BAD_REQUEST);
     }
     const { password } = user;
     const compare = await bcrypt.compare(old_password, password);
 
     if (!compare) {
-      throw new BadRequestException('Wrong old password');
+      throw new BadRequestException(MESSAGE.BAD_REQUEST);
     }
 
     const salt = await bcrypt.genSalt();

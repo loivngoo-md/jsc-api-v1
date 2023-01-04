@@ -1,6 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { MESSAGE } from '../../common/constant';
 import { StockService } from '../stock/stock.service';
 import { BlockTransactionQuery } from './dto/block-transaction-query.dto';
 import { BlockTransactionCreate } from './dto/create-block-transaction.dto';
@@ -18,6 +19,16 @@ export class BlockTransactionsService {
   async create(body: BlockTransactionCreate) {
     const { stock_code, quantity, trx_key, discount, start_time, end_time } =
       body;
+
+    const existBlockTrx = await this.findByCodeAndKey(
+      stock_code,
+      trx_key,
+      true,
+    );
+
+    if (existBlockTrx) {
+      throw new BadRequestException(MESSAGE.BAD_REQUEST);
+    }
 
     const stock = await this._stockService.findByC(stock_code.toString());
     const blockTrxInfo = this._blockTrxRepo.create({
@@ -66,7 +77,22 @@ export class BlockTransactionsService {
       where: { id, is_delete: false },
     });
     if (!blockTrx) {
-      throw new NotFoundException('Not found block transaction');
+      throw new BadRequestException(MESSAGE.BAD_REQUEST);
+    }
+
+    return blockTrx;
+  }
+
+  async findByCodeAndKey(
+    stock_code: number,
+    trx_key: string,
+    isCheckExist?: boolean,
+  ) {
+    const blockTrx = await this._blockTrxRepo.findOne({
+      where: { stock_code, trx_key },
+    });
+    if (!blockTrx && !isCheckExist) {
+      throw new BadRequestException(MESSAGE.BAD_REQUEST);
     }
 
     return blockTrx;

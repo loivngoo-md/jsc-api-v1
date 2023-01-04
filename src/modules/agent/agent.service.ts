@@ -3,11 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
 import { Like, Repository } from 'typeorm';
 import { ACCOUNT_TYPE, MODIFY_TYPE } from '../../common/enums';
-import { SetPassword, UpdatePassword } from '../../helpers/dto-helper';
-import { MoneyLogCreate } from '../money-log/dto/money-log-create.dto';
-import { MoneyLogService } from '../money-log/money-log.service';
+import { MoneyLogCreate } from '../../components/money-log/dto/money-log-create.dto';
+import { MoneyLogService } from '../../components/money-log/money-log.service';
+import {
+  PaginationQuery,
+  SetPassword,
+  UpdatePassword,
+} from '../../helpers/dto-helper';
 import { MESSAGE } from './../../common/constant/index';
-import { PaginationQuery } from './../../helpers/dto-helper';
 import {
   AgentUserCreateByAdmin,
   AgentUserCreateByAgent,

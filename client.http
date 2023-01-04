@@ -53,3 +53,23 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImNtc
     "real_name": "string",
     "phone": "string"
 }
+
+###
+POST http://127.0.0.1:8000/api/v1/app/user/signin HTTP/1.1
+Content-Type: application/json
+
+{
+    "username": "appusertest",
+    "password": "secret"
+}
+
+
+###
+POST http://localhost:8000/api/v1/app/order/buy HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFwcHVzZXJ0ZXN0IiwiaWQiOjk5OTk5LCJpYXQiOjE2NzI4MTAwOTMsImV4cCI6MTY3Mjg5NjQ5M30.nAFRnZt-UQNw_4xPPQSWWjpBYO67FQMn3eNBt-ZuCyM
+
+{
+    "stock_code": "SH688392",
+    "quantity": 100
+}
