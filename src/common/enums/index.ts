@@ -18,10 +18,15 @@ export enum DAYS_IN_WEEK {
   SUN = 'sunday',
 }
 
-export enum SESSION_STATUS {
+export enum COMMON_STATUS {
   CLOSED = 'closed',
   PENDING = 'pending',
   OPENING = 'opening',
+}
+
+export enum TRX_TYPE {
+  NOR = 'normal',
+  LAR = 'large',
 }
 
 export enum DEPOSIT_WITHDRAWAL_STATUS {

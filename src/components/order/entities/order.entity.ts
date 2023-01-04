@@ -1,4 +1,4 @@
-import { ORDER_TYPE } from 'src/common/enums';
+import { ORDER_TYPE, TRX_TYPE } from 'src/common/enums';
 import { EntityHelper } from 'src/helpers/entity-helper';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
@@ -51,6 +51,12 @@ export class Order extends EntityHelper {
 
   @Column('float8')
   dieting: number;
+
+  @Column('float8', { default: 0 })
+  discount: number;
+
+  @Column({ default: TRX_TYPE.NOR })
+  trx_type: TRX_TYPE;
 
   // TODO: Remove nullable trading_session
   @Column('varchar', { nullable: true })

@@ -16,9 +16,9 @@ export class Transaction extends EntityHelper {
   @Column()
   user_id: number;
 
-  @Column()
+  @Column({ type: 'float8' })
   before: number;
 
-  @Column()
+  @Column({ type: 'float8' })
   after: number;
 }

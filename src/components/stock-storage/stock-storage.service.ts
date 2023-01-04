@@ -1,12 +1,14 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { POSITION_STATUS, SESSION_STATUS } from 'src/common/enums';
+import { COMMON_STATUS, POSITION_STATUS, TRX_TYPE } from 'src/common/enums';
 import { dateFormatter } from 'src/helpers/moment';
 import { DeepPartial, In, MoreThanOrEqual, Repository } from 'typeorm';
 import { PaginationQuery } from '../../helpers/dto-helper';
 import { SellablePositionsQuery } from '../../modules/app-user/dto/app-user-query.dto';
+import { MESSAGE } from './../../common/constant/index';
 
 import { StockService } from '../stock/stock.service';
+import { StockStorageStore } from './dto/stock-storage-create.dto';
 import { StockStorage } from './entities/stock-storage.entity';
 
 @Injectable()
@@ -33,23 +35,42 @@ export class StockStorageService {
     };
   }
 
-  public async store(dto: DeepPartial<StockStorage>) {
+  public async store(body: StockStorageStore) {
+    const {
+      user_id,
+      stock_code,
+      price,
+      trading_session,
+      quantity,
+      amount,
+      type,
+    } = body;
     const existRec = await this._stockStorageRepo.findOne({
       where: {
-        stock_code: dto['stock_code'],
-        price: dto['price'],
-        trading_session: dto['trading_session'],
+        stock_code: stock_code,
+        price: price,
+        trading_session: trading_session,
+        type,
       },
     });
 
     if (existRec) {
-      existRec['quantity'] = +existRec['quantity'] + +dto['quantity'];
-      existRec['amount'] = +existRec['amount'] + +dto['amount'];
+      existRec.quantity = +existRec.quantity + quantity;
+      existRec.amount = +existRec.amount + amount;
       return await existRec.save();
     }
 
-    const transaction = this._stockStorageRepo.create(dto);
+    const transaction = this._stockStorageRepo.create({
+      user_id,
+      stock_code,
+      quantity,
+      price,
+      amount,
+      trading_session,
+      type: type === TRX_TYPE.LAR ? TRX_TYPE.LAR : TRX_TYPE.NOR,
+    });
     await this._stockStorageRepo.save(transaction);
+
     return transaction;
   }
 
@@ -114,17 +135,14 @@ export class StockStorageService {
       .select(['ss.*', 'row_to_json(ts.*) as seesion_detail']);
 
     query.where(`ss.status = ${POSITION_STATUS.OPEN}`);
-    query.andWhere(`ts.status = ${SESSION_STATUS.CLOSED}`);
+    query.andWhere(`ts.status = ${COMMON_STATUS.CLOSED}`);
     query.andWhere('ss.id IN (:...ids)', { ids: position_ids });
     query.andWhere(`ss.stock_code = ${stock_code}`);
     user_id && query.andWhere(`ss.user_id = ${user_id}`);
 
     const recs = await query.getRawMany();
     if (recs.length !== position_ids.length) {
-      throw new HttpException(
-        'Cannot found all positions.',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new BadRequestException(MESSAGE.BAD_REQUEST);
     }
     return recs;
   }
@@ -171,7 +189,7 @@ export class StockStorageService {
       .innerJoinAndSelect('stocks', 's', 'ss.stock_code = s.FS')
       .select(['ss.*', 'row_to_json(s.*) as stock'])
       .where(
-        `ss.stock_code = '${query.stock_code}' and ts.status = '${SESSION_STATUS.CLOSED}' and ss.status = ${POSITION_STATUS.OPEN} and ss.user_id = ${user_id}`,
+        `ss.stock_code = '${query.stock_code}' and ts.status = '${COMMON_STATUS.CLOSED}' and ss.status = ${POSITION_STATUS.OPEN} and ss.user_id = ${user_id}`,
       )
       .getRawMany();
 
@@ -183,10 +201,7 @@ export class StockStorageService {
       where: { id: In([...position_ids]), status: POSITION_STATUS.OPEN },
     });
     if (recs.length !== position_ids.length) {
-      throw new HttpException(
-        'Not found all positions',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new BadRequestException(MESSAGE.BAD_REQUEST);
     }
     await this._stockStorageRepo.update(
       { id: In([...position_ids]) },
