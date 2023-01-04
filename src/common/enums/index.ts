@@ -36,3 +36,27 @@ export enum TRANSACTION_TYPE {
   BUY = 0,
   SELL = 1,
 }
+
+export enum ACCOUNT_TYPE {
+  CMS = 'cms',
+  AGENT = 'agent',
+  APP = 'app',
+}
+
+export enum MODIFY_TYPE {
+  DECREASE,
+  INCREASE,
+}
+
+export enum IMAGE_TYPE {
+  BACK,
+  FRONT,
+}
+
+export enum IPO_STOCK_TYPE {
+  沪,
+  深,
+  北,
+  科,
+  创,
+}

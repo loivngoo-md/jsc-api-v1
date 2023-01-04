@@ -15,13 +15,13 @@ class AppUser extends EntityHelper {
   @Column({ nullable: true })
   public withdraw_password: string;
 
-  @Column({ default: false })
+  @Column({ default: true })
   public is_real: boolean;
 
   @Column({ default: false })
   public is_verified: boolean;
 
-  @Column({ default: '' })
+  @Column({ default: null })
   public real_name: string;
 
   @Column({ nullable: true })
@@ -30,25 +30,25 @@ class AppUser extends EntityHelper {
   @Column({ nullable: true })
   public id_back?: string;
 
-  @Column({ default: '' })
+  @Column({ default: null })
   public id_number: string;
 
-  @Column({ default: '' })
+  @Column({ default: null })
   public phone: string;
 
-  @Column({ default: '' })
+  @Column({ default: null })
   public bank_name: string;
 
-  @Column({ default: '' })
+  @Column({ default: null })
   public bank_number: string;
 
-  @Column({ default: '' })
+  @Column({ default: null })
   public bank_branch: string;
 
-  @Column({ default: '' })
+  @Column({ default: null })
   public account_holder: string;
 
-  @Column({ default: '' })
+  @Column({ default: null })
   public withdraw_tips: string;
 
   @Column('float8', { default: 0 })
@@ -81,16 +81,16 @@ class AppUser extends EntityHelper {
   @Column({ default: false })
   public is_freeze: boolean;
 
-  @Column({ default: '' })
+  @Column({ default: null })
   public online_service: string;
 
-  @Column({ default: '' })
-  public agent_code: string;
+  @Column({ default: null })
+  public agent: number;
 
-  @Column({ default: '' })
+  @Column({ default: null })
   public superior: string;
 
-  @Column({ default: '' })
+  @Column({ default: null })
   public last_login_ip: string;
 
   @Column({ default: false })
@@ -99,11 +99,14 @@ class AppUser extends EntityHelper {
   @Column({ default: false })
   id_playing_board: boolean;
 
-  @Column({ default: '' })
+  @Column({ default: null })
   public created_by: string;
 
   @Column({ default: true })
   public is_active: boolean;
+
+  @Column({ default: false })
+  public is_delete: boolean;
 }
 
 export default AppUser;

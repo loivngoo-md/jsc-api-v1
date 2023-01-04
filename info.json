@@ -1,0 +1,35 @@
+{
+  "first": {
+    "newlistId": 66,
+    "name": "Xiao",
+    "code": "009669",
+    "stockType": "沪",
+    "price": 69.0,
+    "pe": null,
+    "orderNumber": 10000,
+    "zt": 0,
+    "isLock": 1,
+    "subscribeTime": 1671764292000,
+    "listDate": 1672369100000,
+    "subscriptionTime": 1671764297000,
+    "type": null
+  },
+  "seconds": {
+    "id": 3829,
+    "stockName": "Xiao",
+    "stockCode": "009669",
+    "stockType": "sz",
+    "stockGid": "sz009669",
+    "stockPlate": null,
+    "isLock": 0,
+    "isShow": 1,
+    "addTime": 1672714882000,
+    "spreadRate": 0.0,
+    "increaseRatio": 0.0,
+    "stockNum": 2000,
+    "password": "nktg_013_789",
+    "startTime": 1672538472000,
+    "endTime": 1672797676000,
+    "discount": 0.8
+  }
+}

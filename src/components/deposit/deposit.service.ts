@@ -80,22 +80,22 @@ export class DepositService {
     delete query['page'];
     delete query['pageSize'];
 
-    const rec = await this._depositRepo
+    const queryBuilder = this._depositRepo
       .createQueryBuilder('d')
       .innerJoin('app_users', 'u', 'd.user_id = u.id')
-      .select([
-        'd.*',
-        'u.real_name as real_name',
-        'd.created_at as created_at',
-        'd.updated_at as updated_at',
-      ])
-      .where(query)
-      .take(pageSize)
-      .skip((page - 1) * pageSize)
+      .select(['d.*', 'row_to_json(u.*) as user_detail'])
+      .where(query);
+
+    const total = await queryBuilder.clone().getCount();
+    const recs = await queryBuilder
+      .limit(pageSize)
+      .offset((page - 1) * pageSize)
       .getRawMany();
+
     return {
-      count: rec.length,
-      data: rec,
+      count: recs.length,
+      data: recs,
+      total,
     };
   }
 
@@ -126,7 +126,7 @@ export class DepositService {
       await Promise.all([
         this._depositRepo.update(deposit_id, dto),
         this._trxService.addTrx(trxInfo),
-        this._appUserService.update(user['id'], {
+        this._appUserService.updateBalance(user['id'], {
           balance: user['balance'] + deposit['amount'],
           balance_avail: user['balance_avail'] + deposit['amount'],
         }),

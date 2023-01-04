@@ -1,5 +1,10 @@
 import { HttpService } from '@nestjs/axios';
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { firstValueFrom } from 'rxjs';
 import { Repository } from 'typeorm';
@@ -117,8 +122,8 @@ export class StockService {
           's.updated_at as updated_at',
         ])
         .where('s.FS IN (:...ids)', { ids: FSs })
-        .take(pageSize)
-        .skip((page - 1) * pageSize)
+        .limit(pageSize)
+        .offset((page - 1) * pageSize)
         .getRawMany();
 
       return {
@@ -155,6 +160,14 @@ export class StockService {
     throw new HttpException('Stock not found', HttpStatus.NOT_FOUND);
   }
 
+  async findByC(c: string) {
+    const stock = await this._stockRepo.findOne({ where: { C: c } });
+    if (!stock) {
+      throw new NotFoundException('Stock not found');
+    }
+    return await this.findOne(stock.FS);
+  }
+
   async update(id: string, updateStockDto: UpdateStockDto) {
     await this._stockRepo.update(id, updateStockDto);
     const updated = await this._stockRepo.findOne({ where: { FS: id } });
@@ -178,17 +191,5 @@ export class StockService {
     });
 
     return o;
-  }
-
-  async getStocksUsingCodes(codes: string[]) {
-    return Promise.all(
-      codes.map((code) =>
-        this._stockRepo.findOne({
-          where: {
-            FS: code,
-          },
-        }),
-      ),
-    );
   }
 }

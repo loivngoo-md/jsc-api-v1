@@ -11,6 +11,15 @@ class CmsUser extends EntityHelper {
 
   @Column({ nullable: false })
   public password: string;
+
+  @Column({ nullable: true })
+  public phone: string;
+
+  @Column({ nullable: true })
+  public real_name: string;
+
+  @Column({ default: true, nullable: true })
+  public is_active: boolean;
 }
 
 export default CmsUser;

@@ -1,5 +1,6 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AgentModule } from '../../components/agent/agent.module';
 import { AuthModule } from '../../components/auth/auth.module';
 import { DepositAccountModule } from '../../components/deposit-account/deposit-account.module';
 import { MoneyLogModule } from '../../components/money-log/money-log.module';
@@ -29,6 +30,7 @@ import AppUser from './entities/app-user.entity';
     StockModule,
     MoneyLogModule,
     TransactionsModule,
+    forwardRef(() => AgentModule),
   ],
   controllers: [AppUserController],
   providers: [AppUserService],

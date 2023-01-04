@@ -1,3 +1,4 @@
+import { AgentModule } from './../agent/agent.module';
 import { Module, forwardRef } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
@@ -7,6 +8,7 @@ import { LoginRecordModule } from '../login-record/login-record.module';
 import { AppStrategy } from './app-jwt.strategy';
 import { AuthService } from './auth.service';
 import { CmsStrategy } from './cms-jwt.strategy';
+import { AgentStrategy } from './agent-jwt.strategy';
 
 @Module({
   imports: [
@@ -21,9 +23,10 @@ import { CmsStrategy } from './cms-jwt.strategy';
     }),
     forwardRef(() => CmsUserModule),
     forwardRef(() => AppUserModule),
+    forwardRef(() => AgentModule),
     LoginRecordModule,
   ],
-  providers: [AuthService, CmsStrategy, AppStrategy],
+  providers: [AuthService, CmsStrategy, AppStrategy, AgentStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}

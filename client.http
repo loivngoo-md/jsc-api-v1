@@ -1,0 +1,55 @@
+###
+POST http://127.0.0.1:8000/api/v1/agent/user/signin HTTP/1.1
+Content-Type: application/json
+
+{
+    "username": "agent1",
+    "password": "secret"
+}
+
+### App-user List by Agent
+POST http://127.0.0.1:8000/api/v1/agent/agent-users/create HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFnZW50MSIsImlkIjo1LCJpYXQiOjE2NzIzNDI0MjYsImV4cCI6MTY3MjQyODgyNn0.DIQawusCOUJ6zqj4rMTuZJfPpPiHD0rCiP2Tqnn6xs4
+
+{
+    "username": "test_api_agent_1",
+    "password": "secret",
+    "real_name": "Gumaguzi",
+    "phone": "86681991",
+    "poundage_scale": 2,
+    "deferred_fees_scale": 3,
+    "receive_dividends_scale": 5
+}
+
+###
+POST http://127.0.0.1:8000/api/v1/cms/user/signin HTTP/1.1
+Content-Type: application/json
+
+{
+    "username": "cmsusertest",
+    "password": "secret"
+}
+
+###
+GET http://127.0.0.1:8000/api/v1/cms/agent-users/list HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImNtc3VzZXJ0ZXN0IiwiaWQiOjEsImlhdCI6MTY3MjM3NzU4NSwiZXhwIjoxNjcyNDYzOTg1fQ.d3tyMTvDOSi-Hw1aDR4b3W3lSMqjrJV0nrykhcfZzVw
+
+{
+    "username": "test_api_4",
+    "password": "secret",
+    "real_name": "Lukachim",
+    "phone": "66771508"
+}
+
+###
+PATCH http://127.0.0.1:8000/api/v1/cms/agent-users/update/22 HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImNtc3VzZXJ0ZXN0IiwiaWQiOjEsImlhdCI6MTY3MjM3NzU4NSwiZXhwIjoxNjcyNDYzOTg1fQ.d3tyMTvDOSi-Hw1aDR4b3W3lSMqjrJV0nrykhcfZzVw
+
+{
+    "is_active": false,
+    "real_name": "string",
+    "phone": "string"
+}

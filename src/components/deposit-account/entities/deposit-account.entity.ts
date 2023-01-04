@@ -18,9 +18,6 @@ class DepositAccount extends EntityHelper {
   @Column()
   account_holder: string;
 
-  @Column()
-  account_number: string;
-
   @Column({ default: true })
   is_public: boolean;
 

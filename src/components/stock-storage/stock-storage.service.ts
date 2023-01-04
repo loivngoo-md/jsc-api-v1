@@ -1,13 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { POSITION_STATUS, SESSION_STATUS } from 'src/common/enums';
 import { dateFormatter } from 'src/helpers/moment';
-import { DeepPartial, MoreThanOrEqual, Repository } from 'typeorm';
+import { DeepPartial, In, MoreThanOrEqual, Repository } from 'typeorm';
 import { PaginationQuery } from '../../helpers/dto-helper';
-import {
-  PositionQuery,
-  SellablePositionsQuery,
-} from '../../modules/app-user/dto/positions-pagination.dto';
+import { SellablePositionsQuery } from '../../modules/app-user/dto/app-user-query.dto';
 
 import { StockService } from '../stock/stock.service';
 import { StockStorage } from './entities/stock-storage.entity';
@@ -98,7 +95,7 @@ export class StockStorageService {
     return this._stockStorageRepo.update(position_id, dto);
   }
 
-  public findOne(position_id: number) {
+  public async findOne(position_id: number) {
     return this._stockStorageRepo.findOne({
       where: {
         id: position_id,
@@ -106,9 +103,35 @@ export class StockStorageService {
     });
   }
 
+  public async findBulkSell(
+    position_ids: number[],
+    stock_code: string,
+    user_id?: number,
+  ) {
+    const query = await this._stockStorageRepo
+      .createQueryBuilder('ss')
+      .innerJoinAndSelect('trading-session', 'ts', 'ss.trading-session = ts.id')
+      .select(['ss.*', 'row_to_json(ts.*) as seesion_detail']);
+
+    query.where(`ss.status = ${POSITION_STATUS.OPEN}`);
+    query.andWhere(`ts.status = ${SESSION_STATUS.CLOSED}`);
+    query.andWhere('ss.id IN (:...ids)', { ids: position_ids });
+    query.andWhere(`ss.stock_code = ${stock_code}`);
+    user_id && query.andWhere(`ss.user_id = ${user_id}`);
+
+    const recs = await query.getRawMany();
+    if (recs.length !== position_ids.length) {
+      throw new HttpException(
+        'Cannot found all positions.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    return recs;
+  }
+
   public async findUserPostions(
     user_id: string | number,
-    query: PositionQuery,
+    query: PaginationQuery,
   ) {
     const page = +query.page || 1;
     const pageSize = +query.pageSize || 20;
@@ -126,8 +149,8 @@ export class StockStorageService {
         user_id: Number(user_id),
         status: POSITION_STATUS.OPEN,
       })
-      .skip(skip)
-      .take(pageSize)
+      .offset(skip)
+      .limit(pageSize)
       .getRawMany();
 
     return { data: positions, count: positions.length };
@@ -137,6 +160,7 @@ export class StockStorageService {
     user_id: number,
     query: SellablePositionsQuery,
   ) {
+    await this._stockService.findOne(query.stock_code);
     const positions = await this._stockStorageRepo
       .createQueryBuilder('ss')
       .innerJoinAndSelect(
@@ -152,5 +176,23 @@ export class StockStorageService {
       .getRawMany();
 
     return { data: positions, count: positions.length };
+  }
+
+  public async closePositions(position_ids: number[]) {
+    const recs = await this._stockStorageRepo.find({
+      where: { id: In([...position_ids]), status: POSITION_STATUS.OPEN },
+    });
+    if (recs.length !== position_ids.length) {
+      throw new HttpException(
+        'Not found all positions',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    await this._stockStorageRepo.update(
+      { id: In([...position_ids]) },
+      { status: POSITION_STATUS.CLOSED },
+    );
+
+    return { isSuccess: true };
   }
 }
