@@ -1,3 +1,4 @@
+import { USER_MESSAGE } from './../../common/constant/error-message';
 import {
   BadRequestException,
   Injectable,
@@ -7,11 +8,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
 import { Like, Repository } from 'typeorm';
 import { ACCOUNT_TYPE, MODIFY_TYPE } from '../../common/enums';
-import { SetPassword, UpdatePassword } from '../../helpers/dto-helper';
-import { MoneyLogCreate } from '../money-log/dto/money-log-create.dto';
-import { MoneyLogService } from '../money-log/money-log.service';
-import { MESSAGE, USER_MESSAGE } from './../../common/constant/index';
-import { PaginationQuery } from './../../helpers/dto-helper';
+import { MoneyLogCreate } from '../../components/money-log/dto/money-log-create.dto';
+import { MoneyLogService } from '../../components/money-log/money-log.service';
+import {
+  PaginationQuery,
+  SetPassword,
+  UpdatePassword,
+} from '../../helpers/dto-helper';
+import { MESSAGE } from './../../common/constant/index';
 import {
   AgentUserCreateByAdmin,
   AgentUserCreateByAgent,
@@ -32,7 +36,9 @@ export class AgentService {
     const { username, password, real_name, phone } = body;
     const existAgent = await this.findByUsername(username, true);
     if (existAgent) {
-      throw new BadRequestException(MESSAGE.isExistError('Agent'));
+      throw new BadRequestException(
+        MESSAGE.isExistError('Agent', 'with this Username'),
+      );
     }
 
     const salt = await bcrypt.genSalt();
@@ -149,7 +155,7 @@ export class AgentService {
       where: { code, is_delete: false },
     });
     if (!rec && !isCreate) {
-      throw new BadRequestException(MESSAGE.notFoundError('Agent'));
+      throw new NotFoundException(MESSAGE.notFoundError('Agent'));
     }
     return rec;
   }
@@ -159,7 +165,7 @@ export class AgentService {
       where: { username, is_delete: false },
     });
     if (!rec && !isPartService) {
-      throw new BadRequestException(MESSAGE.notFoundError('Agent'));
+      throw new NotFoundException(MESSAGE.notFoundError('Agent'));
     }
     return rec;
   }
@@ -176,7 +182,9 @@ export class AgentService {
     return { isSuccess: true };
   }
 
+  // TODO
   async updateProfile(id: number, updateProfile: any) {}
+  //
 
   async modifyFund(id: number, body: MoneyLogCreate) {
     const { type, amount, comments, remark } = body;
@@ -220,6 +228,7 @@ export class AgentService {
     const user = await this.findOne(id);
     const { password } = user;
     const compare = await bcrypt.compare(old_password, password);
+    
     if (!compare) {
       throw new BadRequestException(USER_MESSAGE.WRONG_OLD_PASSWORD);
     }

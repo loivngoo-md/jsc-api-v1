@@ -6,18 +6,17 @@ class LoginRecord extends EntityHelper {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column("bigint")
+  @Column('bigint')
   user_id: number;
 
-  @Column("varchar",{ nullable: true })
+  @Column('varchar', { nullable: true })
   password: string;
 
-  @Column("varchar", { default: 'N/A' })
+  @Column('varchar', { default: 'N/A' })
   ip: string;
 
-  @Column("varchar", { default: 'N/A' })
+  @Column('varchar', { default: 'N/A' })
   location: string;
-
 }
 
 export default LoginRecord;

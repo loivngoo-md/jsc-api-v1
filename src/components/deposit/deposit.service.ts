@@ -1,6 +1,5 @@
 import {
-  HttpException,
-  HttpStatus,
+  BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -12,6 +11,7 @@ import { AppUserService } from '../../modules/app-user/app-user.service';
 import { DepositAccountService } from '../deposit-account/deposit-account.service';
 import { SystemConfigurationService } from '../system-configuration/system-configuration.service';
 import { TransactionsService } from '../transactions/transactions.service';
+import { MESSAGE } from './../../common/constant/index';
 import { DepositQuery } from './dto/query-deposit.dto';
 import Deposit from './entities/deposit.entity';
 
@@ -33,7 +33,7 @@ export class DepositService {
         dto['deposit_account_id'],
       );
       if (!depAcc) {
-        throw new NotFoundException('Deposit Account Not Found');
+        throw new NotFoundException(MESSAGE.notFoundError('Deposit Account'));
       }
     }
     const [user, sysConfig] = await Promise.all([
@@ -44,9 +44,8 @@ export class DepositService {
       'deposits_and_withdrawals'
     ] as any;
     if (+amount < deposit_min || +amount > deposit_max) {
-      throw new HttpException(
-        `Deposit should be in range (${deposit_min}, ${deposit_max})`,
-        HttpStatus.BAD_REQUEST,
+      throw new BadRequestException(
+        `${MESSAGE.DEPOSIT_RANGE_VALID_IS} ${deposit_min}, ${deposit_max} `,
       );
     }
     dto['username'] = user['username'];
@@ -104,14 +103,14 @@ export class DepositService {
     if (response) {
       return response;
     }
-    throw new HttpException('Deposit not found', HttpStatus.NOT_FOUND);
+    throw new NotFoundException(MESSAGE.notFoundError('Deposit Transaction'));
   }
 
   async reviewByCms(deposit_id: number, dto: any) {
     const { status } = dto;
     const deposit = await this.findOne(deposit_id);
     if (deposit.status !== DEPOSIT_WITHDRAWAL_STATUS.PENDING) {
-      throw new HttpException('Deposit is not pending', HttpStatus.BAD_REQUEST);
+      throw new BadRequestException(MESSAGE.DEPOSIT_NOT_PENDING);
     }
 
     if (status === DEPOSIT_WITHDRAWAL_STATUS.SUCCESS) {

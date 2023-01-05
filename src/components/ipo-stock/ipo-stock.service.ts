@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Not, Repository } from 'typeorm';
+import { MESSAGE } from '../../common/constant';
 import { IpoStockCreate } from './dto/create-ipo-stock.dto';
 import { IpoStockListQuery } from './dto/ipo-stock-list-query.dto';
 import { IpoStockUpdate } from './dto/update-ipo-stock.dto';
@@ -34,7 +35,9 @@ export class IpoStockService {
       where: [{ name }, { code }],
     });
     if (ipoStockExist.length) {
-      throw new BadRequestException('Exist Ipo Stock with name and code');
+      throw new BadRequestException(
+        MESSAGE.isExistError('IPO Stock', 'with this Name or Code'),
+      );
     }
 
     const ipoStockInfo = this._ipoStockRepo.create({
@@ -85,7 +88,7 @@ export class IpoStockService {
     });
 
     if (!ipoStock) {
-      throw new NotFoundException('Not found IPO Stock');
+      throw new NotFoundException(MESSAGE.notFoundError('IPO Stock'));
     }
     return ipoStock;
   }
@@ -110,7 +113,9 @@ export class IpoStockService {
       ],
     });
     if (ipoStockExist.length) {
-      throw new BadRequestException('Exist Ipo Stock with name and code');
+      throw new BadRequestException(
+        MESSAGE.isExistError('IPO Stock', 'with this Name or Code'),
+      );
     }
 
     name && Object.assign(ipoStock, { name });

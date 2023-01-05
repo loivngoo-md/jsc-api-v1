@@ -1,7 +1,5 @@
 import {
   BadRequestException,
-  HttpException,
-  HttpStatus,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -13,6 +11,7 @@ import { PayLoad } from '../../components/auth/dto/PayLoad';
 import { MoneyLogCreate } from '../../components/money-log/dto/money-log-create.dto';
 import { MoneyLogService } from '../../components/money-log/money-log.service';
 import { SetPassword, UpdatePassword } from '../../helpers/dto-helper';
+import { MESSAGE, USER_MESSAGE } from './../../common/constant/index';
 import { AgentService } from './../../components/agent/agent.service';
 import { AppUserListQuery } from './dto/app-user-query.dto';
 import { AppUserCreate, AppUserRegister } from './dto/create-app-user.dto';
@@ -38,7 +37,7 @@ export class AppUserService {
   async get_customer_balance_frozen(user_id: number) {
     const user = await this.findOne(user_id);
     if (!user) {
-      throw new NotFoundException('User is not found.');
+      throw new NotFoundException(MESSAGE.notFoundError('User'));
     }
 
     return {
@@ -127,11 +126,13 @@ export class AppUserService {
     ]);
 
     if (isExistedUser) {
-      throw new BadRequestException('Username is existed.');
+      throw new BadRequestException(
+        MESSAGE.isExistError('User', 'with this Username'),
+      );
     }
 
     if (!existAgent) {
-      throw new NotFoundException('Agent Code is not found.');
+      throw new NotFoundException(MESSAGE.notFoundError('Agent'));
     }
 
     const salt = await bcrypt.genSalt();
@@ -170,7 +171,7 @@ export class AppUserService {
       where: { username, is_delete: false },
     });
     if (!user && !isPartService) {
-      throw new NotFoundException('Not found app user.');
+      throw new NotFoundException(MESSAGE.notFoundError('App User'));
     }
     return user;
   }
@@ -239,30 +240,12 @@ export class AppUserService {
     if (user) {
       return user;
     }
-    throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    throw new NotFoundException(MESSAGE.notFoundError('App User'));
   }
 
-  // async update(id: number, dto: any) {
-  //   const user = await this._appUserRepo.findOne({
-  //     where: { id, is_delete: false },
-  //   });
-
-  //   if (!user) {
-  //     throw new BadRequestException('Not found user.');
-  //   }
-
-  //   delete dto['password'];
-  //   delete dto['withdraw_password'];
-
-  //   await this._appUserRepo.update(id, dto);
-  //   const updatedUser = await this._appUserRepo.findOne({ where: { id: id } });
-  //   if (updatedUser) {
-  //     return updatedUser;
-  //   }
-  //   throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-  // }
-
+  // TODO
   async updateProfile(user_id: number, body: any) {}
+  //
 
   async updateAppUser(user_id: number, body: AppUserUpdateDetail) {
     const user = await this.findOne(user_id);
@@ -304,7 +287,7 @@ export class AppUserService {
 
     const compare = await bcrypt.compare(old_password, appUser.password);
     if (!compare) {
-      throw new BadRequestException('Wrong old password');
+      throw new BadRequestException(USER_MESSAGE.WRONG_OLD_PASSWORD);
     }
 
     const salt = await bcrypt.genSalt();
@@ -321,13 +304,13 @@ export class AppUserService {
     let { withdraw_password } = appUser;
     if (withdraw_password) {
       if (!old_password) {
-        throw new BadRequestException('Old password is required');
+        throw new BadRequestException(USER_MESSAGE.LACK_WITHDRAWAL_PW);
       }
 
       const compare = await bcrypt.compare(old_password, withdraw_password);
 
       if (!compare) {
-        throw new BadRequestException('Wrong old password');
+        throw new BadRequestException(USER_MESSAGE.WRONG_OLD_PASSWORD);
       }
     }
 

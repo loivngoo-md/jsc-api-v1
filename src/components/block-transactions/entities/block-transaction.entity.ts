@@ -1,4 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { COMMON_STATUS } from '../../../common/enums';
 import { EntityHelper } from '../../../helpers/entity-helper';
 
 @Entity('block-transaction')
@@ -26,6 +27,9 @@ export class BlockTransaction extends EntityHelper {
 
   @Column('bigint')
   end_time: number;
+
+  @Column('varchar', { default: COMMON_STATUS.PENDING })
+  status: COMMON_STATUS;
 
   @Column('boolean', { default: true })
   is_active: boolean;

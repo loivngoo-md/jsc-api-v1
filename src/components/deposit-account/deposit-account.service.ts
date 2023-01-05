@@ -1,6 +1,12 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { MESSAGE } from './../../common/constant/index';
 import DepositAccount from './entities/deposit-account.entity';
 
 @Injectable()
@@ -32,7 +38,7 @@ export class DepositAccountService {
     if (response) {
       return response;
     }
-    throw new HttpException('Deposit account not found', HttpStatus.NOT_FOUND);
+    throw new NotFoundException(MESSAGE.notFoundError('Deposit Account'));
   }
 
   async update(id: number, dto: any) {
@@ -43,16 +49,19 @@ export class DepositAccountService {
     if (updated) {
       return updated;
     }
-    throw new HttpException('Deposit account not found', HttpStatus.NOT_FOUND);
+
+    throw new NotFoundException(MESSAGE.notFoundError('Deposit Account'));
   }
 
   async remove(id: number) {
     const deleteResponse = await this._depositAccountRepo.delete(id);
     if (!deleteResponse.affected) {
-      throw new HttpException(
-        'Deposit account not found',
-        HttpStatus.NOT_FOUND,
-      );
+      throw new NotFoundException(MESSAGE.notFoundError('Deposit Account'));
     }
+
+    return {
+      success: true,
+      status: HttpStatus.OK,
+    };
   }
 }

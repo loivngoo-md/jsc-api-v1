@@ -3,7 +3,6 @@ import {
   Body,
   Controller,
   Get,
-  NotFoundException,
   Param,
   Patch,
   Post,
@@ -15,12 +14,14 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { RealIP } from 'nestjs-real-ip';
 import { StockService } from 'src/components/stock/stock.service';
+import { MESSAGE } from '../../common/constant';
 import { AgentService } from '../../components/agent/agent.service';
 import { AuthService } from '../../components/auth/auth.service';
 import { LoginByUsernameDto } from '../../components/auth/dto/LoginByUsernameDto';
 import { PayLoad } from '../../components/auth/dto/PayLoad';
 import { GetCurrentAppUser } from '../../components/auth/guards/app-user.decorator';
 import { AppAuthGuard } from '../../components/auth/guards/appAuth.guard';
+import { BlockTransactionsService } from '../../components/block-transactions/block-transactions.service';
 import { DepositAccountService } from '../../components/deposit-account/deposit-account.service';
 import { DepositService } from '../../components/deposit/deposit.service';
 import { CreateDepositDto } from '../../components/deposit/dto/create-deposit.dto';
@@ -35,7 +36,7 @@ import { WithdrawalQuery } from '../../components/withdraw/dto/query-withdrawal.
 import { WithdrawService } from '../../components/withdraw/withdraw.service';
 import { PaginationQuery, UpdatePassword } from '../../helpers/dto-helper';
 import LocalFilesInterceptor from '../../middleware/localFiles.interceptor';
-import { id } from './../../common/constant/router.constant';
+import { BlockTransactionQuery } from './../../components/block-transactions/dto/block-transaction-query.dto';
 import { DepositQuery } from './../../components/deposit/dto/query-deposit.dto';
 import { TransactionsService } from './../../components/transactions/transactions.service';
 import { AppUserService } from './app-user.service';
@@ -59,6 +60,7 @@ export class AppUserController {
     private readonly depositAccountService: DepositAccountService,
     private readonly trxService: TransactionsService,
     private readonly agentService: AgentService,
+    private readonly blockTrxService: BlockTransactionsService,
   ) {}
 
   // CRUD
@@ -84,7 +86,10 @@ export class AppUserController {
 
   @UseGuards(AppAuthGuard)
   @Patch('user/update')
-  update(@GetCurrentAppUser() user: PayLoad, @Body() body: AppUserUpdateProfile) {
+  update(
+    @GetCurrentAppUser() user: PayLoad,
+    @Body() body: AppUserUpdateProfile,
+  ) {
     return this.appUserService.updateProfile(user.id, body);
   }
 
@@ -203,7 +208,7 @@ export class AppUserController {
 
   @UseGuards(AppAuthGuard)
   @Get('deposit/detail/:id')
-  async getDeposit(@Param(id) id: number) {
+  async getDeposit(@Param('id') id: number) {
     return this.depositService.findOne(id);
   }
 
@@ -247,11 +252,21 @@ export class AppUserController {
   @UseGuards(AppAuthGuard)
   @Post('order/buy')
   async buyStock(
-    @Body() dto: any,
+    @Body() body: any,
     @GetCurrentAppUser() userFromToken: PayLoad,
   ) {
-    dto['user_id'] = userFromToken['id'];
-    return this.orderService.buy(dto);
+    body['user_id'] = userFromToken['id'];
+    return this.orderService.buy(body);
+  }
+
+  @UseGuards(AppAuthGuard)
+  @Post('order/buy-block')
+  async buyBigStock(
+    @Body() body: any,
+    @GetCurrentAppUser() userFromToken: PayLoad,
+  ) {
+    body['user_id'] = userFromToken['id'];
+    return this.orderService.buy(body, true);
   }
 
   @UseGuards(AppAuthGuard)
@@ -286,7 +301,7 @@ export class AppUserController {
     if (!position_ids) {
       throw new BadRequestException('position_ids is required.');
     }
-    return this.orderService.bulkSell(
+    return this.orderService.bulkSellNor(
       position_ids,
       stock_code,
       userFromToken['id'],
@@ -300,7 +315,7 @@ export class AppUserController {
     @GetCurrentAppUser() userFromToken: PayLoad,
   ) {
     if (!query.stock_code) {
-      throw new NotFoundException();
+      throw new BadRequestException(MESSAGE.BAD_REQUEST);
     }
 
     return this.stockStorageService.getSellablePositions(
@@ -316,6 +331,13 @@ export class AppUserController {
     @GetCurrentAppUser() userFromToken: PayLoad,
   ) {
     return this.trxService.findAll(query, userFromToken['id']);
+  }
+
+  //Block-transaction
+  @UseGuards(AppAuthGuard)
+  @Get('block-transaction/list')
+  async getBlockTransactionsList(@Query() query: BlockTransactionQuery) {
+    return this.blockTrxService.findAll(query);
   }
 
   // Favorite

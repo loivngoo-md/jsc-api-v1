@@ -1,10 +1,11 @@
-import { AuthService } from './auth.service';
-import { BackendLogger } from '../../components/logger/BackendLogger';
-import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { PayLoad } from './dto/PayLoad';
 import { PassportStrategy } from '@nestjs/passport';
+import { ExtractJwt, Strategy } from 'passport-jwt';
+import { BackendLogger } from '../../components/logger/BackendLogger';
 import { SessionMiddleware } from '../../middleware/session.middleware';
+import { MESSAGE } from './../../common/constant/index';
+import { AuthService } from './auth.service';
+import { PayLoad } from './dto/PayLoad';
 
 @Injectable()
 export class AgentStrategy extends PassportStrategy(Strategy, 'agent') {
@@ -20,10 +21,7 @@ export class AgentStrategy extends PassportStrategy(Strategy, 'agent') {
   async validate(payload: PayLoad) {
     const user = await this.authService.validateAgentUser(payload);
     if (!user) {
-      this.logger.debug(`Invalid/expired payload: ${JSON.stringify(payload)}`);
-      throw new UnauthorizedException(
-        'The current user is not logged in to the system',
-      );
+      throw new UnauthorizedException(MESSAGE.UNAUTHORIZED);
     }
     SessionMiddleware.set('session_user', user);
     return user;
