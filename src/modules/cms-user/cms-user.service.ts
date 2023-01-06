@@ -46,9 +46,9 @@ export class CmsUserService {
     return newCms;
   }
 
-  async findByUsername(username: string, findInLogin?: boolean) {
+  async findByUsername(username: string, isPartService?: boolean) {
     const user = await this._cmsUserRepo.findOne({ where: { username } });
-    if (!user && !findInLogin) {
+    if (!user && !isPartService) {
       throw new NotFoundException(MESSAGE.notFoundError('Cms User'));
     }
     return user;

@@ -24,6 +24,14 @@ export enum COMMON_STATUS {
   OPENING = 'opening',
 }
 
+export enum IPO_APP_STATUS {
+  PENDING = 'pending',
+  FAIL = 'fail',
+  SUCCESS = 'success',
+  PAID = 'paid',
+  TRANFER = 'tranfer',
+}
+
 export enum TRX_TYPE {
   NOR = 'normal',
   LAR = 'large',

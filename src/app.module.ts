@@ -8,6 +8,7 @@ import { IpoStockModule } from './components/ipo-stock/ipo-stock.module';
 import { TransactionsModule } from './components/transactions/transactions.module';
 import { DatabaseModule } from './database/database.module';
 import { CmsUserModule } from './modules/cms-user/cms-user.module';
+import { IpoApplicationModule } from './components/ipo-application/ipo-application.module';
 
 @Module({
   imports: [
@@ -30,7 +31,8 @@ import { CmsUserModule } from './modules/cms-user/cms-user.module';
     DatabaseModule,
     CmsUserModule,
     TransactionsModule,
-    IpoStockModule,
+    // IpoApplicationModule,
+    // IpoStockModule,
     // BlockTransactionsModule,
   ],
   controllers: [],

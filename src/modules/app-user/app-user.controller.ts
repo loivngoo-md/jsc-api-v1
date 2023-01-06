@@ -15,7 +15,6 @@ import { ApiTags } from '@nestjs/swagger';
 import { RealIP } from 'nestjs-real-ip';
 import { StockService } from 'src/components/stock/stock.service';
 import { MESSAGE } from '../../common/constant';
-import { AgentService } from '../../components/agent/agent.service';
 import { AuthService } from '../../components/auth/auth.service';
 import { LoginByUsernameDto } from '../../components/auth/dto/LoginByUsernameDto';
 import { PayLoad } from '../../components/auth/dto/PayLoad';
@@ -36,6 +35,7 @@ import { WithdrawalQuery } from '../../components/withdraw/dto/query-withdrawal.
 import { WithdrawService } from '../../components/withdraw/withdraw.service';
 import { PaginationQuery, UpdatePassword } from '../../helpers/dto-helper';
 import LocalFilesInterceptor from '../../middleware/localFiles.interceptor';
+import { AgentService } from '../agent/agent.service';
 import { BlockTransactionQuery } from './../../components/block-transactions/dto/block-transaction-query.dto';
 import { DepositQuery } from './../../components/deposit/dto/query-deposit.dto';
 import { TransactionsService } from './../../components/transactions/transactions.service';

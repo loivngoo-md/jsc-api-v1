@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { dateFormatter } from 'src/helpers/moment';
 import { Repository } from 'typeorm';
@@ -63,7 +64,7 @@ export class TradingSessionService {
    *  Remove comment below to excuting progress each CronJob
    */
 
-  // @Cron('*/05 * * * * 1-5')
+  @Cron('*/01 * * * 1-5')
   async startSession() {
     const date = dateFormatter();
     const curDate = date.format('MM/DD/YYYY');
@@ -72,18 +73,15 @@ export class TradingSessionService {
       where: { date: curDate },
     });
     if (!session) {
-      await this._tradingSessionRepo
-        .createQueryBuilder()
-        .update(TradingSession)
-        .set({
-          status_nor: COMMON_STATUS.CLOSED,
-          status_lar: COMMON_STATUS.CLOSED,
-        })
-        .where(
-          `NOT status_nor = ${COMMON_STATUS.CLOSED} 
-           OR NOT status_lar = ${COMMON_STATUS.CLOSED}`,
-        )
-        .execute();
+      let $query = `
+      UPDATE "trading-session" SET 
+      status_nor = '${COMMON_STATUS.CLOSED}',
+      status_lar = '${COMMON_STATUS.CLOSED}'
+      WHERE NOT (status_nor = '${COMMON_STATUS.CLOSED}') 
+      OR NOT (status_lar = '${COMMON_STATUS.CLOSED}')
+      `;
+
+      await this._tradingSessionRepo.query($query);
 
       const sessionInfo = this._tradingSessionRepo.create({
         date: curDate,

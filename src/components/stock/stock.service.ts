@@ -160,6 +160,15 @@ export class StockService {
     throw new NotFoundException(MESSAGE.notFoundError('Stock'));
   }
 
+  async findMany(fss: string[]) {
+    return Promise.all(
+      fss.map(async (fs) => {
+        const stock = await this.findOne(fs);
+        return stock;
+      }),
+    );
+  }
+
   async findByC(c: string) {
     const stock = await this._stockRepo.findOne({ where: { C: c } });
     if (!stock) {

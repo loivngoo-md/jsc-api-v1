@@ -10,9 +10,6 @@ import {
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { RealIP } from 'nestjs-real-ip';
-import { AgentUserCreateByAdmin } from '../../components/agent/dto/agent-user-create.dto';
-import { AgentUserListQuery } from '../../components/agent/dto/agent-user-query.dto';
-import { AgentUserUpdate } from '../../components/agent/dto/agent-user-update.dto';
 import { AuthService } from '../../components/auth/auth.service';
 import { LoginByUsernameDto } from '../../components/auth/dto/LoginByUsernameDto';
 import { PayLoad } from '../../components/auth/dto/PayLoad';
@@ -45,11 +42,14 @@ import {
   SetPassword,
   UpdatePassword,
 } from '../../helpers/dto-helper';
+import { AgentService } from '../agent/agent.service';
+import { AgentUserCreateByAdmin } from '../agent/dto/agent-user-create.dto';
+import { AgentUserListQuery } from '../agent/dto/agent-user-query.dto';
+import { AgentUserUpdate } from '../agent/dto/agent-user-update.dto';
 import { AppUserService } from '../app-user/app-user.service';
 import { AppUserListQuery } from '../app-user/dto/app-user-query.dto';
 import { AppUserCreate } from '../app-user/dto/create-app-user.dto';
 import { AppUserUpdateDetail } from '../app-user/dto/update-app-user.dto';
-import { AgentService } from './../../components/agent/agent.service';
 import { BlockTransactionsService } from './../../components/block-transactions/block-transactions.service';
 import { BlockTransactionCreate } from './../../components/block-transactions/dto/create-block-transaction.dto';
 import { IpoStockService } from './../../components/ipo-stock/ipo-stock.service';

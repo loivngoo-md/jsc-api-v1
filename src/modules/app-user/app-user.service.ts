@@ -11,13 +11,14 @@ import { PayLoad } from '../../components/auth/dto/PayLoad';
 import { MoneyLogCreate } from '../../components/money-log/dto/money-log-create.dto';
 import { MoneyLogService } from '../../components/money-log/money-log.service';
 import { SetPassword, UpdatePassword } from '../../helpers/dto-helper';
+import { AgentService } from '../agent/agent.service';
 import { MESSAGE, USER_MESSAGE } from './../../common/constant/index';
-import { AgentService } from './../../components/agent/agent.service';
 import { AppUserListQuery } from './dto/app-user-query.dto';
 import { AppUserCreate, AppUserRegister } from './dto/create-app-user.dto';
 import {
   AppUserUpdateBalance,
   AppUserUpdateDetail,
+  AppUserUpdateProfile,
 } from './dto/update-app-user.dto';
 import AppUser from './entities/app-user.entity';
 
@@ -243,9 +244,29 @@ export class AppUserService {
     throw new NotFoundException(MESSAGE.notFoundError('App User'));
   }
 
-  // TODO
-  async updateProfile(user_id: number, body: any) {}
-  //
+  async updateProfile(user_id: number, body: AppUserUpdateProfile) {
+    const user = await this.findOne(user_id);
+    const {
+      real_name,
+      phone,
+      account_holder,
+      id_number,
+      bank_branch,
+      bank_name,
+      bank_number,
+    } = body;
+
+    real_name && Object.assign(user, { real_name });
+    phone && Object.assign(user, { phone });
+    account_holder && Object.assign(user, { account_holder });
+    id_number && Object.assign(user, { id_number });
+    bank_branch && Object.assign(user, { bank_branch });
+    bank_name && Object.assign(user, { bank_name });
+    bank_number && Object.assign(user, { bank_number });
+
+    await this._appUserRepo.save(user);
+    return { isSuccess: true };
+  }
 
   async updateAppUser(user_id: number, body: AppUserUpdateDetail) {
     const user = await this.findOne(user_id);

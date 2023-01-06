@@ -51,6 +51,8 @@ export class OrderService {
       query['user_id'] = user_id;
       delete query.username;
     }
+    delete query.page;
+    delete query.pageSize;
 
     query['created_at'] = start_time
       ? Between(start_time, end_time)
@@ -62,7 +64,7 @@ export class OrderService {
       .select([
         'o.*',
         'u.real_name as real_name',
-        'u.agent_code as agent',
+        'u.agent as agent',
         'u.superior as superior',
         'o.created_at as created_at',
         'o.updated_at as updated_at',
@@ -149,11 +151,12 @@ export class OrderService {
 
     const { detail } = session;
     const { transaction_fees } = detail.transactions_rate as any;
+    const discount = isLarTrx ? blockTrx.discount : 0;
+    const P = stock.P * (1 - discount / 100);
 
-    const amount = isLarTrx
-      ? quantity * stock.P * (1 - blockTrx.discount / 100)
-      : quantity * stock.P;
-    const actual_amount = amount * (1 + transaction_fees / 100);
+    const amount = stock.P * quantity;
+    const actual_amount =
+      amount * (1 + transaction_fees / 100 - discount / 100);
 
     if (+user.balance_avail < actual_amount) {
       throw new BadRequestException(MESSAGE.NOT_ENOUGH_MONEY);
@@ -163,11 +166,11 @@ export class OrderService {
       type: ORDER_TYPE.BUY,
       stock_code: stock.FS,
       quantity,
-      price: stock.P,
+      price: P,
       fee_rate: transaction_fees,
       amount,
       actual_amount,
-      discount: isLarTrx ? blockTrx.discount : 0,
+      discount,
       user_id,
       username: user.username,
       stock_market: stock.M,
@@ -182,10 +185,10 @@ export class OrderService {
       this._orderRepo.save(orderInfo),
       this._stockStorageService.store({
         stock_code: stock.FS,
-        amount,
+        amount: actual_amount,
         user_id,
         quantity,
-        price: stock.P,
+        price: P,
         trading_session: session.id,
         type: isLarTrx ? TRX_TYPE.LAR : TRX_TYPE.NOR,
       }),

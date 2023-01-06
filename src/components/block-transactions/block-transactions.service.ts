@@ -1,7 +1,7 @@
 import {
   BadRequestException,
   Injectable,
-  NotFoundException,
+  NotFoundException
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -88,7 +88,7 @@ export class BlockTransactionsService {
   }
 
   async findByCodeAndKey(
-    stock_code: number,
+    stock_code: string,
     trx_key: string,
     isCheckExist?: boolean,
   ) {

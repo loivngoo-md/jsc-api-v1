@@ -1,7 +1,6 @@
 import { BlockTransactionsModule } from './../../components/block-transactions/block-transactions.module';
 import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AgentModule } from '../../components/agent/agent.module';
 import { AuthModule } from '../../components/auth/auth.module';
 import { DepositAccountModule } from '../../components/deposit-account/deposit-account.module';
 import { MoneyLogModule } from '../../components/money-log/money-log.module';
@@ -16,6 +15,7 @@ import { WithdrawModule } from './../../components/withdraw/withdraw.module';
 import { AppUserController } from './app-user.controller';
 import { AppUserService } from './app-user.service';
 import AppUser from './entities/app-user.entity';
+import { AgentModule } from '../agent/agent.module';
 
 @Module({
   imports: [

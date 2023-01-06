@@ -7,8 +7,8 @@ export class BlockTransaction extends EntityHelper {
   @PrimaryGeneratedColumn('increment')
   id: number;
 
-  @Column('integer')
-  stock_code: number;
+  @Column('varchar')
+  stock_code: string;
 
   @Column('varchar')
   stock_name: string;
