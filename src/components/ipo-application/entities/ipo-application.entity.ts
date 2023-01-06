@@ -29,4 +29,10 @@ export class IpoApplication extends EntityHelper {
 
   @Column('float8', { default: 0 })
   actual_amount: number;
+
+  @Column('boolean', { default: true })
+  is_active: boolean;
+
+  @Column('boolean', { default: false })
+  is_delete: boolean;
 }

@@ -1,4 +1,3 @@
-import { USER_MESSAGE } from './../../common/constant/error-message';
 import {
   BadRequestException,
   Injectable,
@@ -15,6 +14,7 @@ import {
   SetPassword,
   UpdatePassword,
 } from '../../helpers/dto-helper';
+import { USER_MESSAGE } from './../../common/constant/error-message';
 import { MESSAGE } from './../../common/constant/index';
 import {
   AgentUserCreateByAdmin,
@@ -114,7 +114,7 @@ export class AgentService {
       const currentAgent = await this.findOne(agent_id);
       whereConditions = {
         is_delete: false,
-        path: Like(`${currentAgent.path}*`),
+        path: Like(`${currentAgent.path}%`),
       };
     }
 
@@ -228,7 +228,7 @@ export class AgentService {
     const user = await this.findOne(id);
     const { password } = user;
     const compare = await bcrypt.compare(old_password, password);
-    
+
     if (!compare) {
       throw new BadRequestException(USER_MESSAGE.WRONG_OLD_PASSWORD);
     }

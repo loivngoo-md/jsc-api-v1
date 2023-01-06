@@ -1,10 +1,6 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { COMMON_STATUS, POSITION_STATUS, TRX_TYPE } from 'src/common/enums';
+import { COMMON_STATUS, POSITION_STATUS } from 'src/common/enums';
 import { dateFormatter } from 'src/helpers/moment';
 import { DeepPartial, In, MoreThanOrEqual, Repository } from 'typeorm';
 import { PaginationQuery } from '../../helpers/dto-helper';
@@ -71,7 +67,7 @@ export class StockStorageService {
       price,
       amount,
       trading_session,
-      type: type === TRX_TYPE.LAR ? TRX_TYPE.LAR : TRX_TYPE.NOR,
+      type,
     });
     await this._stockStorageRepo.save(transaction);
 

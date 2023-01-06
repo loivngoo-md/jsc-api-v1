@@ -3,11 +3,10 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import e from 'express';
 import { LessThanOrEqual, Not, Repository } from 'typeorm';
 import { MESSAGE } from '../../common/constant';
+import { convertC2FS } from '../../helpers/stock-helper';
 import { StockService } from '../stock/stock.service';
 import { IpoStockCreate } from './dto/create-ipo-stock.dto';
 import { IpoStockListQuery } from './dto/ipo-stock-list-query.dto';
@@ -155,6 +154,15 @@ export class IpoStockService {
     return { isSuccess: true };
   }
 
+  async changePurchaseQuantity(ipo_id: number, new_purchase: number) {
+    const ipo_stock = await this.findOne(ipo_id);
+
+    ipo_stock.purchase_quantity = new_purchase;
+    await this._ipoStockRepo.save(ipo_stock);
+
+    return { isSuccess: true };
+  }
+
   //TODO: Turn-on Cronjob
   // @Cron('* * * * * *')
   async addIpoToMarket() {
@@ -169,19 +177,7 @@ export class IpoStockService {
     console.log(ipoStocks, curTime);
     const fss = ipoStocks.map((ipoStock: IpoStock) => {
       const code = ipoStock.code;
-      switch (+code[0]) {
-        case 0:
-        case 2:
-        case 3:
-          return 'sz' + code;
-        case 4:
-        case 8:
-          return 'bj' + code;
-        case 6:
-          return 'sh' + code;
-        default:
-          return code;
-      }
+      return convertC2FS(code);
     });
     await this._stockService.findMany(fss);
     fss.length && console.log(`Add ${fss} stocks on market.`);

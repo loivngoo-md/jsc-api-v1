@@ -1,6 +1,6 @@
 export enum ORDER_TYPE {
-  BUY = 0,
-  SELL = 1,
+  BUY,
+  SELL,
 }
 
 export enum POSITION_STATUS {
@@ -35,19 +35,21 @@ export enum IPO_APP_STATUS {
 export enum TRX_TYPE {
   NOR = 'normal',
   LAR = 'large',
+  IPO = 'ipo',
 }
 
 export enum DEPOSIT_WITHDRAWAL_STATUS {
-  PENDING = 0,
-  SUCCESS = 1,
-  FAIL = 2,
+  PENDING,
+  SUCCESS,
+  FAIL,
 }
 
 export enum TRANSACTION_TYPE {
-  DEPOSIT = 3,
-  WITHDRAWAL = 2,
-  BUY = 0,
-  SELL = 1,
+  BUY,
+  SELL,
+  WITHDRAWAL,
+  DEPOSIT,
+  BUY_IPO,
 }
 
 export enum ACCOUNT_TYPE {

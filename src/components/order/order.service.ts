@@ -137,9 +137,6 @@ export class OrderService {
       isLarTrx && this._blockTrxService.findByCodeAndKey(stock_code, trx_key),
     ]);
 
-    if (!session) {
-      throw new NotFoundException(MESSAGE.notFoundError('Opening Session'));
-    }
     if (isLarTrx && blockTrx.status !== COMMON_STATUS.OPENING) {
       throw new BadRequestException(MESSAGE.BLOCK_TRANSACTION_IS_NOT_OPEN);
     }

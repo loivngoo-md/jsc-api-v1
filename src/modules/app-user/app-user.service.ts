@@ -14,7 +14,11 @@ import { SetPassword, UpdatePassword } from '../../helpers/dto-helper';
 import { AgentService } from '../agent/agent.service';
 import { MESSAGE, USER_MESSAGE } from './../../common/constant/index';
 import { AppUserListQuery } from './dto/app-user-query.dto';
-import { AppUserCreate, AppUserRegister } from './dto/create-app-user.dto';
+import {
+  AppUserCreate,
+  AppUserCreateByAgent,
+  AppUserRegister,
+} from './dto/create-app-user.dto';
 import {
   AppUserUpdateBalance,
   AppUserUpdateDetail,
@@ -162,6 +166,29 @@ export class AppUserService {
     newUser.balance = amount;
     newUser.balance_avail = amount;
     newUser.created_by = cms_user.username;
+
+    await this._appUserRepo.save(newUser);
+    return newUser;
+  }
+
+  async createByAgent(body: AppUserCreateByAgent, agent_user: PayLoad) {
+    const { username, password, is_real, amount } = body;
+
+    const agent = await this._agentService.findOne(agent_user.id);
+
+    const newUser = await this.register(
+      {
+        username,
+        password,
+        agent_code: agent.code,
+      },
+      true,
+    );
+
+    newUser.is_real = is_real;
+    newUser.balance = amount;
+    newUser.balance_avail = amount;
+    newUser.created_by = agent_user.username;
 
     await this._appUserRepo.save(newUser);
     return newUser;

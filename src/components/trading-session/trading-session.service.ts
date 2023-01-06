@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { dateFormatter } from 'src/helpers/moment';
 import { Repository } from 'typeorm';
+import { MESSAGE } from '../../common/constant';
 import { COMMON_STATUS } from '../../common/enums';
 import { DAYS } from '../../helpers/helper-date';
 import { ITradingHours } from '../system-configuration/entities/system-configuration.interface';
@@ -43,9 +44,13 @@ export class TradingSessionService {
     const whereConditions = isLargeTrd
       ? { status_lar: COMMON_STATUS.OPENING }
       : { status_nor: COMMON_STATUS.OPENING };
-    return this._tradingSessionRepo.findOne({
+    const session = this._tradingSessionRepo.findOne({
       where: whereConditions,
     });
+    if (!session) {
+      throw new NotFoundException(MESSAGE.notFoundError('Opening Session'));
+    }
+    return session;
   }
 
   async update(id: string, dto: UpdateTradingSessionDto) {
