@@ -51,7 +51,7 @@ export class BlockTransactionsService {
 
   async findAll(query: BlockTransactionQuery) {
     const { page, pageSize, key_words } = query;
-    console.log(query);
+
     const take = +pageSize || 10;
     const skip = +pageSize * (+page - 1) || 0;
 

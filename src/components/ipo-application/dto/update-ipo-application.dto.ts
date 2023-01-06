@@ -1,2 +1,9 @@
+import { ApiPropertyOptional } from '@nestjs/swagger';
 
-export class UpdateIpoApplicationDto {}
+export class IpoApplicationUpdate {
+  @ApiPropertyOptional()
+  ipo_code: string;
+
+  @ApiPropertyOptional()
+  amount: string;
+}
