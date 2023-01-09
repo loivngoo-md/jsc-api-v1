@@ -9,6 +9,7 @@ import { AgentModule } from '../agent/agent.module';
 import { AppUserModule } from '../app-user/app-user.module';
 import { DepositAccountModule } from './../../components/deposit-account/deposit-account.module';
 import { DepositModule } from './../../components/deposit/deposit.module';
+import { IpoApplicationModule } from './../../components/ipo-application/ipo-application.module';
 import { IpoStockModule } from './../../components/ipo-stock/ipo-stock.module';
 import { LoginRecordModule } from './../../components/login-record/login-record.module';
 import { MoneyLogModule } from './../../components/money-log/money-log.module';
@@ -22,8 +23,8 @@ import CmsUser from './entities/cms-user.entity';
 @Module({
   imports: [
     TypeOrmModule.forFeature([CmsUser]),
-    AppUserModule,
     forwardRef(() => AuthModule),
+    AppUserModule,
     MoneyLogModule,
     OrderModule,
     DepositModule,
@@ -37,6 +38,8 @@ import CmsUser from './entities/cms-user.entity';
     AgentModule,
     IpoStockModule,
     BlockTransactionsModule,
+    ,
+    forwardRef(() => IpoApplicationModule),
   ],
   controllers: [CmsUserController],
   providers: [CmsUserService],

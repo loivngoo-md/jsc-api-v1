@@ -10,9 +10,9 @@ import { Agent } from './entities/agent.entity';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Agent]),
-    MoneyLogModule,
     forwardRef(() => AuthModule),
     forwardRef(() => AppUserModule),
+    MoneyLogModule,
   ],
   providers: [AgentService],
   controllers: [AgentUserController],

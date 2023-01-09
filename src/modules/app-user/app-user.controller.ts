@@ -9,7 +9,7 @@ import {
   Query,
   UploadedFile,
   UseGuards,
-  UseInterceptors,
+  UseInterceptors
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { RealIP } from 'nestjs-real-ip';
@@ -21,24 +21,25 @@ import { PayLoad } from '../../components/auth/dto/PayLoad';
 import { GetCurrentAppUser } from '../../components/auth/guards/app-user.decorator';
 import { AppAuthGuard } from '../../components/auth/guards/appAuth.guard';
 import { BlockTransactionsService } from '../../components/block-transactions/block-transactions.service';
+import { BlockTransactionQuery } from '../../components/block-transactions/dto/block-transaction-query.dto';
 import { DepositAccountService } from '../../components/deposit-account/deposit-account.service';
 import { DepositService } from '../../components/deposit/deposit.service';
 import { CreateDepositDto } from '../../components/deposit/dto/create-deposit.dto';
+import { DepositQuery } from '../../components/deposit/dto/query-deposit.dto';
 import { QueryFavorite } from '../../components/favorite-stock/dto/query-favorite.dto';
 import { FavoriteStockService } from '../../components/favorite-stock/favorite-stock.service';
+import { IpoApplicationService } from '../../components/ipo-application/ipo-application.service';
 import { OrderQuery } from '../../components/order/dto/query-order.dto';
 import { OrderService } from '../../components/order/order.service';
 import { StockStorageService } from '../../components/stock-storage/stock-storage.service';
 import { TradingSessionService } from '../../components/trading-session/trading-session.service';
+import { TransactionsService } from '../../components/transactions/transactions.service';
 import { CreateWithdrawDto } from '../../components/withdraw/dto/create-withdraw.dto';
 import { WithdrawalQuery } from '../../components/withdraw/dto/query-withdrawal.dto';
 import { WithdrawService } from '../../components/withdraw/withdraw.service';
 import { PaginationQuery, UpdatePassword } from '../../helpers/dto-helper';
 import LocalFilesInterceptor from '../../middleware/localFiles.interceptor';
 import { AgentService } from '../agent/agent.service';
-import { BlockTransactionQuery } from './../../components/block-transactions/dto/block-transaction-query.dto';
-import { DepositQuery } from './../../components/deposit/dto/query-deposit.dto';
-import { TransactionsService } from './../../components/transactions/transactions.service';
 import { AppUserService } from './app-user.service';
 import { SellablePositionsQuery } from './dto/app-user-query.dto';
 import { AppUserRegister } from './dto/create-app-user.dto';
@@ -61,6 +62,7 @@ export class AppUserController {
     private readonly trxService: TransactionsService,
     private readonly agentService: AgentService,
     private readonly blockTrxService: BlockTransactionsService,
+    private readonly ipoAppService: IpoApplicationService,
   ) {}
 
   // CRUD

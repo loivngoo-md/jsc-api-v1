@@ -9,7 +9,7 @@ export class IpoApplicationAssign {
   quantity: number;
 }
 
-export class IpoAplicationCreate {
+export class IpoApplicationCreate {
   @ApiProperty()
   username: string;
 

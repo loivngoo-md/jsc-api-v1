@@ -15,11 +15,14 @@ import { ITransactionsRate } from '../system-configuration/entities/system-confi
 import { TradingSessionService } from '../trading-session/trading-session.service';
 import { TransactionsService } from './../transactions/transactions.service';
 import {
-  IpoAplicationCreate,
+  IpoApplicationCreate,
   IpoApplicationAssign,
 } from './dto/create-ipo-application.dto';
 import { IpoApplicationListQuery } from './dto/ipo-application-query.dto';
-import { IpoApplicationUpdate } from './dto/update-ipo-application.dto';
+import {
+  IpoApplicationReview,
+  IpoApplicationUpdate,
+} from './dto/update-ipo-application.dto';
 import { IpoApplication } from './entities/ipo-application.entity';
 
 @Injectable()
@@ -30,8 +33,8 @@ export class IpoApplicationService {
     private readonly _appUserService: AppUserService,
     private readonly _ipoStockService: IpoStockService,
     private readonly _trxService: TransactionsService,
-    private readonly _stockStorageService: StockStorageService,
     private readonly _tradingSessionService: TradingSessionService,
+    private readonly _stockStorageService: StockStorageService,
   ) {}
 
   async assign(body: IpoApplicationAssign) {
@@ -75,7 +78,7 @@ export class IpoApplicationService {
     return ipoAppInfo;
   }
 
-  async create(body: IpoAplicationCreate) {
+  async create(body: IpoApplicationCreate) {
     const { username, ipo_code, quantity, actual_quantity, status } = body;
     let transaction_fees = 0;
     let addPurchase = 0;
@@ -192,13 +195,18 @@ export class IpoApplicationService {
     ]);
   }
 
-  async reviewByCms(ipo_app_id: number, body: any, isSuccess: boolean) {
-    const { actual_quantity } = body;
+  async reviewByCms(ipo_app_id: number, body: IpoApplicationReview) {
+    const { actual_quantity, is_accept } = body;
 
     const ipoApp = await this.findOne(ipo_app_id);
-    if (actual_quantity > ipoApp.quantity) {
+
+    if (is_accept && !actual_quantity) {
+      throw new BadRequestException(`Lack of actual_quantity`);
+    }
+
+    if (is_accept && actual_quantity > ipoApp.quantity) {
       throw new BadRequestException(
-        `Purchase must be small than ${ipoApp.amount}`,
+        `Purchase cannot be bigger than ${ipoApp.quantity}`,
       );
     }
 
@@ -213,7 +221,7 @@ export class IpoApplicationService {
 
     let act_amount = 0;
     let act_quantity = 0;
-    if (isSuccess) {
+    if (is_accept) {
       const session = await this._tradingSessionService.findOpeningSession();
       const { transaction_fees } = session.detail
         .transactions_rate as any as ITransactionsRate;
@@ -333,8 +341,15 @@ export class IpoApplicationService {
       this._appUserService.findOne(ipoApp.user_id),
       this._ipoStockService.findOne(ipoApp.ipo_id),
     ]);
-    const { ipo_code, amount } = body;
-    
+    const { ipo_code, quantity } = body;
+    let updateAmount = 0;
+    let updateQuantity = 0;
+    if (ipo_code === ipoStock.code) {
+      updateQuantity = quantity - ipoApp.quantity;
+      updateAmount = updateQuantity * ipoApp.price;
+    } else {
+      // update
+    }
   }
 
   remove(id: number) {
