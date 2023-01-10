@@ -132,4 +132,31 @@ export class CmsUserService {
 
     return { isSuccess: true };
   }
+
+  async getDashboard() {
+    const start = new Date();
+    start.setUTCHours(0, 0, 0, 0);
+    const end = new Date();
+    end.setUTCHours(23, 59, 59, 999);
+    console.log(start.getTime(), end.getTime());
+
+    const dashboardQuery = `
+   SELECT
+	  ( SELECT COUNT ( * ) FROM app_users WHERE is_real = TRUE AND is_delete = FALSE ) AS real_user,
+	  ( SELECT COUNT ( * ) FROM app_users WHERE is_real = FALSE AND is_delete = FALSE ) AS virtual_user,
+	  ( SELECT COUNT ( * ) FROM app_users WHERE is_delete = FALSE ) AS total_user,
+	  ( SELECT COALESCE ( SUM ( amount ), 0 ) FROM deposit WHERE status = 1 ) AS total_deposits,
+	  ( SELECT COALESCE ( SUM ( amount ), 0 ) FROM withdraw WHERE status = 1 ) AS total_withdrawal,
+	  ( SELECT COALESCE ( SUM ( amount ), 0 ) FROM deposit WHERE status = 1 AND created_at BETWEEN ${start.getTime()} AND ${end.getTime()} ) AS today_deposits,
+	  ( SELECT COALESCE ( SUM ( amount ), 0 ) FROM withdraw WHERE status = 1 AND created_at BETWEEN ${start.getTime()} AND ${end.getTime()} ) AS today_withdrawal,
+	  ( SELECT SUM ( balance ) FROM app_users WHERE is_delete = FALSE ) AS total_balance,
+	  ( SELECT SUM ( balance_avail ) FROM app_users WHERE is_delete = FALSE ) AS total_balance_vail,
+	  ( SELECT COUNT ( * ) FROM "stock-storage" WHERE status = 1 ) AS total_open_positions,
+	  ( SELECT COUNT ( * ) FROM "stock-storage" WHERE status = 0 ) AS total_closed_positions,
+	  ( SELECT COUNT ( * ) FROM "ipo-stock" WHERE is_delete = FALSE AND is_on_market = FALSE ) AS total_new_share,
+	  ARRAY( SELECT row_to_json(orders.*) as order_detail FROM "orders" ORDER BY created_at DESC LIMIT 5 ) AS dynamic_positions`;
+
+    const dashboardRec = await this._cmsUserRepo.query(dashboardQuery);
+    return { data: dashboardRec[0] };
+  }
 }

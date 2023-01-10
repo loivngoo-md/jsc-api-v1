@@ -205,12 +205,12 @@ export class AppUserService {
   }
 
   async getList(query: AppUserListQuery) {
-    const { page, pageSize, agent, is_real, real_name, phone } = query;
+    const { page, pageSize, superior, is_real, real_name, phone } = query;
     const take = +pageSize || 10;
     const skip = +pageSize * (+page - 1) || 0;
-    const whereConditions: Object = { is_real: true, is_delete: false };
+    const whereConditions: Object = { is_delete: false };
 
-    agent && Object.assign(whereConditions, { agent });
+    superior && Object.assign(whereConditions, { superior });
     real_name &&
       Object.assign(whereConditions, { real_name: Like(`%${real_name}%`) });
     phone && Object.assign(whereConditions, { phone: Like(`%${phone}%`) });
@@ -231,7 +231,7 @@ export class AppUserService {
   }
 
   async getListByAgent(query: AppUserListQuery, agent_id: number) {
-    const { page, pageSize, agent, is_real, real_name, phone } = query;
+    const { page, pageSize, superior, is_real, real_name, phone } = query;
     const take = +pageSize || 10;
     const skip = +pageSize * (+page - 1) || 0;
 
@@ -246,8 +246,8 @@ export class AppUserService {
     is_real && queryBuilder.andWhere(`u.is_real = ${is_real}`);
     real_name && queryBuilder.andWhere(`u.username like '%${real_name}%'`);
     phone && queryBuilder.andWhere(`u.phone like '%${phone}%'`);
-    if (agent) {
-      const queryAgent = await this._agentService.findOne(agent);
+    if (superior) {
+      const queryAgent = await this._agentService.findByUsername(superior);
       queryBuilder.andWhere(`a.path like '${queryAgent.path}%'`);
     }
 

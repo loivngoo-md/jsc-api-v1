@@ -1,10 +1,4 @@
-import {
-  AfterLoad,
-  BaseEntity,
-  Column,
-  Timestamp,
-  UpdateDateColumn,
-} from 'typeorm';
+import { AfterLoad, BaseEntity, BeforeUpdate, Column } from 'typeorm';
 
 export class EntityHelper extends BaseEntity {
   __entity?: string;
@@ -14,9 +8,17 @@ export class EntityHelper extends BaseEntity {
     this.__entity = this.constructor.name;
   }
 
-  @Column('timestamptz', { default: new Date() })
-  created_at: Timestamp;
+  @Column({ type: 'bigint', default: new Date().getTime() })
+  created_at: number;
 
-  @UpdateDateColumn({ type: 'timestamptz', default: new Date() })
-  updated_at: Timestamp;
+  @Column({
+    type: 'bigint',
+    default: new Date().getTime(),
+  })
+  updated_at: number;
+
+  @BeforeUpdate()
+  setUpdatedDate() {
+    this.updated_at = new Date().getTime();
+  }
 }

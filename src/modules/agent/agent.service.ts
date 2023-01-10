@@ -100,15 +100,14 @@ export class AgentService {
     query: AgentUserListQuery | PaginationQuery,
     agent_id?: number,
   ) {
-    const { page, pageSize, phone, real_name, sub_agent } = query as any;
+    const { page, pageSize, phone, real_name, path } = query as any;
     const take = +pageSize || 10;
     const skip = +pageSize * (+page - 1) || 0;
 
     let whereConditions: Object = { is_delete: false };
     phone && Object.assign(whereConditions, { phone });
     real_name && Object.assign(whereConditions, { real_name });
-    sub_agent &&
-      Object.assign(whereConditions, { path: Like(`${sub_agent}.%`) });
+    path && Object.assign(whereConditions, { path: Like(`${path}.%`) });
 
     if (agent_id) {
       const currentAgent = await this.findOne(agent_id);

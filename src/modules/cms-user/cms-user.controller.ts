@@ -1,4 +1,3 @@
-import { IpoApplicationReview } from './../../components/ipo-application/dto/update-ipo-application.dto';
 import {
   Body,
   Controller,
@@ -56,6 +55,7 @@ import { AppUserCreate } from '../app-user/dto/create-app-user.dto';
 import { AppUserUpdateDetail } from '../app-user/dto/update-app-user.dto';
 import { BlockTransactionsService } from './../../components/block-transactions/block-transactions.service';
 import { BlockTransactionCreate } from './../../components/block-transactions/dto/create-block-transaction.dto';
+import { IpoApplicationReview } from './../../components/ipo-application/dto/update-ipo-application.dto';
 import { IpoStockService } from './../../components/ipo-stock/ipo-stock.service';
 import { MoneyLogCreate } from './../../components/money-log/dto/money-log-create.dto';
 import { CmsUserService } from './cms-user.service';
@@ -83,8 +83,13 @@ export class CmsUserController {
     private readonly agentService: AgentService,
     private readonly ipoStockService: IpoStockService,
     private readonly blockTrxService: BlockTransactionsService,
-    // private readonly ipoAppService: IpoApplicationService,
+    private readonly ipoAppService: IpoApplicationService,
   ) {}
+  @UseGuards(CmsAuthGuard)
+  @Get('dashboard/detail')
+  async getDashboard() {
+    return this.cmsUserService.getDashboard();
+  }
 
   // CMS - User
   @Post('user/signin')
@@ -455,40 +460,44 @@ export class CmsUserController {
   }
 
   // // Ipo - application
-  // @UseGuards(CmsAuthGuard)
-  // @Get('ipo-application/list')
-  // async listIpoApp(@Query() query: IpoApplicationListQuery) {
-  //   return this.ipoAppService.findAll(query);
-  // }
+  @UseGuards(CmsAuthGuard)
+  @Get('ipo-application/list')
+  async listIpoApp(@Query() query: IpoApplicationListQuery) {
+    return this.ipoAppService.findAll(query);
+  }
 
-  // @UseGuards(CmsAuthGuard)
-  // @Get('ipo-application/detail/:id')
-  // async detailIpoApp(@Param('id') id: number) {
-  //   return this.ipoAppService.findOne(id);
-  // }
+  @UseGuards(CmsAuthGuard)
+  @Get('ipo-application/detail/:id')
+  async detailIpoApp(@Param('id') id: number) {
+    return this.ipoAppService.findOne(id);
+  }
 
-  // @UseGuards(CmsAuthGuard)
-  // @Post('ipo-application/create')
-  // async createIpoApp(@Body() body: IpoApplicationCreate) {
-  //   return this.ipoAppService.create(body);
-  // }
+  @UseGuards(CmsAuthGuard)
+  @Post('ipo-application/create')
+  async createIpoApp(@Body() body: IpoApplicationCreate) {
+    return this.ipoAppService.create(body);
+  }
 
-  // @UseGuards(CmsAuthGuard)
-  // @Patch('ipo-application/review/:id')
-  // async reviewIpoApp(
-  //   @Body() body: IpoApplicationReview,
-  //   @Param('id') id: number,
-  // ) {
-  //   return this.ipoAppService.reviewByCms(id, body);
-  // }
+  @UseGuards(CmsAuthGuard)
+  @Patch('ipo-application/review/:id')
+  async reviewIpoApp(
+    @Body() body: IpoApplicationReview,
+    @Param('id') id: number,
+  ) {
+    return this.ipoAppService.reviewByCms(id, body);
+  }
 
-  // @UseGuards(CmsAuthGuard)
-  // @Patch('ipo-application/transfer/:id')
-  // async transferIpoApp(@Param('id') id: number) {
-  //   return this.ipoAppService.transferByCms(id);
-  // }
+  @UseGuards(CmsAuthGuard)
+  @Patch('ipo-application/transfer/:id')
+  async transferIpoApp(@Param('id') id: number) {
+    return this.ipoAppService.transferByCms(id);
+  }
 
-
+  @UseGuards(CmsAuthGuard)
+  @Patch('ipo-application/remove/:id')
+  async removeIpoApp(@Param('id') id: number) {
+    return this.ipoAppService.remove(id);
+  }
 
   // Block - Trx
   @UseGuards(CmsAuthGuard)

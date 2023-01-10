@@ -1,11 +1,12 @@
 import {
   BadRequestException,
   Injectable,
-  NotFoundException
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, LessThanOrEqual, MoreThanOrEqual, Not } from 'typeorm';
 import { MESSAGE } from '../../common/constant';
+import { COMMON_STATUS } from '../../common/enums';
 import { StockService } from '../stock/stock.service';
 import { BlockTransactionQuery } from './dto/block-transaction-query.dto';
 import { BlockTransactionCreate } from './dto/create-block-transaction.dto';
@@ -125,5 +126,39 @@ export class BlockTransactionsService {
     await this._blockTrxRepo.save(blockTrx);
 
     return { isSuccess: true };
+  }
+
+  //TODO: Turn-on Cronjob
+  // @Cron('* * * * * *')
+  async changeStatusBlockTrx() {
+    const curTime = new Date().getTime();
+
+    await Promise.all([
+      // Update opening block trx
+      this._blockTrxRepo.update(
+        {
+          status: Not(COMMON_STATUS.OPENING),
+          start_time: LessThanOrEqual(curTime),
+          end_time: MoreThanOrEqual(curTime),
+          is_delete: false,
+          is_active: true,
+        },
+        {
+          status: COMMON_STATUS.OPENING,
+        },
+      ),
+      // Update closed block trx
+      this._blockTrxRepo.update(
+        {
+          status: Not(COMMON_STATUS.CLOSED),
+          end_time: LessThanOrEqual(curTime),
+          is_delete: false,
+          is_active: true,
+        },
+        {
+          status: COMMON_STATUS.CLOSED,
+        },
+      ),
+    ]);
   }
 }

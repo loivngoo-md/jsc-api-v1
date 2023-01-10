@@ -4,7 +4,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LessThanOrEqual, Not, Repository } from 'typeorm';
+import {
+  ILike,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+  Not,
+  Repository,
+} from 'typeorm';
 import { MESSAGE } from '../../common/constant';
 import { convertC2FS } from '../../helpers/stock-helper';
 import { StockService } from '../stock/stock.service';
@@ -58,7 +64,7 @@ export class IpoStockService {
     return ipoStockInfo;
   }
 
-  async findAll(query: IpoStockListQuery) {
+  async findAll(query: IpoStockListQuery, getForSub?: boolean) {
     const { is_active, name, code, page, pageSize } = query;
 
     const take = +pageSize || 10;
@@ -68,8 +74,16 @@ export class IpoStockService {
 
     typeof is_active !== 'undefined' &&
       Object.assign(whereConditions, { is_active });
-    name && Object.assign(whereConditions, { name });
-    code && Object.assign(whereConditions, { code });
+    name && Object.assign(whereConditions, { name: ILike(name) });
+    code && Object.assign(whereConditions, { code: ILike(code) });
+
+    if (getForSub) {
+      const curTime = new Date().getTime();
+      Object.assign(whereConditions, {
+        subscribe_time: LessThanOrEqual(curTime),
+        payment_time: MoreThanOrEqual(curTime),
+      });
+    }
 
     const total = await this._ipoStockRepo.countBy(whereConditions);
     const recs = await this._ipoStockRepo.find({
@@ -172,6 +186,7 @@ export class IpoStockService {
         time_on_market: LessThanOrEqual(curTime),
         is_delete: false,
         is_active: true,
+        is_on_market: false,
       },
     });
     console.log(ipoStocks, curTime);
@@ -179,7 +194,18 @@ export class IpoStockService {
       const code = ipoStock.code;
       return convertC2FS(code);
     });
-    await this._stockService.findMany(fss);
+    await Promise.all([
+      this._stockService.findMany(fss),
+      this._ipoStockRepo.update(
+        {
+          time_on_market: LessThanOrEqual(curTime),
+          is_delete: false,
+          is_active: true,
+          is_on_market: false,
+        },
+        { is_on_market: true },
+      ),
+    ]);
     fss.length && console.log(`Add ${fss} stocks on market.`);
   }
 }

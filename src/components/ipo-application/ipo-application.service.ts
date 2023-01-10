@@ -15,8 +15,8 @@ import { ITransactionsRate } from '../system-configuration/entities/system-confi
 import { TradingSessionService } from '../trading-session/trading-session.service';
 import { TransactionsService } from './../transactions/transactions.service';
 import {
-  IpoApplicationCreate,
   IpoApplicationAssign,
+  IpoApplicationCreate,
 } from './dto/create-ipo-application.dto';
 import { IpoApplicationListQuery } from './dto/ipo-application-query.dto';
 import {
@@ -222,7 +222,7 @@ export class IpoApplicationService {
     let act_amount = 0;
     let act_quantity = 0;
     if (is_accept) {
-      const session = await this._tradingSessionService.findOpeningSession();
+      const session = await this._tradingSessionService.findToday();
       const { transaction_fees } = session.detail
         .transactions_rate as any as ITransactionsRate;
 
@@ -261,7 +261,7 @@ export class IpoApplicationService {
 
     const [ipoStock, session] = await Promise.all([
       this._ipoStockService.findOne(ipoApp.ipo_id),
-      this._tradingSessionService.findOpeningSession(),
+      this._tradingSessionService.findToday(),
     ]);
 
     const { actual_amount, actual_quantity, price, user_id } = ipoApp;
@@ -297,30 +297,38 @@ export class IpoApplicationService {
     return ipoApp;
   }
 
-  async findAll(query: IpoApplicationListQuery) {
-    const { page, pageSize, key_words } = query;
-
+  async findAll(query: IpoApplicationListQuery, user_app_id?: number) {
+    const { page, pageSize, code, name, username, phone, status } = query;
+    console.log(query);
     const take = +pageSize || 10;
     const skip = +pageSize * (+page - 1) || 0;
 
     const queryBuilder = this._ipoAppRepo
       .createQueryBuilder('ia')
-      .innerJoinAndSelect('ipo-stock', 'is', 'is.id = ia.ipo_id')
+      .innerJoinAndSelect('ipo-stock', 'ist', 'ist.id = ia.ipo_id')
       .innerJoinAndSelect('app_users', 'u', 'u.id = ia.user_id')
       .select([
-        'bt.*',
+        'ia.*',
         'row_to_json(u.*) as user_detail',
-        'row_to_json(is.*) as ipo_stock',
+        'row_to_json(ist.*) as ipo_stock',
       ])
-      .where(`bt.is_delete = false`);
+      .where(`ia.is_delete = false`);
 
-    key_words &&
-      queryBuilder.andWhere(
-        `is.code LIKE '%${key_words}%' 
-        OR is.name LIKE '%${key_words}%'
-        OR u.username LIKE '%${key_words}%'
-        OR u.phone LIKE '%${key_words}%'`,
-      );
+    code && queryBuilder.andWhere(`ist.code ILIKE '%${code}%'`);
+    name && queryBuilder.andWhere(`ist.name ILIKE '%${name}%'`);
+    !user_app_id &&
+      username &&
+      queryBuilder.andWhere(`u.username ILIKE '%${username}%'`);
+    user_app_id && queryBuilder.andWhere(`u.id = ${user_app_id}`);
+    phone && queryBuilder.andWhere(`u.phone ILIKE '%${phone}%'`);
+    if (status) {
+      typeof status === 'string' &&
+        queryBuilder.andWhere(`ia.status = '%${status}%'`);
+      typeof status === 'object' &&
+        queryBuilder.andWhere('ia.status IN (:...status)', {
+          status,
+        });
+    }
 
     const total = await queryBuilder.clone().getCount();
     const recs = await queryBuilder.limit(take).offset(skip).getRawMany();
@@ -341,18 +349,97 @@ export class IpoApplicationService {
       this._appUserService.findOne(ipoApp.user_id),
       this._ipoStockService.findOne(ipoApp.ipo_id),
     ]);
-    const { ipo_code, quantity } = body;
-    let updateAmount = 0;
-    let updateQuantity = 0;
-    if (ipo_code === ipoStock.code) {
-      updateQuantity = quantity - ipoApp.quantity;
-      updateAmount = updateQuantity * ipoApp.price;
-    } else {
-      // update
+    const { quantity } = body;
+    const { balance_avail, balance_frozen } = appUser;
+    const { supply_quantity, purchase_quantity } = ipoStock;
+    const remainQuantity = supply_quantity - purchase_quantity;
+    const addQuantity = quantity - ipoApp.quantity;
+    const addAmount = addQuantity * ipoApp.price;
+    if (addQuantity > 0 && addQuantity > remainQuantity) {
+      throw new BadRequestException('Not enough for increase quantity.');
     }
+
+    ipoApp.quantity = +ipoApp.quantity + addQuantity;
+    ipoApp.amount = +ipoApp.amount + addAmount;
+
+    await Promise.all([
+      this._ipoAppRepo.save(ipoApp),
+      this._appUserService.updateBalance(ipoApp.user_id, {
+        balance_avail: balance_avail - addAmount,
+        balance_frozen: +balance_frozen + addAmount,
+      }),
+      this._ipoStockService.changePurchaseQuantity(
+        ipoApp.ipo_id,
+        purchase_quantity + addQuantity,
+      ),
+    ]);
+
+    return { isSuccess: true };
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} ipoApplication`;
+  // async cancelByApp(id: number, app_user_id: number) {
+  //   const [ipoApp, appUser] = await Promise.all([
+  //     this.findOne(id),
+  //     this._appUserService.findOne(app_user_id),
+  //   ]);
+
+  //   if (ipoApp.user_id !== app_user_id) {
+  //     throw new UnauthorizedException(MESSAGE.UNAUTHORIZED);
+  //   }
+  //   const ipoStock = await this._ipoStockService.findOne(ipoApp.ipo_id);
+  //   const { balance_avail, balance_frozen } = appUser;
+  //   const { purchase_quantity } = ipoStock;
+
+  //   if (ipoApp.status !== IPO_APP_STATUS.PENDING) {
+  //     throw new BadRequestException('Ipo Application is not pending');
+  //   }
+
+  //   ipoApp.status = IPO_APP_STATUS.CANCEL;
+  //   await Promise.all([
+  //     this._ipoAppRepo.save(ipoApp),
+  //     this._appUserService.updateBalance(app_user_id, {
+  //       balance_avail: balance_avail + ipoApp.amount,
+  //       balance_frozen: balance_frozen - ipoApp.amount,
+  //     }),
+  //     this._ipoStockService.changePurchaseQuantity(
+  //       ipoApp.ipo_id,
+  //       +purchase_quantity + +ipoApp.quantity,
+  //     ),
+  //   ]);
+  // }
+
+  async remove(id: number) {
+    const ipoApp = await this.findOne(id);
+    if (
+      ![IPO_APP_STATUS.PENDING, IPO_APP_STATUS.FAIL].includes(ipoApp.status)
+    ) {
+      throw new BadRequestException('Wrong status of IPO Application');
+    }
+
+    if (ipoApp.status === IPO_APP_STATUS.PENDING) {
+      const [ipoStock, appUser] = await Promise.all([
+        this._ipoStockService.findOne(ipoApp.ipo_id),
+        this._appUserService.findOne(ipoApp.user_id),
+      ]);
+
+      const { balance_avail, balance_frozen } = appUser;
+      const { purchase_quantity } = ipoStock;
+
+      await Promise.all([
+        this._appUserService.updateBalance(ipoApp.user_id, {
+          balance_avail: balance_avail + ipoApp.amount,
+          balance_frozen: balance_frozen - ipoApp.amount,
+        }),
+        this._ipoStockService.changePurchaseQuantity(
+          ipoApp.ipo_id,
+          +purchase_quantity + +ipoApp.quantity,
+        ),
+      ]);
+    }
+
+    ipoApp.is_delete = true;
+    await this._ipoAppRepo.save(ipoApp);
+
+    return { isSuccess: true };
   }
 }

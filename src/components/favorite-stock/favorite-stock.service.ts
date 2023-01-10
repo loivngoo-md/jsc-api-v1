@@ -19,13 +19,12 @@ export class FavoriteStockService {
   ) {}
 
   public get_list = async (query: QueryFavorite) => {
-    const page = query['page'] || 1;
-    const pageSize = query['pageSize'] || 10;
+    const { page, pageSize, user_id } = query;
 
-    delete query['page'];
-    delete query['pageSize'];
+    const take = +pageSize || 10;
+    const skip = +pageSize * (+page - 1) || 0;
 
-    const rec = await this._repo
+    const queryBuilder = this._repo
       .createQueryBuilder('fs')
       .innerJoinAndSelect('stocks', 's', 's.FS = fs.fs')
       .select([
@@ -34,14 +33,15 @@ export class FavoriteStockService {
         'fs.created_at as created_at',
         'fs.updated_at as updated_at',
       ])
-      .where(query)
-      .limit(pageSize)
-      .offset((page - 1) * pageSize)
-      .getRawMany();
+      .where({ user_id });
+
+    const total = queryBuilder.clone().getCount();
+    const recs = await queryBuilder.limit(take).offset(skip).getRawMany();
 
     return {
-      count: rec.length,
-      data: rec,
+      count: recs.length,
+      data: recs,
+      total,
     };
   };
 

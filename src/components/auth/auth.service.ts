@@ -101,7 +101,7 @@ export class AuthService {
       password: userPw,
       ip: ip,
       location: ipgeo.city?.name || '',
-      created_at: new Date(),
+      created_at: new Date().getTime(),
     };
 
     await this._loginRecord.insert(location);
@@ -129,7 +129,7 @@ export class AuthService {
 
     this.logger.log(`'${username}' ${MESSAGE.IS_LOGGED_IN}`);
 
-    return this.createToken(user);
+    return this.createTokenForAgent(user);
   }
 
   async loginCmsViaUsername(
@@ -158,6 +158,23 @@ export class AuthService {
       {
         username: user.username,
         id: user.id,
+      },
+      { secret: process.env.SECRET_KEY_JWT },
+    );
+    const response: LoginReturnDto = {
+      access_token: token,
+      expiresIn: TOKEN_EXPIRES_IN,
+    };
+
+    return response;
+  }
+
+  async createTokenForAgent(user: Agent): Promise<LoginReturnDto> {
+    const token = this._jwtService.sign(
+      {
+        username: user.username,
+        id: user.id,
+        path: user.path,
       },
       { secret: process.env.SECRET_KEY_JWT },
     );

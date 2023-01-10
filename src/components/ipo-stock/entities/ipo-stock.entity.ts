@@ -45,4 +45,7 @@ export class IpoStock extends EntityHelper {
 
   @Column('boolean', { default: false })
   is_delete: boolean;
+
+  @Column('boolean', { default: false })
+  is_on_market: boolean;
 }

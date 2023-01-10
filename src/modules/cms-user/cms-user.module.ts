@@ -38,8 +38,7 @@ import CmsUser from './entities/cms-user.entity';
     AgentModule,
     IpoStockModule,
     BlockTransactionsModule,
-    ,
-    forwardRef(() => IpoApplicationModule),
+    IpoApplicationModule
   ],
   controllers: [CmsUserController],
   providers: [CmsUserService],

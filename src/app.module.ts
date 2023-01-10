@@ -30,7 +30,7 @@ import { CmsUserModule } from './modules/cms-user/cms-user.module';
     DatabaseModule,
     CmsUserModule,
     TransactionsModule,
-    IpoApplicationModule,
+    // IpoApplicationModule,
     // IpoStockModule,
     // BlockTransactionsModule,
   ],

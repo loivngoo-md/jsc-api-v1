@@ -44,9 +44,10 @@ export class TradingSessionService {
     const whereConditions = isLargeTrd
       ? { status_lar: COMMON_STATUS.OPENING }
       : { status_nor: COMMON_STATUS.OPENING };
-    const session = this._tradingSessionRepo.findOne({
+    const session = await this._tradingSessionRepo.findOne({
       where: whereConditions,
     });
+
     if (!session) {
       throw new NotFoundException(MESSAGE.notFoundError('Opening Session'));
     }

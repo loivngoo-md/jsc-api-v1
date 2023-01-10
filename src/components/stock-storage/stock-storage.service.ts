@@ -75,8 +75,7 @@ export class StockStorageService {
   }
 
   public async count_today_purchased(user_id: number, fs: string) {
-    const today_timestamp = dateFormatter().valueOf();
-    const today = new Date(today_timestamp);
+    const today = new Date().getTime();
 
     const positions = await this._stockStorageRepo.find({
       where: {
@@ -156,7 +155,7 @@ export class StockStorageService {
     const page = +query.page || 1;
     const pageSize = +query.pageSize || 20;
     const skip = (page - 1) * pageSize;
-    const positions = await this._stockStorageRepo
+    const positionsQuery = this._stockStorageRepo
       .createQueryBuilder('ss')
       .innerJoinAndSelect('stocks', 's', 'ss.stock_code = s.FS')
       .innerJoinAndSelect('app_users', 'u', 'ss.user_id = u.id')
@@ -168,20 +167,26 @@ export class StockStorageService {
       .where({
         user_id: Number(user_id),
         status: POSITION_STATUS.OPEN,
-      })
+      });
+
+    const total = await positionsQuery.clone().getCount();
+    const positions = await positionsQuery
       .offset(skip)
       .limit(pageSize)
       .getRawMany();
 
-    return { data: positions, count: positions.length };
+    return { data: positions, count: positions.length, total };
   }
 
   public async getSellablePositions(
     user_id: number,
     query: SellablePositionsQuery,
   ) {
+    const take = +query.pageSize || 10;
+    const skip = +query.pageSize * (+query.page - 1) || 0;
+
     await this._stockService.findOne(query.stock_code);
-    const positions = await this._stockStorageRepo
+    const positionsQuery = this._stockStorageRepo
       .createQueryBuilder('ss')
       .innerJoinAndSelect(
         'trading-session',
@@ -191,11 +196,15 @@ export class StockStorageService {
       .innerJoinAndSelect('stocks', 's', 'ss.stock_code = s.FS')
       .select(['ss.*', 'row_to_json(s.*) as stock'])
       .where(
-        `ss.stock_code = '${query.stock_code}' and ts.status = '${COMMON_STATUS.CLOSED}' and ss.status = ${POSITION_STATUS.OPEN} and ss.user_id = ${user_id}`,
-      )
-      .getRawMany();
+        `ss.stock_code = '${query.stock_code}' AND 
+        ts.status = '${COMMON_STATUS.CLOSED}' AND
+        ss.status = ${POSITION_STATUS.OPEN} AND
+        ss.user_id = ${user_id}`,
+      );
+    const total = await positionsQuery.clone().getCount();
+    const positions = await positionsQuery.limit(take).offset(skip).getRawMany();
 
-    return { data: positions, count: positions.length };
+    return { data: positions, count: positions.length, total };
   }
 
   public async closePositions(position_ids: number[]) {

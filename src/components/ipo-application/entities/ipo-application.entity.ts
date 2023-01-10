@@ -1,7 +1,8 @@
-import { Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import { IPO_APP_STATUS } from '../../../common/enums';
 import { EntityHelper } from '../../../helpers/entity-helper';
 
+@Entity({ name: 'ipo-application' })
 export class IpoApplication extends EntityHelper {
   @PrimaryGeneratedColumn()
   id: number;

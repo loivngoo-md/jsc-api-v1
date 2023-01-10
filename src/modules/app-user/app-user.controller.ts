@@ -9,7 +9,7 @@ import {
   Query,
   UploadedFile,
   UseGuards,
-  UseInterceptors
+  UseInterceptors,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { RealIP } from 'nestjs-real-ip';
@@ -28,7 +28,10 @@ import { CreateDepositDto } from '../../components/deposit/dto/create-deposit.dt
 import { DepositQuery } from '../../components/deposit/dto/query-deposit.dto';
 import { QueryFavorite } from '../../components/favorite-stock/dto/query-favorite.dto';
 import { FavoriteStockService } from '../../components/favorite-stock/favorite-stock.service';
+import { IpoApplicationAssign } from '../../components/ipo-application/dto/create-ipo-application.dto';
 import { IpoApplicationService } from '../../components/ipo-application/ipo-application.service';
+import { IpoStockListQuery } from '../../components/ipo-stock/dto/ipo-stock-list-query.dto';
+import { IpoStockService } from '../../components/ipo-stock/ipo-stock.service';
 import { OrderQuery } from '../../components/order/dto/query-order.dto';
 import { OrderService } from '../../components/order/order.service';
 import { StockStorageService } from '../../components/stock-storage/stock-storage.service';
@@ -40,6 +43,7 @@ import { WithdrawService } from '../../components/withdraw/withdraw.service';
 import { PaginationQuery, UpdatePassword } from '../../helpers/dto-helper';
 import LocalFilesInterceptor from '../../middleware/localFiles.interceptor';
 import { AgentService } from '../agent/agent.service';
+import { IpoApplicationListQuery } from './../../components/ipo-application/dto/ipo-application-query.dto';
 import { AppUserService } from './app-user.service';
 import { SellablePositionsQuery } from './dto/app-user-query.dto';
 import { AppUserRegister } from './dto/create-app-user.dto';
@@ -62,6 +66,7 @@ export class AppUserController {
     private readonly trxService: TransactionsService,
     private readonly agentService: AgentService,
     private readonly blockTrxService: BlockTransactionsService,
+    private readonly ipoStockService: IpoStockService,
     private readonly ipoAppService: IpoApplicationService,
   ) {}
 
@@ -416,6 +421,43 @@ export class AppUserController {
     },
   ) {
     return this.stockService.get_k_line_data(query);
+  }
+
+  // Ipo
+  @UseGuards(AppAuthGuard)
+  @Get('ipo-stock/list-available')
+  async getAvailableIpoStock(@Query() query: IpoStockListQuery) {
+    return this.ipoStockService.findAll(query, true);
+  }
+
+  @UseGuards(AppAuthGuard)
+  @Get('ipo-application/list')
+  async getIpoAppList(
+    @Query() query: IpoApplicationListQuery,
+    @GetCurrentAppUser() user: PayLoad,
+  ) {
+    return this.ipoAppService.findAll(query, user.id);
+  }
+
+  @UseGuards(AppAuthGuard)
+  @Post('ipo-application/assign/:id')
+  async assignIpoApp(
+    @Param('id') id: number,
+    @GetCurrentAppUser() user: PayLoad,
+    @Body() body: IpoApplicationAssign,
+  ) {
+    body.user_id = user.id;
+    body.ipo_id = id;
+    return this.ipoAppService.assign(body);
+  }
+
+  @UseGuards(AppAuthGuard)
+  @Patch('ipo-application/paid/:id')
+  async paidIpoApp(
+    @Param('id') id: number,
+    @GetCurrentAppUser() user: PayLoad,
+  ) {
+    return this.ipoAppService.paidByApp(id, user.id);
   }
 
   //List

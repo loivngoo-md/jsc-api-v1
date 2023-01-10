@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import LoginRecord from './entities/login-record.entity';
@@ -10,7 +10,7 @@ export class LoginRecordService {
   ) {}
 
   async insert(dto) {
-    const record = await this._loginRecordRepo.create(dto);
+    const record = this._loginRecordRepo.create(dto);
     await this._loginRecordRepo.save(record);
     return record;
   }
