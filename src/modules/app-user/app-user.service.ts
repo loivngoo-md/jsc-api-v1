@@ -73,7 +73,6 @@ export class AppUserService {
     if (dto['type'] === IMAGE_TYPE.BACK) {
       appUser.id_back = fileData.filename;
     }
-
     await this._appUserRepo.save(appUser);
     return fileData.filename;
   }

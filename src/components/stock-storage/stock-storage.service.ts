@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { COMMON_STATUS, POSITION_STATUS } from 'src/common/enums';
-import { dateFormatter } from 'src/helpers/moment';
 import { DeepPartial, In, MoreThanOrEqual, Repository } from 'typeorm';
 import { PaginationQuery } from '../../helpers/dto-helper';
 import { SellablePositionsQuery } from '../../modules/app-user/dto/app-user-query.dto';
@@ -134,9 +133,10 @@ export class StockStorageService {
       .select(['ss.*', 'row_to_json(ts.*) as seesion_detail']);
 
     query.where(`ss.status = ${POSITION_STATUS.OPEN}`);
-    query.andWhere(`ts.status = ${COMMON_STATUS.CLOSED}`);
+    query.andWhere(`ts.status_nor = '${COMMON_STATUS.CLOSED}'`);
+    query.andWhere(`ts.status_lar = '${COMMON_STATUS.CLOSED}'`);
     query.andWhere('ss.id IN (:...ids)', { ids: position_ids });
-    query.andWhere(`ss.stock_code = ${stock_code}`);
+    query.andWhere(`ss.stock_code = '${stock_code}'`);
     user_id && query.andWhere(`ss.user_id = ${user_id}`);
 
     const recs = await query.getRawMany();
@@ -196,13 +196,17 @@ export class StockStorageService {
       .innerJoinAndSelect('stocks', 's', 'ss.stock_code = s.FS')
       .select(['ss.*', 'row_to_json(s.*) as stock'])
       .where(
-        `ss.stock_code = '${query.stock_code}' AND 
-        ts.status = '${COMMON_STATUS.CLOSED}' AND
+        `ss.stock_code = '${query.stock_code}' AND
+        ts.status_nor = '${COMMON_STATUS.CLOSED}' AND
+        ts.status_lar = '${COMMON_STATUS.CLOSED}' AND
         ss.status = ${POSITION_STATUS.OPEN} AND
         ss.user_id = ${user_id}`,
       );
     const total = await positionsQuery.clone().getCount();
-    const positions = await positionsQuery.limit(take).offset(skip).getRawMany();
+    const positions = await positionsQuery
+      .limit(take)
+      .offset(skip)
+      .getRawMany();
 
     return { data: positions, count: positions.length, total };
   }
