@@ -1,10 +1,6 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThanOrEqual, MoreThanOrEqual, Not } from 'typeorm';
+import { LessThanOrEqual, MoreThanOrEqual, Not, Repository } from 'typeorm';
 import { MESSAGE } from '../../common/constant';
 import { COMMON_STATUS } from '../../common/enums';
 import { StockService } from '../stock/stock.service';
@@ -25,15 +21,15 @@ export class BlockTransactionsService {
     const { stock_code, quantity, trx_key, discount, start_time, end_time } =
       body;
 
-    const existBlockTrx = await this.findByCodeAndKey(
-      stock_code,
-      trx_key,
-      true,
-    );
+    // const existBlockTrx = await this.findByCodeAndKey(
+    //   stock_code,
+    //   trx_key,
+    //   true,
+    // );
 
-    if (existBlockTrx) {
-      throw new BadRequestException(MESSAGE.isExistError('Block Transaction'));
-    }
+    // if (existBlockTrx) {
+    //   throw new BadRequestException(MESSAGE.isExistError('Block Transaction'));
+    // }
 
     const stock = await this._stockService.findByC(stock_code.toString());
     const blockTrxInfo = this._blockTrxRepo.create({
