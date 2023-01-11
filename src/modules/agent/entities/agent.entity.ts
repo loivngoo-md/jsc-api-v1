@@ -6,7 +6,7 @@ export class Agent extends EntityHelper {
   @PrimaryGeneratedColumn('increment')
   public id: number;
 
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn()
   public code: string;
 
   @Column({ default: null })
