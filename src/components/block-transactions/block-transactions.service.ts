@@ -21,16 +21,6 @@ export class BlockTransactionsService {
     const { stock_code, quantity, trx_key, discount, start_time, end_time } =
       body;
 
-    // const existBlockTrx = await this.findByCodeAndKey(
-    //   stock_code,
-    //   trx_key,
-    //   true,
-    // );
-
-    // if (existBlockTrx) {
-    //   throw new BadRequestException(MESSAGE.isExistError('Block Transaction'));
-    // }
-
     const stock = await this._stockService.findByC(stock_code.toString());
     const blockTrxInfo = this._blockTrxRepo.create({
       stock_code,
@@ -60,7 +50,7 @@ export class BlockTransactionsService {
 
     key_words &&
       queryBuilder.andWhere(
-        `bt.stock_name LIKE '%${key_words}%' OR bt.stock_code LIKE '%${key_words}%'`,
+        `bt.stock_name ILIKE '%${key_words}%' OR bt.stock_code ILIKE '%${key_words}%'`,
       );
 
     const total = await queryBuilder.clone().getCount();
@@ -70,6 +60,19 @@ export class BlockTransactionsService {
       count: recs.length,
       data: recs,
       total,
+    };
+  }
+
+  async findAllByApp(query: BlockTransactionQuery) {
+    const res = await this.findAll(query);
+    const data = res.data.map((ele: BlockTransaction) => {
+      delete ele.trx_key;
+      return ele;
+    });
+    return {
+      count: res.count,
+      data,
+      total: res.total,
     };
   }
 

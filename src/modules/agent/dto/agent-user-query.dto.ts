@@ -10,4 +10,7 @@ export class AgentUserListQuery extends PaginationQuery {
 
   @ApiPropertyOptional()
   phone?: string;
+
+  @ApiPropertyOptional()
+  username?: string;
 }

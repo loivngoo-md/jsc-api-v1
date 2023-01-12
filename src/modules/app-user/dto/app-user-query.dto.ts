@@ -13,6 +13,9 @@ export class AppUserListQuery extends PaginationQuery {
 
   @ApiPropertyOptional()
   phone?: string;
+
+  @ApiPropertyOptional()
+  username?: string;
 }
 
 export class SellablePositionsQuery extends PaginationQuery {

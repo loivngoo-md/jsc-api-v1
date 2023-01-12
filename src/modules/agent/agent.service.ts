@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
-import { Like, Repository } from 'typeorm';
+import { ILike, Like, Repository } from 'typeorm';
 import { ACCOUNT_TYPE, MODIFY_TYPE } from '../../common/enums';
 import { MoneyLogCreate } from '../../components/money-log/dto/money-log-create.dto';
 import { MoneyLogService } from '../../components/money-log/money-log.service';
@@ -100,14 +100,17 @@ export class AgentService {
     query: AgentUserListQuery | PaginationQuery,
     agent_id?: number,
   ) {
-    const { page, pageSize, phone, real_name, path } = query as any;
+    const { page, pageSize, phone, real_name, path, username } = query as any;
     const take = +pageSize || 10;
     const skip = +pageSize * (+page - 1) || 0;
 
     let whereConditions: Object = { is_delete: false };
-    phone && Object.assign(whereConditions, { phone });
-    real_name && Object.assign(whereConditions, { real_name });
-    path && Object.assign(whereConditions, { path: Like(`${path}.%`) });
+    phone && Object.assign(whereConditions, { phone: ILike(`%${phone}%`) });
+    real_name &&
+      Object.assign(whereConditions, { real_name: ILike(`%${real_name}%`) });
+    path && Object.assign(whereConditions, { path: ILike(`${path}.%`) });
+    username &&
+      Object.assign(whereConditions, { username: ILike(`%${username}%`) });
 
     if (agent_id) {
       const currentAgent = await this.findOne(agent_id);

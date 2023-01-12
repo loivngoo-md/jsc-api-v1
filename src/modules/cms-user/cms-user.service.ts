@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { MESSAGE, USER_MESSAGE } from '../../common/constant';
 import { UpdatePassword } from '../../helpers/dto-helper';
 import { CmsUserListQuery } from './dto/cms-user-query.dto';
@@ -61,9 +61,11 @@ export class CmsUserService {
 
     const whereConditions = {};
 
-    username && Object.assign(whereConditions, { username });
-    phone && Object.assign(whereConditions, { phone });
-    real_name && Object.assign(whereConditions, { real_name });
+    username &&
+      Object.assign(whereConditions, { username: ILike(`%${username}%`) });
+    phone && Object.assign(whereConditions, { phone: ILike(`%${phone}%`) });
+    real_name &&
+      Object.assign(whereConditions, { real_name: ILike(`%${real_name}%`) });
 
     const total = await this._cmsUserRepo.countBy(whereConditions);
     const recs = await this._cmsUserRepo.find({

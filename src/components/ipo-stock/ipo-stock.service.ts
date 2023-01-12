@@ -74,8 +74,8 @@ export class IpoStockService {
 
     typeof is_active !== 'undefined' &&
       Object.assign(whereConditions, { is_active });
-    name && Object.assign(whereConditions, { name: ILike(name) });
-    code && Object.assign(whereConditions, { code: ILike(code) });
+    name && Object.assign(whereConditions, { name: ILike(`%${name}%`) });
+    code && Object.assign(whereConditions, { code: ILike(`%${code}%`) });
 
     if (getForSub) {
       const curTime = new Date().getTime();
