@@ -5,7 +5,7 @@ import { SystemConfiguration } from '../../system-configuration/entities/system-
 
 @Entity({ name: 'trading-session' })
 export class TradingSession extends EntityHelper {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn()
   id: string;
 
   @Column({ default: COMMON_STATUS.PENDING })
