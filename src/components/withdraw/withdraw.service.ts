@@ -81,7 +81,7 @@ export class WithdrawService {
       username &&
       queryBuilder.andWhere(`w.username ILIKE '%${username}%'`);
     user_id && queryBuilder.andWhere(`w.user_id = ${user_id}`);
-    agent_path && queryBuilder.andWhere(`ag.path LIKE '%${agent_path}%'`);
+    agent_path && queryBuilder.andWhere(`ag.path ILIKE '%${agent_path}%'`);
 
     typeof status !== 'undefined' &&
       queryBuilder.andWhere(`w.status = ${status}`);

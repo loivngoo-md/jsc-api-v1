@@ -55,7 +55,7 @@ export class TransactionsService {
       .where({});
 
     app_user_id && transactionsQuery.andWhere(`t.user_id = ${app_user_id}`);
-    agent_path && transactionsQuery.andWhere(`ag.path LIKE '%${agent_path}%'`);
+    agent_path && transactionsQuery.andWhere(`ag.path ILIKE '%${agent_path}%'`);
 
     const total = await transactionsQuery.clone().getCount();
     const transactions = await transactionsQuery

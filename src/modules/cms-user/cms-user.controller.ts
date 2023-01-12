@@ -130,7 +130,7 @@ export class CmsUserController {
 
   // Cms - Users
   @UseGuards(CmsAuthGuard)
-  @Patch('cms-users/list')
+  @Get('cms-users/list')
   async cmsList(@Query() query: CmsUserListQuery) {
     return this.cmsUserService.findAll(query);
   }
@@ -143,14 +143,14 @@ export class CmsUserController {
 
   @UseGuards(CmsAuthGuard)
   @Patch('cms-users/lock/:id')
-  async lockUserCms(@GetCurrentCmsUser() cms: PayLoad) {
-    return this.cmsUserService.actionLockOnCms(cms.id, true);
+  async lockUserCms(@Param('id') id: number) {
+    return this.cmsUserService.actionLockOnCms(id, true);
   }
 
   @UseGuards(CmsAuthGuard)
   @Patch('cms-users/unlock/:id')
-  async unlockUserCms(@GetCurrentCmsUser() cms: PayLoad) {
-    return this.cmsUserService.actionLockOnCms(cms.id, false);
+  async unlockUserCms(@Param('id') id: number) {
+    return this.cmsUserService.actionLockOnCms(id, false);
   }
 
   //Agent - Users

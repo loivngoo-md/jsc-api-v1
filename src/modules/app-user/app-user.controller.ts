@@ -344,7 +344,7 @@ export class AppUserController {
   @UseGuards(AppAuthGuard)
   @Get('block-transaction/list')
   async getBlockTransactionsList(@Query() query: BlockTransactionQuery) {
-    return this.blockTrxService.findAll(query);
+    return this.blockTrxService.findAllByApp(query);
   }
 
   // Favorite

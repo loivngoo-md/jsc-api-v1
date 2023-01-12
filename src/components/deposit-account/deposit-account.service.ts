@@ -46,7 +46,7 @@ export class DepositAccountService {
 
     throw new NotFoundException(MESSAGE.notFoundError('Deposit Account'));
   }
-
+ 
   async remove(id: number) {
     const deleteResponse = await this._depositAccountRepo.delete(id);
     if (!deleteResponse.affected) {

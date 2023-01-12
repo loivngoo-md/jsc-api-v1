@@ -17,6 +17,9 @@ export class AppUserCreate extends AppUserRegister {
 
   @ApiProperty()
   amount: number;
+
+  @ApiProperty()
+  phone: string;
 }
 
 export class AppUserCreateByAgent extends OmitType(AppUserCreate, [

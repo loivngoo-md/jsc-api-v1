@@ -129,6 +129,8 @@ export class AppUserService {
       this._agentService.findByCode(agent_code),
     ]);
 
+    console.log(isExistedUser, '>>>>>');
+
     if (isExistedUser) {
       throw new BadRequestException(
         MESSAGE.isExistError('User', 'with this Username'),
@@ -154,7 +156,7 @@ export class AppUserService {
   }
 
   async create(body: AppUserCreate, cms_user: PayLoad) {
-    const { username, password, agent_code, is_real, amount } = body;
+    const { username, password, agent_code, is_real, amount, phone } = body;
 
     const newUser = await this.register(
       { username, password, agent_code },
@@ -165,13 +167,14 @@ export class AppUserService {
     newUser.balance = amount;
     newUser.balance_avail = amount;
     newUser.created_by = cms_user.username;
+    newUser.phone = phone;
 
     await this._appUserRepo.save(newUser);
     return newUser;
   }
 
   async createByAgent(body: AppUserCreateByAgent, agent_user: PayLoad) {
-    const { username, password, is_real, amount } = body;
+    const { username, password, is_real, amount, phone } = body;
 
     const agent = await this._agentService.findOne(agent_user.id);
 
@@ -188,6 +191,7 @@ export class AppUserService {
     newUser.balance = amount;
     newUser.balance_avail = amount;
     newUser.created_by = agent_user.username;
+    newUser.phone = phone;
 
     await this._appUserRepo.save(newUser);
     return newUser;
@@ -230,7 +234,9 @@ export class AppUserService {
   }
 
   async getListByAgent(query: AppUserListQuery, agent_id: number) {
-    const { page, pageSize, superior, is_real, real_name, phone } = query;
+    console.log(query, '>>>>>>>>');
+    const { page, pageSize, superior, is_real, real_name, phone, username } =
+      query;
     const take = +pageSize || 10;
     const skip = +pageSize * (+page - 1) || 0;
 
@@ -243,8 +249,10 @@ export class AppUserService {
 
     queryBuilder.where(`a.path like '${agentUser.path}%'`);
     is_real && queryBuilder.andWhere(`u.is_real = ${is_real}`);
-    real_name && queryBuilder.andWhere(`u.username like '%${real_name}%'`);
-    phone && queryBuilder.andWhere(`u.phone like '%${phone}%'`);
+    real_name && queryBuilder.andWhere(`u.real_name ilike '%${real_name}%'`);
+    phone && queryBuilder.andWhere(`u.phone ilike '%${phone}%'`);
+    username && queryBuilder.andWhere(`u.username ilike '%${username}%'`);
+
     if (superior) {
       const queryAgent = await this._agentService.findByUsername(superior);
       queryBuilder.andWhere(`a.path like '${queryAgent.path}%'`);
