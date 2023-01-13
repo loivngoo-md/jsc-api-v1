@@ -32,7 +32,7 @@ export class DepositAccountService {
     if (response) {
       return response;
     }
-    throw new NotFoundException(MESSAGE.notFoundError('Deposit Account'));
+    throw new NotFoundException(MESSAGE.notFoundError('存款账户'));
   }
 
   async update(id: number, dto: any) {
@@ -44,13 +44,13 @@ export class DepositAccountService {
       return updated;
     }
 
-    throw new NotFoundException(MESSAGE.notFoundError('Deposit Account'));
+    throw new NotFoundException(MESSAGE.notFoundError('存款账户'));
   }
  
   async remove(id: number) {
     const deleteResponse = await this._depositAccountRepo.delete(id);
     if (!deleteResponse.affected) {
-      throw new NotFoundException(MESSAGE.notFoundError('Deposit Account'));
+      throw new NotFoundException(MESSAGE.notFoundError('存款账户'));
     }
 
     return {

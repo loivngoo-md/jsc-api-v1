@@ -61,7 +61,7 @@ export class FavoriteStockService {
     await this._stockService.findOne(fs);
     const existRec = await this._repo.findOne({ where: { user_id, fs } });
     if (existRec) {
-      throw new BadRequestException(MESSAGE.isExistError('Favorite Stock'));
+      throw new BadRequestException(MESSAGE.isExistError('最喜欢的股票'));
     }
     const infoRec = this._repo.create({ user_id, fs });
     return await this._repo.save(infoRec);
@@ -70,7 +70,7 @@ export class FavoriteStockService {
   public remove = async (user_id: number, fs: string) => {
     const existRec = await this._repo.findOne({ where: { user_id, fs } });
     if (!existRec) {
-      throw new NotFoundException(MESSAGE.notFoundError('Favorite Stock'));
+      throw new NotFoundException(MESSAGE.notFoundError('最喜欢的股票'));
     }
     await this._repo.remove(existRec);
     return { isSuccess: true };

@@ -127,8 +127,21 @@ export const WITHDRAWAL_RANGE_VALIS_IS = '取款应该在范围内';
 export const WITHDRAWAL_WRONG_PASSWORD = '提现密码错误';
 export const WITHDRAWAL_NOT_PENDING = '撤回审查。';
 
+/**Large Transaction */
+export const BLOCK_TRX_INVALID_ST_AND_ET = '开始时间必须小于结束时间';
+/**Ipo Stock */
+export const IPO_STOCK_QUANTITY = '购买数量不足。';
+export const IPO_STOCK_MISSING_ACT_QUANTITY = '缺少实际数量';
+export const IPO_STOCK_NOT_ON_MARKET = '首次公开募股不在市场上。 无法转移。';
+
+/**Ipo Application */
+export const IPO_APP_STATUS_PAID = '未支付 IPO 申请。';
+export const IPO_APP_STATUS_NOT_PENDING = 'Ipo 应用程序未挂起。';
+export const IPO_APP_QUANTITY_INCREASE = '不足以增加数量。';
+export const IPO_APP_WRONG_STATUS = '首次公开募股申请的错误状态';
+
 export const isExistError = (entity: string, addMess?: string) => {
-  return addMess ? `${entity} 存在 ${addMess}` : `${entity} 存在`;
+  return addMess ? ` 存在 ${entity} ${addMess}` : `${entity} 存在`;
 };
 
 export const notFoundError = (entity: string, addMess?: string) => {

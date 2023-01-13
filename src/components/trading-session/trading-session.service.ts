@@ -49,7 +49,7 @@ export class TradingSessionService {
     });
 
     if (!session) {
-      throw new NotFoundException(MESSAGE.notFoundError('Opening Session'));
+      throw new NotFoundException(MESSAGE.notFoundError('开幕式'));
     }
     return session;
   }

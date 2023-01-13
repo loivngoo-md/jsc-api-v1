@@ -1,7 +1,7 @@
 import {
   BadRequestException,
   Injectable,
-  NotFoundException,
+  NotFoundException
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
@@ -17,12 +17,12 @@ import { AppUserListQuery } from './dto/app-user-query.dto';
 import {
   AppUserCreate,
   AppUserCreateByAgent,
-  AppUserRegister,
+  AppUserRegister
 } from './dto/create-app-user.dto';
 import {
   AppUserUpdateBalance,
   AppUserUpdateDetail,
-  AppUserUpdateProfile,
+  AppUserUpdateProfile
 } from './dto/update-app-user.dto';
 import AppUser from './entities/app-user.entity';
 
@@ -42,7 +42,7 @@ export class AppUserService {
   async get_customer_balance_frozen(user_id: number) {
     const user = await this.findOne(user_id);
     if (!user) {
-      throw new NotFoundException(MESSAGE.notFoundError('User'));
+      throw new NotFoundException(MESSAGE.notFoundError('用户'));
     }
 
     return {
@@ -69,7 +69,7 @@ export class AppUserService {
     const appUser = await this.findOne(user_id);
 
     if (appUser.is_verified) {
-      throw new BadRequestException('You had been verified, cannot change.');
+      throw new BadRequestException('你已经验证过了，不能更改。');
     }
 
     if (dto['type'] === IMAGE_TYPE.FRONT) {
@@ -138,12 +138,12 @@ export class AppUserService {
 
     if (isExistedUser) {
       throw new BadRequestException(
-        MESSAGE.isExistError('User', 'with this Username'),
+        MESSAGE.isExistError('用户', 'with this Username'),
       );
     }
 
     if (!existAgent) {
-      throw new NotFoundException(MESSAGE.notFoundError('Agent'));
+      throw new NotFoundException(MESSAGE.notFoundError('代理人'));
     }
 
     const salt = await bcrypt.genSalt();
@@ -207,7 +207,7 @@ export class AppUserService {
       where: { username, is_delete: false },
     });
     if (!user && !isPartService) {
-      throw new NotFoundException(MESSAGE.notFoundError('App User'));
+      throw new NotFoundException(MESSAGE.notFoundError('应用程序用户'));
     }
     return user;
   }
@@ -230,8 +230,8 @@ export class AppUserService {
       take,
       skip,
       order: {
-        created_at: 'DESC',
-      },
+        created_at: "DESC"
+      }
     });
 
     return {
@@ -267,11 +267,7 @@ export class AppUserService {
     }
 
     const total = await queryBuilder.clone().getCount();
-    const app_users = await queryBuilder
-      .limit(take)
-      .offset(skip)
-      .orderBy('u.created_at', 'DESC')
-      .getRawMany();
+    const app_users = await queryBuilder.limit(take).offset(skip).orderBy('u.created_at', 'DESC').getRawMany();
 
     return {
       count: app_users.length,
@@ -287,14 +283,14 @@ export class AppUserService {
     if (user) {
       return user;
     }
-    throw new NotFoundException(MESSAGE.notFoundError('App User'));
+    throw new NotFoundException(MESSAGE.notFoundError('应用程序用户'));
   }
 
   async updateProfile(user_id: number, body: AppUserUpdateProfile) {
     const user = await this.findOne(user_id);
 
     if (user.is_verified) {
-      throw new BadRequestException('You had been verified, cannot change.');
+      throw new BadRequestException('你已经验证过了，不能更改。');
     }
 
     const {

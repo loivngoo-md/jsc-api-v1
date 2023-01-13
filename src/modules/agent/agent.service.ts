@@ -50,7 +50,7 @@ export class AgentService {
     const existAgent = await this.findByUsername(username, true);
     if (existAgent) {
       throw new BadRequestException(
-        MESSAGE.isExistError('Agent', 'with this Username'),
+        MESSAGE.isExistError('代理人', 'with this Username'),
       );
     }
 
@@ -161,7 +161,7 @@ export class AgentService {
 
     const rec = await this._agentRepo.findOne({ where: whereConditions });
     if (!rec) {
-      throw new NotFoundException(MESSAGE.notFoundError('Agent'));
+      throw new NotFoundException(MESSAGE.notFoundError('代理人'));
     }
     return rec;
   }
@@ -172,7 +172,7 @@ export class AgentService {
       where: { code, is_delete: false },
     });
     if (!rec && !isCreate) {
-      throw new NotFoundException(MESSAGE.notFoundError('Agent'));
+      throw new NotFoundException(MESSAGE.notFoundError('代理人'));
     }
     return rec;
   }
@@ -182,7 +182,7 @@ export class AgentService {
       where: { username, is_delete: false },
     });
     if (!rec && !isPartService) {
-      throw new NotFoundException(MESSAGE.notFoundError('Agent'));
+      throw new NotFoundException(MESSAGE.notFoundError('代理人'));
     }
     return rec;
   }

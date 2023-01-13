@@ -157,7 +157,7 @@ export class StockService {
       return listStocks[0] as Stock;
     }
 
-    throw new NotFoundException(MESSAGE.notFoundError('Stock'));
+    throw new NotFoundException(MESSAGE.notFoundError('库存'));
   }
 
   async findMany(fss: string[]) {
@@ -172,7 +172,7 @@ export class StockService {
   async findByC(c: string) {
     const stock = await this._stockRepo.findOne({ where: { C: c } });
     if (!stock) {
-      throw new NotFoundException(MESSAGE.notFoundError('Stock'));
+      throw new NotFoundException(MESSAGE.notFoundError('库存'));
     }
     return await this.findOne(stock.FS);
   }
@@ -183,7 +183,7 @@ export class StockService {
     if (updated) {
       return updated;
     }
-    throw new NotFoundException(MESSAGE.notFoundError('Stock'));
+    throw new NotFoundException(MESSAGE.notFoundError('库存'));
   }
 
   remove(id: number) {
