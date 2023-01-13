@@ -38,7 +38,7 @@ export class OrderService {
   ) {}
 
   async list_orders_by_user(user_id: number) {
-    return await this._orderRepo.find({ where: { user_id } });
+    return await this._orderRepo.find({ where: { user_id }, order: {created_at: 'DESC'} });
   }
 
   async listAllOrders(
@@ -72,6 +72,7 @@ export class OrderService {
         'u.superior as superior',
         'o.created_at as created_at',
         'o.updated_at as updated_at',
+        'row_to_json(ag.*) as agent_detail',
       ])
       .where({});
 
@@ -88,7 +89,11 @@ export class OrderService {
     end_time && queryBuilder.andWhere(`o.created_at > ${end_time}`);
 
     const total = await queryBuilder.clone().getCount();
-    const recs = await queryBuilder.limit(take).offset(skip).getRawMany();
+    const recs = await queryBuilder
+      .limit(take)
+      .offset(skip)
+      .orderBy('o.created_at', 'DESC')
+      .getRawMany();
 
     return {
       count: recs.length,
@@ -104,6 +109,7 @@ export class OrderService {
     const queryBuilder = this._orderRepo
       .createQueryBuilder('o')
       .innerJoinAndSelect('app_users', 'u', 'o.user_id = u.id')
+      .innerJoinAndSelect('agent', 'ag', 'u.agent = ag.id')
       .select([
         'o.*',
         'u.real_name as real_name',
@@ -111,6 +117,7 @@ export class OrderService {
         'u.superior as superior',
         'o.created_at as created_at',
         'o.updated_at as updated_at',
+        'row_to_json(ag.*) as agent_detail',
       ])
       .where({});
 
@@ -120,6 +127,7 @@ export class OrderService {
     const recs = await queryBuilder
       .limit(pageSize)
       .offset((page - 1) * pageSize)
+      .orderBy('o.created_at', 'DESC')
       .getRawMany();
 
     return {

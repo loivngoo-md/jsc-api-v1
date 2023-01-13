@@ -74,7 +74,11 @@ export class WithdrawService {
       .createQueryBuilder('w')
       .innerJoin('app_users', 'u', 'w.user_id = u.id')
       .innerJoin('agent', 'ag', 'ag.id = u.agent')
-      .select(['w.*', 'row_to_json(u.*) as user_detail'])
+      .select([
+        'w.*',
+        'row_to_json(u.*) as user_detail',
+        'row_to_json(ag.*) as agent_detail',
+      ])
       .where({});
 
     !user_id &&
@@ -89,7 +93,11 @@ export class WithdrawService {
     end_time && queryBuilder.andWhere(`w.created_at <= ${end_time}`);
 
     const total = await queryBuilder.clone().getCount();
-    const recs = await queryBuilder.limit(take).offset(skip).getRawMany();
+    const recs = await queryBuilder
+      .limit(take)
+      .offset(skip)
+      .orderBy('w.created_at', 'DESC')
+      .getRawMany();
 
     return {
       count: recs.length,
@@ -111,33 +119,35 @@ export class WithdrawService {
   async reviewByCms(withdraw_id: number, dto: any) {
     const { status } = dto;
     const withdrawal = await this.findOne(withdraw_id);
-    if (withdrawal['status'] !== DEPOSIT_WITHDRAWAL_STATUS.PENDING) {
+    const { user_id, amount } = withdrawal;
+    if (withdrawal.status !== DEPOSIT_WITHDRAWAL_STATUS.PENDING) {
       throw new BadRequestException(MESSAGE.WITHDRAWAL_NOT_PENDING);
     }
-    const user = await this._appUserService.findOne(withdrawal['user_id']);
+    const user = await this._appUserService.findOne(user_id);
+    const { balance, balance_avail, balance_frozen } = user;
     if (status === DEPOSIT_WITHDRAWAL_STATUS.SUCCESS) {
       const trxInfo = {
         trx_id: withdraw_id,
         type: TRANSACTION_TYPE.WITHDRAWAL,
-        user_id: withdrawal['user_id'],
-        before: +user['balance'],
-        after: +user['balance'] - +withdrawal['amount'],
+        user_id,
+        before: +balance,
+        after: +balance - +amount,
       };
 
       await Promise.all([
         this._withdrawRepo.update(withdraw_id, dto),
         this._trxService.addTrx(trxInfo),
-        this._appUserService.updateBalance(withdrawal['user_id'], {
-          balance: +user['balance'] - +withdrawal['amount'],
-          balance_frozen: 0,
+        this._appUserService.updateBalance(user_id, {
+          balance: +balance - +amount,
+          balance_frozen: +balance_frozen - +amount,
         }),
       ]);
     } else {
       await Promise.all([
         this._withdrawRepo.update(withdraw_id, dto),
-        this._appUserService.updateBalance(withdrawal['user_id'], {
-          balance_avail: +user['balance_avail'] + +withdrawal['amount'],
-          balance_frozen: 0,
+        this._appUserService.updateBalance(user_id, {
+          balance_avail: +balance_avail + +amount,
+          balance_frozen: +balance_frozen - +amount,
         }),
       ]);
     }

@@ -74,14 +74,15 @@ export class StockStorageService {
   }
 
   public async count_today_purchased(user_id: number, fs: string) {
-    const today = new Date().getTime();
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
 
     const positions = await this._stockStorageRepo.find({
       where: {
         user_id,
         stock_code: fs,
         status: POSITION_STATUS.OPEN,
-        created_at: MoreThanOrEqual(today),
+        created_at: MoreThanOrEqual(today.getTime()),
       },
     });
     const today_count = positions.reduce((count: number, position) => {
@@ -159,10 +160,12 @@ export class StockStorageService {
       .createQueryBuilder('ss')
       .innerJoinAndSelect('stocks', 's', 'ss.stock_code = s.FS')
       .innerJoinAndSelect('app_users', 'u', 'ss.user_id = u.id')
+      .innerJoinAndSelect('agent', 'ag', 'u.agent = ag.id')
       .select([
         'ss.*',
         'row_to_json(u.*) as app_user',
         'row_to_json(s.*) as stock',
+        'row_to_json(ag.*) as agent_detail',
       ])
       .where({
         user_id: Number(user_id),
@@ -173,6 +176,7 @@ export class StockStorageService {
     const positions = await positionsQuery
       .offset(skip)
       .limit(pageSize)
+      .orderBy('ss.created_at', 'DESC')
       .getRawMany();
 
     return { data: positions, count: positions.length, total };
@@ -206,6 +210,7 @@ export class StockStorageService {
     const positions = await positionsQuery
       .limit(take)
       .offset(skip)
+      .orderBy('ss.created_at', 'DESC')
       .getRawMany();
 
     return { data: positions, count: positions.length, total };

@@ -25,30 +25,38 @@ export class DepositService {
     private readonly _trxService: TransactionsService,
   ) {}
 
-  async create(dto: any) {
-    const { amount } = dto;
-    if (dto['deposit_account_id']) {
+  async create(dto: any, byApp?: boolean) {
+    const { amount, deposit_account_id, user_id } = dto;
+    if (deposit_account_id) {
       const depAcc = await this._depositAccountService.findOne(
-        dto['deposit_account_id'],
+        deposit_account_id,
       );
       if (!depAcc) {
         throw new NotFoundException(MESSAGE.notFoundError('Deposit Account'));
       }
     }
     const [user, sysConfig] = await Promise.all([
-      this._appUserService.findOne(dto['user_id']),
+      this._appUserService.findOne(user_id),
       this._sysConfigService.findOne(),
     ]);
+
     const { deposit_max, deposit_min } = sysConfig[
       'deposits_and_withdrawals'
     ] as any;
+
     if (+amount < deposit_min || +amount > deposit_max) {
       throw new BadRequestException(
         `${MESSAGE.DEPOSIT_RANGE_VALID_IS} ${deposit_min}, ${deposit_max} `,
       );
     }
-    dto['username'] = user['username'];
-    const response = this._depositRepo.create(dto);
+
+    const response = this._depositRepo.create({
+      username: user.username,
+      user_id,
+      amount,
+      deposit_account_id,
+    });
+
     await this._depositRepo.save(response);
     return response;
   }
@@ -70,8 +78,14 @@ export class DepositService {
     const queryBuilder = this._depositRepo
       .createQueryBuilder('d')
       .innerJoin('app_users', 'u', 'd.user_id = u.id')
+      .innerJoin('deposit_accounts', 'da', 'd.deposit_account_id = da.id')
       .innerJoin('agent', 'ag', 'ag.id = u.agent')
-      .select(['d.*', 'row_to_json(u.*) as user_detail'])
+      .select([
+        'd.*',
+        'row_to_json(u.*) as user_detail',
+        'row_to_json(ag.*) as agent_detail',
+        'row_to_json(da.*) as deposit_account_detail',
+      ])
       .where({});
 
     !user_id &&
@@ -87,7 +101,11 @@ export class DepositService {
       queryBuilder.andWhere(`d.is_virtual_deposit = ${is_virtual_deposit}`);
 
     const total = await queryBuilder.clone().getCount();
-    const recs = await queryBuilder.limit(take).offset(skip).getRawMany();
+    const recs = await queryBuilder
+      .limit(take)
+      .offset(skip)
+      .orderBy('d.created_at', 'DESC')
+      .getRawMany();
 
     return {
       count: recs.length,
@@ -97,7 +115,19 @@ export class DepositService {
   }
 
   async findOne(id: number) {
-    const response = await this._depositRepo.findOne({ where: { id: id } });
+    const response = await this._depositRepo
+      .createQueryBuilder('d')
+      .innerJoin('app_users', 'u', 'd.user_id = u.id')
+      .innerJoin('deposit_accounts', 'da', 'd.deposit_account_id = da.id')
+      .innerJoin('agent', 'ag', 'ag.id = u.agent')
+      .select([
+        'd.*',
+        'row_to_json(u.*) as user_detail',
+        'row_to_json(ag.*) as agent_detail',
+        'row_to_json(da.*) as deposit_account_detail',
+      ])
+      .where(`d.id = ${id}`)
+      .getRawOne();
     if (response) {
       return response;
     }

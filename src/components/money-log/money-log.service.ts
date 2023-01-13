@@ -19,6 +19,9 @@ export class MoneyLogService {
   async list(user_id: number) {
     return this._MoneyLogRepo.find({
       where: { user_id },
+      order: {
+        created_at: 'DESC'
+      }
     });
   }
 }

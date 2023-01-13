@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   ILike,
@@ -90,6 +91,9 @@ export class IpoStockService {
       where: whereConditions,
       take: take,
       skip: skip,
+      order: {
+        created_at: 'DESC'
+      }
     });
 
     return {
@@ -178,7 +182,7 @@ export class IpoStockService {
   }
 
   //TODO: Turn-on Cronjob
-  // @Cron('* * * * * *')
+  @Cron('*/05 * * * *')
   async addIpoToMarket() {
     const curTime = new Date().getTime();
     const ipoStocks = await this._ipoStockRepo.find({

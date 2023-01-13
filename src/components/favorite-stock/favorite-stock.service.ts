@@ -36,7 +36,11 @@ export class FavoriteStockService {
       .where({ user_id });
 
     const total = queryBuilder.clone().getCount();
-    const recs = await queryBuilder.limit(take).offset(skip).getRawMany();
+    const recs = await queryBuilder
+      .limit(take)
+      .offset(skip)
+      .orderBy('fs.created_at', 'DESC')
+      .getRawMany();
 
     return {
       count: recs.length,
