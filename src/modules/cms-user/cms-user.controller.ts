@@ -358,7 +358,7 @@ export class CmsUserController {
     @GetCurrentCmsUser() cms: PayLoad,
   ) {
     dto['reviewed_by'] = cms['username'];
-    dto['reviewed_at'] = new Date();
+    dto['reviewed_at'] = new Date().getTime();
     return this.depositService.reviewByCms(deposit_id, dto);
   }
 
@@ -389,7 +389,7 @@ export class CmsUserController {
     @GetCurrentCmsUser() cms: PayLoad,
   ) {
     dto['reviewed_by'] = cms['username'];
-    dto['reviewed_at'] = new Date();
+    dto['reviewed_at'] = new Date().getTime();
     return this.withdrawalService.reviewByCms(withdrawal_id, dto);
   }
 
