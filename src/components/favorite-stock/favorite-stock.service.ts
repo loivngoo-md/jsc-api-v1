@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { StockService } from 'src/components/stock/stock.service';
 import { Repository } from 'typeorm';
@@ -15,13 +19,12 @@ export class FavoriteStockService {
   ) {}
 
   public get_list = async (query: QueryFavorite) => {
-    const page = query['page'] || 1;
-    const pageSize = query['pageSize'] || 10;
+    const { page, pageSize, user_id } = query;
 
-    delete query['page'];
-    delete query['pageSize'];
+    const take = +pageSize || 10;
+    const skip = +pageSize * (+page - 1) || 0;
 
-    const rec = await this._repo
+    const queryBuilder = this._repo
       .createQueryBuilder('fs')
       .innerJoinAndSelect('stocks', 's', 's.FS = fs.fs')
       .select([
@@ -30,14 +33,15 @@ export class FavoriteStockService {
         'fs.created_at as created_at',
         'fs.updated_at as updated_at',
       ])
-      .where(query)
-      .limit(pageSize)
-      .offset((page - 1) * pageSize)
-      .getRawMany();
+      .where({ user_id });
+
+    const total = queryBuilder.clone().getCount();
+    const recs = await queryBuilder.limit(take).offset(skip).getRawMany();
 
     return {
-      count: rec.length,
-      data: rec,
+      count: recs.length,
+      data: recs,
+      total,
     };
   };
 
@@ -53,7 +57,7 @@ export class FavoriteStockService {
     await this._stockService.findOne(fs);
     const existRec = await this._repo.findOne({ where: { user_id, fs } });
     if (existRec) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
+      throw new BadRequestException(MESSAGE.isExistError('Favorite Stock'));
     }
     const infoRec = this._repo.create({ user_id, fs });
     return await this._repo.save(infoRec);
@@ -62,7 +66,7 @@ export class FavoriteStockService {
   public remove = async (user_id: number, fs: string) => {
     const existRec = await this._repo.findOne({ where: { user_id, fs } });
     if (!existRec) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
+      throw new NotFoundException(MESSAGE.notFoundError('Favorite Stock'));
     }
     await this._repo.remove(existRec);
     return { isSuccess: true };

@@ -1,15 +1,14 @@
 import {
-  BadGatewayException,
   BadRequestException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
 import { DEPOSIT_WITHDRAWAL_STATUS, TRANSACTION_TYPE } from 'src/common/enums';
-import { Between, LessThanOrEqual, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { MESSAGE } from '../../common/constant';
 import { AppUserService } from '../../modules/app-user/app-user.service';
-import AppUser from '../../modules/app-user/entities/app-user.entity';
 import { SystemConfigurationService } from '../system-configuration/system-configuration.service';
 import { TransactionsService } from './../transactions/transactions.service';
 import { WithdrawalQuery } from './dto/query-withdrawal.dto';
@@ -25,15 +24,8 @@ export class WithdrawService {
     private readonly _trxService: TransactionsService,
   ) {}
 
-  async validatePassword(
-    user: AppUser,
-    withdraw_password: string,
-  ): Promise<boolean> {
-    return bcrypt.compareSync(withdraw_password, user.withdraw_password);
-  }
-
   async create(dto: any, byCms?: boolean) {
-    const { amount, username } = dto;
+    const { amount, username, withdraw_password } = dto;
     const user = await this._appUserService.findByUsername(username);
     const systemConfig = await this._sysConfigService.findOne();
     const { withdrawal_fees } = systemConfig['transactions_rate'] as any;
@@ -41,11 +33,12 @@ export class WithdrawService {
       'deposits_and_withdrawals'
     ] as any;
 
-    if (
-      !byCms &&
-      !(await this.validatePassword(user, dto['withdraw_password']))
-    ) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
+    const comparePw = bcrypt.compareSync(
+      withdraw_password,
+      user.withdraw_password,
+    );
+    if (!byCms && !comparePw) {
+      throw new BadRequestException(MESSAGE.WITHDRAWAL_WRONG_PASSWORD);
     }
 
     if (+amount < withdrawal_min || +amount > withdrawal_max) {
@@ -55,7 +48,7 @@ export class WithdrawService {
     }
 
     if (+user['balance'] < +amount) {
-      throw new BadRequestException(`${MESSAGE.NOT_ENOUGH_MONEY}`);
+      throw new BadRequestException(MESSAGE.NOT_ENOUGH_MONEY);
     }
 
     dto['user_id'] = user['id'];
@@ -71,42 +64,32 @@ export class WithdrawService {
     return response;
   }
 
-  async findAll(query: WithdrawalQuery, user_id?: number) {
-    const page = query['page'] || 1;
-    const pageSize = query['pageSize'] || 10;
+  async findAll(query: WithdrawalQuery, user_id?: number, agent_path?: string) {
+    const { page, pageSize, start_time, end_time, status, username } = query;
 
-    const end_time = query['end_time']
-      ? new Date(query['end_time'])
-      : new Date();
-    const start_time = query['start_time']
-      ? new Date(query['start_time'])
-      : null;
-
-    if (user_id) {
-      query['user_id'] = user_id;
-      delete query['username'];
-    }
-
-    query['created_at'] = start_time
-      ? Between(start_time, end_time)
-      : LessThanOrEqual(end_time);
-
-    delete query['start_time'];
-    delete query['end_time'];
-    delete query['page'];
-    delete query['pageSize'];
+    const take = +pageSize || 10;
+    const skip = +pageSize * (+page - 1) || 0;
 
     const queryBuilder = this._withdrawRepo
       .createQueryBuilder('w')
       .innerJoin('app_users', 'u', 'w.user_id = u.id')
+      .innerJoin('agent', 'ag', 'ag.id = u.agent')
       .select(['w.*', 'row_to_json(u.*) as user_detail'])
-      .where(query);
+      .where({});
+
+    !user_id &&
+      username &&
+      queryBuilder.andWhere(`w.username ILIKE '%${username}%'`);
+    user_id && queryBuilder.andWhere(`w.user_id = ${user_id}`);
+    agent_path && queryBuilder.andWhere(`ag.path ILIKE '%${agent_path}%'`);
+
+    typeof status !== 'undefined' &&
+      queryBuilder.andWhere(`w.status = ${status}`);
+    start_time && queryBuilder.andWhere(`w.created_at >= ${start_time}`);
+    end_time && queryBuilder.andWhere(`w.created_at <= ${end_time}`);
 
     const total = await queryBuilder.clone().getCount();
-    const recs = await queryBuilder
-      .limit(pageSize)
-      .offset((page - 1) * pageSize)
-      .getRawMany();
+    const recs = await queryBuilder.limit(take).offset(skip).getRawMany();
 
     return {
       count: recs.length,
@@ -120,14 +103,16 @@ export class WithdrawService {
     if (response) {
       return response;
     }
-    throw new BadRequestException(MESSAGE.BAD_REQUEST);
+    throw new NotFoundException(
+      MESSAGE.notFoundError('Withdrawal Transaction'),
+    );
   }
 
   async reviewByCms(withdraw_id: number, dto: any) {
     const { status } = dto;
     const withdrawal = await this.findOne(withdraw_id);
     if (withdrawal['status'] !== DEPOSIT_WITHDRAWAL_STATUS.PENDING) {
-      throw new BadGatewayException(MESSAGE.BAD_REQUEST);
+      throw new BadRequestException(MESSAGE.WITHDRAWAL_NOT_PENDING);
     }
     const user = await this._appUserService.findOne(withdrawal['user_id']);
     if (status === DEPOSIT_WITHDRAWAL_STATUS.SUCCESS) {

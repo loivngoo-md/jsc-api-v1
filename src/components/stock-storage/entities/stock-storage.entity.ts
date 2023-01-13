@@ -1,12 +1,6 @@
-import { ORDER_TYPE, POSITION_STATUS, TRX_TYPE } from 'src/common/enums';
+import { POSITION_STATUS, TRX_TYPE } from 'src/common/enums';
 import { EntityHelper } from 'src/helpers/entity-helper';
-import {
-  BeforeInsert,
-  BeforeUpdate,
-  Column,
-  Entity,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'stock-storage' })
 export class StockStorage extends EntityHelper {
@@ -34,7 +28,6 @@ export class StockStorage extends EntityHelper {
   @Column({ default: TRX_TYPE.NOR })
   type: TRX_TYPE;
 
-  // TODO: Remove nullable trading_session
   @Column('varchar', { nullable: true })
   trading_session: string;
 }

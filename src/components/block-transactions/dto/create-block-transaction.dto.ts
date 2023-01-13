@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class BlockTransactionCreate {
   @ApiProperty()
-  stock_code: number;
+  stock_code: string;
 
   @ApiProperty()
   quantity: number;

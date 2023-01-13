@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -11,15 +12,16 @@ import {
   TRANSACTION_TYPE,
   TRX_TYPE,
 } from 'src/common/enums';
-import { Between, LessThanOrEqual, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { MESSAGE } from '../../common/constant';
+import { PaginationQuery } from '../../helpers/dto-helper';
 import { AppUserService } from '../../modules/app-user/app-user.service';
 import { BlockTransactionsService } from '../block-transactions/block-transactions.service';
 import { StockStorageService } from '../stock-storage/stock-storage.service';
 import { StockService } from '../stock/stock.service';
 import { TradingSessionService } from '../trading-session/trading-session.service';
 import { TransactionsService } from '../transactions/transactions.service';
-import { OrderQuery, OrderTodayQuery } from './dto/query-order.dto';
+import { OrderQuery } from './dto/query-order.dto';
 import { Order } from './entities/order.entity';
 
 @Injectable()
@@ -36,47 +38,57 @@ export class OrderService {
   ) {}
 
   async list_orders_by_user(user_id: number) {
-    const $orders = await this._orderRepo.find({ where: { user_id } });
-    if (!!$orders) {
-      return $orders;
-    }
-    throw new BadRequestException(MESSAGE.BAD_REQUEST);
+    return await this._orderRepo.find({ where: { user_id } });
   }
 
-  async listAllOrders(query: OrderQuery, user_id?: number) {
-    const page = +query.page || 1;
-    const pageSize = +query.pageSize || 10;
+  async listAllOrders(
+    query: OrderQuery,
+    user_id?: number,
+    agent_path?: string,
+  ) {
+    const {
+      page,
+      pageSize,
+      real_name,
+      superior,
+      type,
+      username,
+      stock_code,
+      start_time,
+      end_time,
+    } = query;
 
-    const end_time = query.end_time ? new Date(query.end_time) : new Date();
-    const start_time = query.start_time ? new Date(query.start_time) : null;
-
-    if (user_id) {
-      query['user_id'] = user_id;
-      delete query.username;
-    }
-
-    query['created_at'] = start_time
-      ? Between(start_time, end_time)
-      : LessThanOrEqual(end_time);
+    const take = +pageSize || 10;
+    const skip = +pageSize * (+page - 1) || 0;
 
     const queryBuilder = this._orderRepo
       .createQueryBuilder('o')
       .innerJoinAndSelect('app_users', 'u', 'o.user_id = u.id')
+      .innerJoinAndSelect('agent', 'ag', 'u.agent = ag.id')
       .select([
         'o.*',
         'u.real_name as real_name',
-        'u.agent_code as agent',
+        'u.agent as agent',
         'u.superior as superior',
         'o.created_at as created_at',
         'o.updated_at as updated_at',
       ])
-      .where(query);
+      .where({});
+
+    !user_id &&
+      username &&
+      queryBuilder.andWhere(`u.username ILIKE '%${username}%'`);
+    user_id && queryBuilder.andWhere(`u.id = user_id`);
+    agent_path && queryBuilder.andWhere(`ag.path LIKE '%${agent_path}%'`);
+    superior && queryBuilder.andWhere(`u.superior ILIKE '%${superior}%'`);
+    real_name && queryBuilder.andWhere(`u.real_name ILIKE '%${real_name}%'`);
+    stock_code && queryBuilder.andWhere(`o.stock_code ILIKE '%${stock_code}%'`);
+    typeof type !== 'undefined' && queryBuilder.andWhere(`o.type = ${type}`);
+    start_time && queryBuilder.andWhere(`o.created_at < ${start_time}`);
+    end_time && queryBuilder.andWhere(`o.created_at > ${end_time}`);
 
     const total = await queryBuilder.clone().getCount();
-    const recs = await queryBuilder
-      .limit(pageSize)
-      .offset((page - 1) * pageSize)
-      .getRawMany();
+    const recs = await queryBuilder.limit(take).offset(skip).getRawMany();
 
     return {
       count: recs.length,
@@ -85,11 +97,9 @@ export class OrderService {
     };
   }
 
-  async listAllToday(query: OrderTodayQuery, user_id?: number) {
+  async listAllToday(query: PaginationQuery, user_id?: number) {
     const page = +query.page || 1;
     const pageSize = +query.pageSize || 10;
-
-    user_id && (query.user_id = user_id);
 
     const queryBuilder = this._orderRepo
       .createQueryBuilder('o')
@@ -102,7 +112,9 @@ export class OrderService {
         'o.created_at as created_at',
         'o.updated_at as updated_at',
       ])
-      .where(query);
+      .where({});
+
+    user_id && queryBuilder.andWhere(`u.user_id = ${user_id}`);
 
     const total = await queryBuilder.clone().getCount();
     const recs = await queryBuilder
@@ -124,7 +136,7 @@ export class OrderService {
     if (!!$orders) {
       return $orders;
     }
-    throw new BadRequestException(MESSAGE.BAD_REQUEST);
+    throw new NotFoundException(MESSAGE.notFoundError('Order'));
   }
 
   async buy(body: any, isLarTrx?: boolean) {
@@ -138,11 +150,8 @@ export class OrderService {
       isLarTrx && this._blockTrxService.findByCodeAndKey(stock_code, trx_key),
     ]);
 
-    if (!session) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
-    }
     if (isLarTrx && blockTrx.status !== COMMON_STATUS.OPENING) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
+      throw new BadRequestException(MESSAGE.BLOCK_TRANSACTION_IS_NOT_OPEN);
     }
     if (isLarTrx && blockTrx.quantity > quantity) {
       throw new BadRequestException(
@@ -152,25 +161,26 @@ export class OrderService {
 
     const { detail } = session;
     const { transaction_fees } = detail.transactions_rate as any;
+    const discount = isLarTrx ? blockTrx.discount : 0;
+    const P = stock.P * (1 - discount / 100);
 
-    const amount = isLarTrx
-      ? quantity * stock.P * (1 - blockTrx.discount / 100)
-      : quantity * stock.P;
-    const actual_amount = amount * (1 + transaction_fees / 100);
+    const amount = stock.P * quantity;
+    const actual_amount =
+      amount * (1 + transaction_fees / 100 - discount / 100);
 
     if (+user.balance_avail < actual_amount) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
+      throw new BadRequestException(MESSAGE.NOT_ENOUGH_MONEY);
     }
 
     const orderInfo = this._orderRepo.create({
       type: ORDER_TYPE.BUY,
       stock_code: stock.FS,
       quantity,
-      price: stock.P,
+      price: P,
       fee_rate: transaction_fees,
       amount,
       actual_amount,
-      discount: isLarTrx ? blockTrx.discount : 0,
+      discount,
       user_id,
       username: user.username,
       stock_market: stock.M,
@@ -185,10 +195,10 @@ export class OrderService {
       this._orderRepo.save(orderInfo),
       this._stockStorageService.store({
         stock_code: stock.FS,
-        amount,
+        amount: actual_amount,
         user_id,
         quantity,
-        price: stock.P,
+        price: P,
         trading_session: session.id,
         type: isLarTrx ? TRX_TYPE.LAR : TRX_TYPE.NOR,
       }),
@@ -217,18 +227,18 @@ export class OrderService {
     ]);
 
     if (!position) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
+      throw new NotFoundException(MESSAGE.notFoundError('Position'));
     }
     if (position.status === POSITION_STATUS.CLOSED) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
+      throw new BadRequestException(MESSAGE.POSITION_IS_CLOSED);
     }
 
     if (!currentSession) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
+      throw new NotFoundException(MESSAGE.notFoundError('Opening Session'));
     }
 
     if (currentSession.id === position.trading_session) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
+      throw new BadRequestException(MESSAGE.POSITION_CANT_SELL);
     }
 
     if (user_id && +user_id !== +position.user_id) {
@@ -239,10 +249,6 @@ export class OrderService {
       this._stockService.findOne(position.stock_code),
       this._appUserService.findOne(position.user_id),
     ]);
-
-    if (!stock) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
-    }
 
     const { quantity } = position;
     const { detail } = currentSession;
@@ -305,7 +311,7 @@ export class OrderService {
     ]);
 
     if (!currentSession) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
+      throw new NotFoundException(MESSAGE.notFoundError('Opening Session'));
     }
 
     const [stock, user] = await Promise.all([

@@ -1,7 +1,8 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { DEPOSIT_WITHDRAWAL_STATUS } from '../../../common/enums';
+import { PaginationQuery } from '../../../helpers/dto-helper';
 
-export class DepositQuery {
+export class DepositQuery extends PaginationQuery {
   @ApiPropertyOptional()
   username?: string;
 
@@ -12,14 +13,8 @@ export class DepositQuery {
   status?: DEPOSIT_WITHDRAWAL_STATUS;
 
   @ApiPropertyOptional()
-  start_time?: Date;
+  start_time?: number;
 
   @ApiPropertyOptional()
-  end_time?: Date;
-
-  @ApiPropertyOptional()
-  page?: number;
-
-  @ApiPropertyOptional()
-  pageSize?: number;
+  end_time?: number;
 }

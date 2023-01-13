@@ -15,30 +15,35 @@ import { ApiTags } from '@nestjs/swagger';
 import { RealIP } from 'nestjs-real-ip';
 import { StockService } from 'src/components/stock/stock.service';
 import { MESSAGE } from '../../common/constant';
-import { AgentService } from '../../components/agent/agent.service';
 import { AuthService } from '../../components/auth/auth.service';
 import { LoginByUsernameDto } from '../../components/auth/dto/LoginByUsernameDto';
 import { PayLoad } from '../../components/auth/dto/PayLoad';
 import { GetCurrentAppUser } from '../../components/auth/guards/app-user.decorator';
 import { AppAuthGuard } from '../../components/auth/guards/appAuth.guard';
 import { BlockTransactionsService } from '../../components/block-transactions/block-transactions.service';
+import { BlockTransactionQuery } from '../../components/block-transactions/dto/block-transaction-query.dto';
 import { DepositAccountService } from '../../components/deposit-account/deposit-account.service';
 import { DepositService } from '../../components/deposit/deposit.service';
 import { CreateDepositDto } from '../../components/deposit/dto/create-deposit.dto';
+import { DepositQuery } from '../../components/deposit/dto/query-deposit.dto';
 import { QueryFavorite } from '../../components/favorite-stock/dto/query-favorite.dto';
 import { FavoriteStockService } from '../../components/favorite-stock/favorite-stock.service';
+import { IpoApplicationAssign } from '../../components/ipo-application/dto/create-ipo-application.dto';
+import { IpoApplicationService } from '../../components/ipo-application/ipo-application.service';
+import { IpoStockListQuery } from '../../components/ipo-stock/dto/ipo-stock-list-query.dto';
+import { IpoStockService } from '../../components/ipo-stock/ipo-stock.service';
 import { OrderQuery } from '../../components/order/dto/query-order.dto';
 import { OrderService } from '../../components/order/order.service';
 import { StockStorageService } from '../../components/stock-storage/stock-storage.service';
 import { TradingSessionService } from '../../components/trading-session/trading-session.service';
+import { TransactionsService } from '../../components/transactions/transactions.service';
 import { CreateWithdrawDto } from '../../components/withdraw/dto/create-withdraw.dto';
 import { WithdrawalQuery } from '../../components/withdraw/dto/query-withdrawal.dto';
 import { WithdrawService } from '../../components/withdraw/withdraw.service';
 import { PaginationQuery, UpdatePassword } from '../../helpers/dto-helper';
 import LocalFilesInterceptor from '../../middleware/localFiles.interceptor';
-import { BlockTransactionQuery } from './../../components/block-transactions/dto/block-transaction-query.dto';
-import { DepositQuery } from './../../components/deposit/dto/query-deposit.dto';
-import { TransactionsService } from './../../components/transactions/transactions.service';
+import { AgentService } from '../agent/agent.service';
+import { IpoApplicationListQuery } from './../../components/ipo-application/dto/ipo-application-query.dto';
 import { AppUserService } from './app-user.service';
 import { SellablePositionsQuery } from './dto/app-user-query.dto';
 import { AppUserRegister } from './dto/create-app-user.dto';
@@ -61,6 +66,8 @@ export class AppUserController {
     private readonly trxService: TransactionsService,
     private readonly agentService: AgentService,
     private readonly blockTrxService: BlockTransactionsService,
+    private readonly ipoStockService: IpoStockService,
+    private readonly ipoAppService: IpoApplicationService,
   ) {}
 
   // CRUD
@@ -299,7 +306,7 @@ export class AppUserController {
   ) {
     const { position_ids } = body;
     if (!position_ids) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
+      throw new BadRequestException('position_ids is required.');
     }
     return this.orderService.bulkSellNor(
       position_ids,
@@ -337,7 +344,7 @@ export class AppUserController {
   @UseGuards(AppAuthGuard)
   @Get('block-transaction/list')
   async getBlockTransactionsList(@Query() query: BlockTransactionQuery) {
-    return this.blockTrxService.findAll(query);
+    return this.blockTrxService.findAllByApp(query);
   }
 
   // Favorite
@@ -414,6 +421,43 @@ export class AppUserController {
     },
   ) {
     return this.stockService.get_k_line_data(query);
+  }
+
+  // Ipo
+  @UseGuards(AppAuthGuard)
+  @Get('ipo-stock/list-available')
+  async getAvailableIpoStock(@Query() query: IpoStockListQuery) {
+    return this.ipoStockService.findAll(query, true);
+  }
+
+  @UseGuards(AppAuthGuard)
+  @Get('ipo-application/list')
+  async getIpoAppList(
+    @Query() query: IpoApplicationListQuery,
+    @GetCurrentAppUser() user: PayLoad,
+  ) {
+    return this.ipoAppService.findAll(query, user.id);
+  }
+
+  @UseGuards(AppAuthGuard)
+  @Post('ipo-application/assign/:id')
+  async assignIpoApp(
+    @Param('id') id: number,
+    @GetCurrentAppUser() user: PayLoad,
+    @Body() body: IpoApplicationAssign,
+  ) {
+    body.user_id = user.id;
+    body.ipo_id = id;
+    return this.ipoAppService.assign(body);
+  }
+
+  @UseGuards(AppAuthGuard)
+  @Patch('ipo-application/paid/:id')
+  async paidIpoApp(
+    @Param('id') id: number,
+    @GetCurrentAppUser() user: PayLoad,
+  ) {
+    return this.ipoAppService.paidByApp(id, user.id);
   }
 
   //List

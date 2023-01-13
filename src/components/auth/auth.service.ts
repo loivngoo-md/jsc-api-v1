@@ -7,16 +7,19 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import * as fetch from 'node-fetch';
 import { MESSAGE } from '../../common/constant';
+import { AgentService } from '../../modules/agent/agent.service';
+import { Agent } from '../../modules/agent/entities/agent.entity';
 import { AppUserService } from '../../modules/app-user/app-user.service';
 import AppUser from '../../modules/app-user/entities/app-user.entity';
 import { CmsUserService } from '../../modules/cms-user/cms-user.service';
 import CmsUser from '../../modules/cms-user/entities/cms-user.entity';
-import { AgentService } from '../agent/agent.service';
-import { Agent } from '../agent/entities/agent.entity';
 import { BackendLogger } from '../logger/BackendLogger';
 import { LoginRecordService } from '../login-record/login-record.service';
 import { TOKEN_EXPIRES_IN } from './../../common/constant/constants';
-import { INVALID_TOKEN } from './../../common/constant/error-message';
+import {
+  INVALID_TOKEN,
+  USER_MESSAGE,
+} from './../../common/constant/error-message';
 import { LoginByUsernameDto } from './dto/LoginByUsernameDto';
 import { LoginReturnDto } from './dto/LoginReturnDto';
 import { PayLoad } from './dto/PayLoad';
@@ -36,7 +39,7 @@ export class AuthService {
   async validateCmsUser(payload: PayLoad): Promise<any> {
     const { username } = payload;
 
-    const user = await this._cmsUserService.findByUsername(username);
+    const user = await this._cmsUserService.findByUsername(username, true);
     if (!user) {
       throw new UnauthorizedException(INVALID_TOKEN);
     }
@@ -46,7 +49,7 @@ export class AuthService {
   async validateAgentUser(payload: PayLoad): Promise<any> {
     const { username } = payload;
 
-    const user = await this._agentUserService.findByUsername(username);
+    const user = await this._agentUserService.findByUsername(username, true);
     if (!user) {
       throw new UnauthorizedException(INVALID_TOKEN);
     }
@@ -56,7 +59,7 @@ export class AuthService {
   async validateAppUser(payload: PayLoad): Promise<any> {
     const { username } = payload;
 
-    const user = await this._appUserService.findByUsername(username);
+    const user = await this._appUserService.findByUsername(username, true);
     if (!user) {
       throw new UnauthorizedException(INVALID_TOKEN);
     }
@@ -77,11 +80,11 @@ export class AuthService {
     const comparePw = await bcrypt.compare(password, userPw);
 
     if (!user || !comparePw) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
+      throw new BadRequestException(USER_MESSAGE.WRONG_SINGIN);
     }
 
     if (!user.is_active) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
+      throw new BadRequestException(USER_MESSAGE.NOT_ACTIVE);
     }
 
     const options = {
@@ -98,7 +101,7 @@ export class AuthService {
       password: userPw,
       ip: ip,
       location: ipgeo.city?.name || '',
-      created_at: new Date(),
+      created_at: new Date().getTime(),
     };
 
     await this._loginRecord.insert(location);
@@ -117,16 +120,16 @@ export class AuthService {
     const comparePw = await bcrypt.compare(password, userPw);
 
     if (!user || !comparePw) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
+      throw new BadRequestException(USER_MESSAGE.WRONG_SINGIN);
     }
 
     if (!user.is_active) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
+      throw new BadRequestException(USER_MESSAGE.NOT_ACTIVE);
     }
 
     this.logger.log(`'${username}' ${MESSAGE.IS_LOGGED_IN}`);
 
-    return this.createToken(user);
+    return this.createTokenForAgent(user);
   }
 
   async loginCmsViaUsername(
@@ -140,11 +143,11 @@ export class AuthService {
     const comparePw = await bcrypt.compare(password, userPw);
 
     if (!user || !comparePw) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
+      throw new BadRequestException(USER_MESSAGE.WRONG_SINGIN);
     }
 
     if (!user.is_active) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
+      throw new BadRequestException(USER_MESSAGE.NOT_ACTIVE);
     }
 
     return this.createToken(user);
@@ -155,6 +158,23 @@ export class AuthService {
       {
         username: user.username,
         id: user.id,
+      },
+      { secret: process.env.SECRET_KEY_JWT },
+    );
+    const response: LoginReturnDto = {
+      access_token: token,
+      expiresIn: TOKEN_EXPIRES_IN,
+    };
+
+    return response;
+  }
+
+  async createTokenForAgent(user: Agent): Promise<LoginReturnDto> {
+    const token = this._jwtService.sign(
+      {
+        username: user.username,
+        id: user.id,
+        path: user.path,
       },
       { secret: process.env.SECRET_KEY_JWT },
     );

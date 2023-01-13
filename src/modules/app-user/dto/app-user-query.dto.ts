@@ -1,9 +1,9 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PaginationQuery } from '../../../helpers/dto-helper';
 
 export class AppUserListQuery extends PaginationQuery {
   @ApiPropertyOptional()
-  agent?: number;
+  superior?: string;
 
   @ApiPropertyOptional()
   is_real?: boolean;
@@ -13,8 +13,12 @@ export class AppUserListQuery extends PaginationQuery {
 
   @ApiPropertyOptional()
   phone?: string;
+
+  @ApiPropertyOptional()
+  username?: string;
 }
 
-export type SellablePositionsQuery = {
+export class SellablePositionsQuery extends PaginationQuery {
+  @ApiProperty()
   stock_code: string;
-};
+}

@@ -55,6 +55,11 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImNtc
 }
 
 ###
+GET http://127.0.0.1:8000/api/v1/cms/ipo-application/list?page=1&status[]=pending HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImNtc3VzZXJ0ZXN0IiwiaWQiOjEsImlhdCI6MTY3MzMyNTI1OCwiZXhwIjoxNjczNDExNjU4fQ.jJXdvZaxobMwY4j1jpeYpOcXGEZayDlmQZJMM1R6Cw8
+
+###
 POST http://127.0.0.1:8000/api/v1/app/user/signin HTTP/1.1
 Content-Type: application/json
 

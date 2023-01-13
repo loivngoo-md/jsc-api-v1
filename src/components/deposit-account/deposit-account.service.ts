@@ -1,4 +1,4 @@
-import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { MESSAGE } from './../../common/constant/index';
@@ -12,7 +12,6 @@ export class DepositAccountService {
   ) {}
 
   async create(dto: any) {
-    dto.created_at = new Date();
     const response = this._depositAccountRepo.create(dto);
     await this._depositAccountRepo.save(response);
     return response;
@@ -33,7 +32,7 @@ export class DepositAccountService {
     if (response) {
       return response;
     }
-    throw new BadRequestException(MESSAGE.BAD_REQUEST);
+    throw new NotFoundException(MESSAGE.notFoundError('Deposit Account'));
   }
 
   async update(id: number, dto: any) {
@@ -45,13 +44,13 @@ export class DepositAccountService {
       return updated;
     }
 
-    throw new BadRequestException(MESSAGE.BAD_REQUEST);
+    throw new NotFoundException(MESSAGE.notFoundError('Deposit Account'));
   }
-
+ 
   async remove(id: number) {
     const deleteResponse = await this._depositAccountRepo.delete(id);
     if (!deleteResponse.affected) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
+      throw new NotFoundException(MESSAGE.notFoundError('Deposit Account'));
     }
 
     return {

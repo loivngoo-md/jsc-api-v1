@@ -44,6 +44,10 @@ export const USER_MESSAGE = {
   INVALID_ROLE: 'Role is invalid',
   INVALID_AVATAR_CODE: 'Avatar is invalid',
   USER_EXITED: 'Email or username has already existed',
+  WRONG_OLD_PASSWORD: 'Old password is wrong',
+  WRONG_SINGIN: 'Username or password is wrong',
+  NOT_ACTIVE: 'User is not active',
+  LACK_WITHDRAWAL_PW: 'Missing old password withdrawal',
 };
 /**-------------------------------------------------------------------- */
 
@@ -102,6 +106,8 @@ export const UNAVAIL_DEVICE = `Unavailable device`;
 
 export const FORBIDDEN = `Forbidden resource.`;
 
+export const NOT_ENOUGH_MONEY = 'Do not enough money.';
+
 /** Trading Session Message */
 export const TRADING_SESSION_IS_NOT_OPEN = 'Trading Session is not Open.';
 export const BLOCK_TRANSACTION_IS_NOT_OPEN = 'Block Transaction is not Open.';
@@ -112,10 +118,22 @@ export const BALANCE_AVAILABLE_IS_NOT_ENOUGH =
 /**Position Message */
 export const POSITION_IS_CLOSED = 'Position is Closed.';
 export const NOT_FOUND_POSITION = 'Not found opening session.';
+export const POSITION_CANT_SELL =
+  'Position cannot sell because of opening session.';
 
 /** Deposit Message */
 export const DEPOSIT_RANGE_VALID_IS = 'Deposit should be in range ';
+export const DEPOSIT_NOT_PENDING = 'Deposit is reviewed.';
 
 /**Withdrawal Messagage */
 export const WITHDRAWAL_RANGE_VALIS_IS = 'Withdrawal should be in range';
-export const NOT_ENOUGH_MONEY = 'Do not enough money to withdraw.';
+export const WITHDRAWAL_WRONG_PASSWORD = 'Wrong withdrawal password';
+export const WITHDRAWAL_NOT_PENDING = 'Withdrawal is reviewed.';
+
+export const isExistError = (entity: string, addMess?: string) => {
+  return `${entity} is Exist ${addMess}`;
+};
+
+export const notFoundError = (entity: string, addMess?: string) => {
+  return `Not found ${entity} ${addMess}`;
+};

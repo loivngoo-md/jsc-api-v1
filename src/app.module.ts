@@ -4,7 +4,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
-import { IpoStockModule } from './components/ipo-stock/ipo-stock.module';
+import { IpoApplicationModule } from './components/ipo-application/ipo-application.module';
 import { TransactionsModule } from './components/transactions/transactions.module';
 import { DatabaseModule } from './database/database.module';
 import { CmsUserModule } from './modules/cms-user/cms-user.module';
@@ -30,7 +30,8 @@ import { CmsUserModule } from './modules/cms-user/cms-user.module';
     DatabaseModule,
     CmsUserModule,
     TransactionsModule,
-    IpoStockModule,
+    // IpoApplicationModule,
+    // IpoStockModule,
     // BlockTransactionsModule,
   ],
   controllers: [],

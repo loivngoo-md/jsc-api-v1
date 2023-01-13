@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, OmitType } from '@nestjs/swagger';
 
 export class AppUserRegister {
   @ApiProperty()
@@ -17,4 +17,11 @@ export class AppUserCreate extends AppUserRegister {
 
   @ApiProperty()
   amount: number;
+
+  @ApiProperty()
+  phone: string;
 }
+
+export class AppUserCreateByAgent extends OmitType(AppUserCreate, [
+  'agent_code',
+]) {}

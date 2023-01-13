@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
 import { Like, Repository } from 'typeorm';
@@ -7,13 +11,18 @@ import { PayLoad } from '../../components/auth/dto/PayLoad';
 import { MoneyLogCreate } from '../../components/money-log/dto/money-log-create.dto';
 import { MoneyLogService } from '../../components/money-log/money-log.service';
 import { SetPassword, UpdatePassword } from '../../helpers/dto-helper';
-import { MESSAGE } from './../../common/constant/index';
-import { AgentService } from './../../components/agent/agent.service';
+import { AgentService } from '../agent/agent.service';
+import { MESSAGE, USER_MESSAGE } from './../../common/constant/index';
 import { AppUserListQuery } from './dto/app-user-query.dto';
-import { AppUserCreate, AppUserRegister } from './dto/create-app-user.dto';
+import {
+  AppUserCreate,
+  AppUserCreateByAgent,
+  AppUserRegister,
+} from './dto/create-app-user.dto';
 import {
   AppUserUpdateBalance,
   AppUserUpdateDetail,
+  AppUserUpdateProfile,
 } from './dto/update-app-user.dto';
 import AppUser from './entities/app-user.entity';
 
@@ -33,7 +42,7 @@ export class AppUserService {
   async get_customer_balance_frozen(user_id: number) {
     const user = await this.findOne(user_id);
     if (!user) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
+      throw new NotFoundException(MESSAGE.notFoundError('User'));
     }
 
     return {
@@ -64,7 +73,6 @@ export class AppUserService {
     if (dto['type'] === IMAGE_TYPE.BACK) {
       appUser.id_back = fileData.filename;
     }
-
     await this._appUserRepo.save(appUser);
     return fileData.filename;
   }
@@ -121,12 +129,16 @@ export class AppUserService {
       this._agentService.findByCode(agent_code),
     ]);
 
+    console.log(isExistedUser, '>>>>>');
+
     if (isExistedUser) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
+      throw new BadRequestException(
+        MESSAGE.isExistError('User', 'with this Username'),
+      );
     }
 
     if (!existAgent) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
+      throw new NotFoundException(MESSAGE.notFoundError('Agent'));
     }
 
     const salt = await bcrypt.genSalt();
@@ -144,7 +156,7 @@ export class AppUserService {
   }
 
   async create(body: AppUserCreate, cms_user: PayLoad) {
-    const { username, password, agent_code, is_real, amount } = body;
+    const { username, password, agent_code, is_real, amount, phone } = body;
 
     const newUser = await this.register(
       { username, password, agent_code },
@@ -155,6 +167,31 @@ export class AppUserService {
     newUser.balance = amount;
     newUser.balance_avail = amount;
     newUser.created_by = cms_user.username;
+    newUser.phone = phone;
+
+    await this._appUserRepo.save(newUser);
+    return newUser;
+  }
+
+  async createByAgent(body: AppUserCreateByAgent, agent_user: PayLoad) {
+    const { username, password, is_real, amount, phone } = body;
+
+    const agent = await this._agentService.findOne(agent_user.id);
+
+    const newUser = await this.register(
+      {
+        username,
+        password,
+        agent_code: agent.code,
+      },
+      true,
+    );
+
+    newUser.is_real = is_real;
+    newUser.balance = amount;
+    newUser.balance_avail = amount;
+    newUser.created_by = agent_user.username;
+    newUser.phone = phone;
 
     await this._appUserRepo.save(newUser);
     return newUser;
@@ -165,18 +202,18 @@ export class AppUserService {
       where: { username, is_delete: false },
     });
     if (!user && !isPartService) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
+      throw new NotFoundException(MESSAGE.notFoundError('App User'));
     }
     return user;
   }
 
   async getList(query: AppUserListQuery) {
-    const { page, pageSize, agent, is_real, real_name, phone } = query;
+    const { page, pageSize, superior, is_real, real_name, phone } = query;
     const take = +pageSize || 10;
     const skip = +pageSize * (+page - 1) || 0;
-    const whereConditions: Object = { is_real: true, is_delete: false };
+    const whereConditions: Object = { is_delete: false };
 
-    agent && Object.assign(whereConditions, { agent });
+    superior && Object.assign(whereConditions, { superior });
     real_name &&
       Object.assign(whereConditions, { real_name: Like(`%${real_name}%`) });
     phone && Object.assign(whereConditions, { phone: Like(`%${phone}%`) });
@@ -197,7 +234,9 @@ export class AppUserService {
   }
 
   async getListByAgent(query: AppUserListQuery, agent_id: number) {
-    const { page, pageSize, agent, is_real, real_name, phone } = query;
+    console.log(query, '>>>>>>>>');
+    const { page, pageSize, superior, is_real, real_name, phone, username } =
+      query;
     const take = +pageSize || 10;
     const skip = +pageSize * (+page - 1) || 0;
 
@@ -210,10 +249,12 @@ export class AppUserService {
 
     queryBuilder.where(`a.path like '${agentUser.path}%'`);
     is_real && queryBuilder.andWhere(`u.is_real = ${is_real}`);
-    real_name && queryBuilder.andWhere(`u.username like '%${real_name}%'`);
-    phone && queryBuilder.andWhere(`u.phone like '%${phone}%'`);
-    if (agent) {
-      const queryAgent = await this._agentService.findOne(agent);
+    real_name && queryBuilder.andWhere(`u.real_name ilike '%${real_name}%'`);
+    phone && queryBuilder.andWhere(`u.phone ilike '%${phone}%'`);
+    username && queryBuilder.andWhere(`u.username ilike '%${username}%'`);
+
+    if (superior) {
+      const queryAgent = await this._agentService.findByUsername(superior);
       queryBuilder.andWhere(`a.path like '${queryAgent.path}%'`);
     }
 
@@ -234,10 +275,32 @@ export class AppUserService {
     if (user) {
       return user;
     }
-    throw new BadRequestException(MESSAGE.BAD_REQUEST);
+    throw new NotFoundException(MESSAGE.notFoundError('App User'));
   }
 
-  async updateProfile(user_id: number, body: any) {}
+  async updateProfile(user_id: number, body: AppUserUpdateProfile) {
+    const user = await this.findOne(user_id);
+    const {
+      real_name,
+      phone,
+      account_holder,
+      id_number,
+      bank_branch,
+      bank_name,
+      bank_number,
+    } = body;
+
+    real_name && Object.assign(user, { real_name });
+    phone && Object.assign(user, { phone });
+    account_holder && Object.assign(user, { account_holder });
+    id_number && Object.assign(user, { id_number });
+    bank_branch && Object.assign(user, { bank_branch });
+    bank_name && Object.assign(user, { bank_name });
+    bank_number && Object.assign(user, { bank_number });
+
+    await this._appUserRepo.save(user);
+    return { isSuccess: true };
+  }
 
   async updateAppUser(user_id: number, body: AppUserUpdateDetail) {
     const user = await this.findOne(user_id);
@@ -279,7 +342,7 @@ export class AppUserService {
 
     const compare = await bcrypt.compare(old_password, appUser.password);
     if (!compare) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
+      throw new BadRequestException(USER_MESSAGE.WRONG_OLD_PASSWORD);
     }
 
     const salt = await bcrypt.genSalt();
@@ -296,13 +359,13 @@ export class AppUserService {
     let { withdraw_password } = appUser;
     if (withdraw_password) {
       if (!old_password) {
-        throw new BadRequestException(MESSAGE.BAD_REQUEST);
+        throw new BadRequestException(USER_MESSAGE.LACK_WITHDRAWAL_PW);
       }
 
       const compare = await bcrypt.compare(old_password, withdraw_password);
 
       if (!compare) {
-        throw new BadRequestException(MESSAGE.BAD_REQUEST);
+        throw new BadRequestException(USER_MESSAGE.WRONG_OLD_PASSWORD);
       }
     }
 

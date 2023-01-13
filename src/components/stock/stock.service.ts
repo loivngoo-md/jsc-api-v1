@@ -1,5 +1,9 @@
 import { HttpService } from '@nestjs/axios';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { firstValueFrom } from 'rxjs';
 import { Repository } from 'typeorm';
@@ -148,18 +152,27 @@ export class StockService {
     const { data } = await firstValueFrom(this.httpService.get(url, config));
     const listStocks: any[] = data.Obj;
 
-    if (listStocks) {
+    if (listStocks.length) {
       await this._stockRepo.upsert([...listStocks], ['FS']);
       return listStocks[0] as Stock;
     }
 
-    throw new BadRequestException(MESSAGE.BAD_REQUEST);
+    throw new NotFoundException(MESSAGE.notFoundError('Stock'));
+  }
+
+  async findMany(fss: string[]) {
+    return Promise.all(
+      fss.map(async (fs) => {
+        const stock = await this.findOne(fs);
+        return stock;
+      }),
+    );
   }
 
   async findByC(c: string) {
     const stock = await this._stockRepo.findOne({ where: { C: c } });
     if (!stock) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
+      throw new NotFoundException(MESSAGE.notFoundError('Stock'));
     }
     return await this.findOne(stock.FS);
   }
@@ -170,7 +183,7 @@ export class StockService {
     if (updated) {
       return updated;
     }
-    throw new BadRequestException(MESSAGE.BAD_REQUEST);
+    throw new NotFoundException(MESSAGE.notFoundError('Stock'));
   }
 
   remove(id: number) {

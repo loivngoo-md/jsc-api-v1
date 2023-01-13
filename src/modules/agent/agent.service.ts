@@ -1,7 +1,11 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
-import { Like, Repository } from 'typeorm';
+import { ILike, Like, Repository } from 'typeorm';
 import { ACCOUNT_TYPE, MODIFY_TYPE } from '../../common/enums';
 import { MoneyLogCreate } from '../../components/money-log/dto/money-log-create.dto';
 import { MoneyLogService } from '../../components/money-log/money-log.service';
@@ -10,6 +14,7 @@ import {
   SetPassword,
   UpdatePassword,
 } from '../../helpers/dto-helper';
+import { USER_MESSAGE } from './../../common/constant/error-message';
 import { MESSAGE } from './../../common/constant/index';
 import {
   AgentUserCreateByAdmin,
@@ -25,13 +30,29 @@ export class AgentService {
     @InjectRepository(Agent)
     private readonly _agentRepo: Repository<Agent>,
     private readonly _moneyLogService: MoneyLogService,
-  ) {}
+  ) { }
+
+  private generateId = async () => {
+    const code = Math.floor(Math.random() * 10000).toString();
+
+    const isValid = await this._agentRepo.findOne({ where: { code } })
+
+    if (!isValid) {
+      return code;
+    } else {
+      this.generateId();
+    }
+  };
+
 
   async create(body: AgentUserCreateByAdmin, isPartService?: boolean) {
+    let code = await this.generateId()
     const { username, password, real_name, phone } = body;
     const existAgent = await this.findByUsername(username, true);
     if (existAgent) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
+      throw new BadRequestException(
+        MESSAGE.isExistError('Agent', 'with this Username'),
+      );
     }
 
     const salt = await bcrypt.genSalt();
@@ -42,6 +63,7 @@ export class AgentService {
       password: hashedPassword,
       real_name,
       phone,
+      code,
     });
     if (isPartService) return newAgent;
 
@@ -93,21 +115,23 @@ export class AgentService {
     query: AgentUserListQuery | PaginationQuery,
     agent_id?: number,
   ) {
-    const { page, pageSize, phone, real_name, sub_agent } = query as any;
+    const { page, pageSize, phone, real_name, path, username } = query as any;
     const take = +pageSize || 10;
     const skip = +pageSize * (+page - 1) || 0;
 
     let whereConditions: Object = { is_delete: false };
-    phone && Object.assign(whereConditions, { phone });
-    real_name && Object.assign(whereConditions, { real_name });
-    sub_agent &&
-      Object.assign(whereConditions, { path: Like(`${sub_agent}.%`) });
+    phone && Object.assign(whereConditions, { phone: ILike(`%${phone}%`) });
+    real_name &&
+      Object.assign(whereConditions, { real_name: ILike(`%${real_name}%`) });
+    path && Object.assign(whereConditions, { path: ILike(`${path}.%`) });
+    username &&
+      Object.assign(whereConditions, { username: ILike(`%${username}%`) });
 
     if (agent_id) {
       const currentAgent = await this.findOne(agent_id);
       whereConditions = {
         is_delete: false,
-        path: Like(`${currentAgent.path}*`),
+        path: Like(`${currentAgent.path}%`),
       };
     }
 
@@ -137,7 +161,7 @@ export class AgentService {
 
     const rec = await this._agentRepo.findOne({ where: whereConditions });
     if (!rec) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
+      throw new NotFoundException(MESSAGE.notFoundError('Agent'));
     }
     return rec;
   }
@@ -148,7 +172,7 @@ export class AgentService {
       where: { code, is_delete: false },
     });
     if (!rec && !isCreate) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
+      throw new NotFoundException(MESSAGE.notFoundError('Agent'));
     }
     return rec;
   }
@@ -158,7 +182,7 @@ export class AgentService {
       where: { username, is_delete: false },
     });
     if (!rec && !isPartService) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
+      throw new NotFoundException(MESSAGE.notFoundError('Agent'));
     }
     return rec;
   }
@@ -175,7 +199,9 @@ export class AgentService {
     return { isSuccess: true };
   }
 
-  async updateProfile(id: number, updateProfile: any) {}
+  // TODO
+  async updateProfile(id: number, updateProfile: any) { }
+  //
 
   async modifyFund(id: number, body: MoneyLogCreate) {
     const { type, amount, comments, remark } = body;
@@ -219,8 +245,9 @@ export class AgentService {
     const user = await this.findOne(id);
     const { password } = user;
     const compare = await bcrypt.compare(old_password, password);
+
     if (!compare) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
+      throw new BadRequestException(USER_MESSAGE.WRONG_OLD_PASSWORD);
     }
 
     const salt = await bcrypt.genSalt();

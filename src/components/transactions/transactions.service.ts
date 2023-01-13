@@ -18,15 +18,18 @@ export class TransactionsService {
     return response;
   }
 
-  async findAll(query: PaginationQuery, app_user_id?: number) {
+  async findAll(
+    query: PaginationQuery,
+    app_user_id?: number,
+    agent_path?: string,
+  ) {
     const page = query['page'] || 1;
     const pageSize = query['pageSize'] || 10;
-    let whereCondition: string = '';
-    app_user_id && (whereCondition += `t.user_id = ${app_user_id}`);
 
-    const transactions = await this._trxRepo
+    const transactionsQuery = this._trxRepo
       .createQueryBuilder('t')
       .innerJoinAndSelect('app_users', 'u', 't.user_id = u.id')
+      .innerJoinAndSelect('agent', 'ag', 'ag.id = u.agent')
       .leftJoinAndSelect(
         'orders',
         'o',
@@ -49,13 +52,20 @@ export class TransactionsService {
         'row_to_json(d.*) as deposit',
         'row_to_json(w.*) as withdrawal',
       ])
-      .where(whereCondition)
+      .where({});
+
+    app_user_id && transactionsQuery.andWhere(`t.user_id = ${app_user_id}`);
+    agent_path && transactionsQuery.andWhere(`ag.path ILIKE '%${agent_path}%'`);
+
+    const total = await transactionsQuery.clone().getCount();
+    const transactions = await transactionsQuery
       .limit(pageSize)
       .offset((page - 1) * pageSize)
       .getRawMany();
     return {
       data: transactions,
       count: transactions.length,
+      total,
     };
   }
 

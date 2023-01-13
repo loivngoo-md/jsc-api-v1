@@ -1,14 +1,15 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AgentModule } from '../../components/agent/agent.module';
 import { AuthModule } from '../../components/auth/auth.module';
 import { BlockTransactionsModule } from '../../components/block-transactions/block-transactions.module';
 import { StockModule } from '../../components/stock/stock.module';
 import { TransactionsModule } from '../../components/transactions/transactions.module';
 import { WithdrawModule } from '../../components/withdraw/withdraw.module';
+import { AgentModule } from '../agent/agent.module';
 import { AppUserModule } from '../app-user/app-user.module';
 import { DepositAccountModule } from './../../components/deposit-account/deposit-account.module';
 import { DepositModule } from './../../components/deposit/deposit.module';
+import { IpoApplicationModule } from './../../components/ipo-application/ipo-application.module';
 import { IpoStockModule } from './../../components/ipo-stock/ipo-stock.module';
 import { LoginRecordModule } from './../../components/login-record/login-record.module';
 import { MoneyLogModule } from './../../components/money-log/money-log.module';
@@ -22,8 +23,8 @@ import CmsUser from './entities/cms-user.entity';
 @Module({
   imports: [
     TypeOrmModule.forFeature([CmsUser]),
-    AppUserModule,
     forwardRef(() => AuthModule),
+    AppUserModule,
     MoneyLogModule,
     OrderModule,
     DepositModule,
@@ -37,6 +38,7 @@ import CmsUser from './entities/cms-user.entity';
     AgentModule,
     IpoStockModule,
     BlockTransactionsModule,
+    IpoApplicationModule
   ],
   controllers: [CmsUserController],
   providers: [CmsUserService],

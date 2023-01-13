@@ -1,7 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { LessThanOrEqual, MoreThanOrEqual, Not, Repository } from 'typeorm';
 import { MESSAGE } from '../../common/constant';
+import { COMMON_STATUS } from '../../common/enums';
 import { StockService } from '../stock/stock.service';
 import { BlockTransactionQuery } from './dto/block-transaction-query.dto';
 import { BlockTransactionCreate } from './dto/create-block-transaction.dto';
@@ -20,16 +21,6 @@ export class BlockTransactionsService {
     const { stock_code, quantity, trx_key, discount, start_time, end_time } =
       body;
 
-    const existBlockTrx = await this.findByCodeAndKey(
-      stock_code,
-      trx_key,
-      true,
-    );
-
-    if (existBlockTrx) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
-    }
-
     const stock = await this._stockService.findByC(stock_code.toString());
     const blockTrxInfo = this._blockTrxRepo.create({
       stock_code,
@@ -47,7 +38,7 @@ export class BlockTransactionsService {
 
   async findAll(query: BlockTransactionQuery) {
     const { page, pageSize, key_words } = query;
-    console.log(query);
+
     const take = +pageSize || 10;
     const skip = +pageSize * (+page - 1) || 0;
 
@@ -59,7 +50,7 @@ export class BlockTransactionsService {
 
     key_words &&
       queryBuilder.andWhere(
-        `bt.stock_name LIKE '%${key_words}%' OR bt.stock_code LIKE '%${key_words}%'`,
+        `bt.stock_name ILIKE '%${key_words}%' OR bt.stock_code ILIKE '%${key_words}%'`,
       );
 
     const total = await queryBuilder.clone().getCount();
@@ -72,19 +63,32 @@ export class BlockTransactionsService {
     };
   }
 
+  async findAllByApp(query: BlockTransactionQuery) {
+    const res = await this.findAll(query);
+    const data = res.data.map((ele: BlockTransaction) => {
+      delete ele.trx_key;
+      return ele;
+    });
+    return {
+      count: res.count,
+      data,
+      total: res.total,
+    };
+  }
+
   async findOne(id: number) {
     const blockTrx = await this._blockTrxRepo.findOne({
       where: { id, is_delete: false },
     });
     if (!blockTrx) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
+      throw new NotFoundException(MESSAGE.notFoundError('Block Transaction'));
     }
 
     return blockTrx;
   }
 
   async findByCodeAndKey(
-    stock_code: number,
+    stock_code: string,
     trx_key: string,
     isCheckExist?: boolean,
   ) {
@@ -92,7 +96,7 @@ export class BlockTransactionsService {
       where: { stock_code, trx_key },
     });
     if (!blockTrx && !isCheckExist) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
+      throw new NotFoundException(MESSAGE.notFoundError('Block Transaction'));
     }
 
     return blockTrx;
@@ -121,5 +125,39 @@ export class BlockTransactionsService {
     await this._blockTrxRepo.save(blockTrx);
 
     return { isSuccess: true };
+  }
+
+  //TODO: Turn-on Cronjob
+  // @Cron('* * * * * *')
+  async changeStatusBlockTrx() {
+    const curTime = new Date().getTime();
+
+    await Promise.all([
+      // Update opening block trx
+      this._blockTrxRepo.update(
+        {
+          status: Not(COMMON_STATUS.OPENING),
+          start_time: LessThanOrEqual(curTime),
+          end_time: MoreThanOrEqual(curTime),
+          is_delete: false,
+          is_active: true,
+        },
+        {
+          status: COMMON_STATUS.OPENING,
+        },
+      ),
+      // Update closed block trx
+      this._blockTrxRepo.update(
+        {
+          status: Not(COMMON_STATUS.CLOSED),
+          end_time: LessThanOrEqual(curTime),
+          is_delete: false,
+          is_active: true,
+        },
+        {
+          status: COMMON_STATUS.CLOSED,
+        },
+      ),
+    ]);
   }
 }

@@ -1,7 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { dateFormatter } from 'src/helpers/moment';
 import { Repository } from 'typeorm';
+import { MESSAGE } from '../../common/constant';
 import { COMMON_STATUS } from '../../common/enums';
 import { DAYS } from '../../helpers/helper-date';
 import { ITradingHours } from '../system-configuration/entities/system-configuration.interface';
@@ -42,9 +44,14 @@ export class TradingSessionService {
     const whereConditions = isLargeTrd
       ? { status_lar: COMMON_STATUS.OPENING }
       : { status_nor: COMMON_STATUS.OPENING };
-    return this._tradingSessionRepo.findOne({
+    const session = await this._tradingSessionRepo.findOne({
       where: whereConditions,
     });
+
+    if (!session) {
+      throw new NotFoundException(MESSAGE.notFoundError('Opening Session'));
+    }
+    return session;
   }
 
   async update(id: string, dto: UpdateTradingSessionDto) {
@@ -63,7 +70,7 @@ export class TradingSessionService {
    *  Remove comment below to excuting progress each CronJob
    */
 
-  // @Cron('*/05 * * * * 1-5')
+  @Cron('*/01 * * * 1-5')
   async startSession() {
     const date = dateFormatter();
     const curDate = date.format('MM/DD/YYYY');
@@ -72,18 +79,15 @@ export class TradingSessionService {
       where: { date: curDate },
     });
     if (!session) {
-      await this._tradingSessionRepo
-        .createQueryBuilder()
-        .update(TradingSession)
-        .set({
-          status_nor: COMMON_STATUS.CLOSED,
-          status_lar: COMMON_STATUS.CLOSED,
-        })
-        .where(
-          `NOT status_nor = ${COMMON_STATUS.CLOSED} 
-           OR NOT status_lar = ${COMMON_STATUS.CLOSED}`,
-        )
-        .execute();
+      let $query = `
+      UPDATE "trading-session" SET 
+      status_nor = '${COMMON_STATUS.CLOSED}',
+      status_lar = '${COMMON_STATUS.CLOSED}'
+      WHERE NOT (status_nor = '${COMMON_STATUS.CLOSED}') 
+      OR NOT (status_lar = '${COMMON_STATUS.CLOSED}')
+      `;
+
+      await this._tradingSessionRepo.query($query);
 
       const sessionInfo = this._tradingSessionRepo.create({
         date: curDate,
