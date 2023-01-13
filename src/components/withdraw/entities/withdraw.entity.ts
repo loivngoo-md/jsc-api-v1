@@ -37,6 +37,6 @@ export class Withdraw extends EntityHelper {
   @Column('varchar', { default: '' })
   reviewed_by: string;
 
-  @Column({ nullable: true })
-  reviewed_at: Date;
+  @Column({ type: 'int8', nullable: true })
+  reviewed_at: number;
 }
