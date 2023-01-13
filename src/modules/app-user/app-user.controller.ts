@@ -306,7 +306,7 @@ export class AppUserController {
   ) {
     const { position_ids } = body;
     if (!position_ids) {
-      throw new BadRequestException('position_ids is required.');
+      throw new BadRequestException('position_ids 是必须的。');
     }
     return this.orderService.bulkSellNor(
       position_ids,

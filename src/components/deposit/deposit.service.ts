@@ -32,7 +32,7 @@ export class DepositService {
         deposit_account_id,
       );
       if (!depAcc) {
-        throw new NotFoundException(MESSAGE.notFoundError('Deposit Account'));
+        throw new NotFoundException(MESSAGE.notFoundError('存款账户'));
       }
     }
     const [user, sysConfig] = await Promise.all([
@@ -131,7 +131,7 @@ export class DepositService {
     if (response) {
       return response;
     }
-    throw new NotFoundException(MESSAGE.notFoundError('Deposit Transaction'));
+    throw new NotFoundException(MESSAGE.notFoundError('存款账户'));
   }
 
   async reviewByCms(deposit_id: number, dto: any) {

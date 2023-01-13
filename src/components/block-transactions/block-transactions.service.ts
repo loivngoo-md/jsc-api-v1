@@ -7,6 +7,7 @@ import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessThanOrEqual, MoreThanOrEqual, Not, Repository } from 'typeorm';
 import { MESSAGE } from '../../common/constant';
+import { BLOCK_TRX_INVALID_ST_AND_ET } from '../../common/constant/error-message';
 import { COMMON_STATUS } from '../../common/enums';
 import { StockService } from '../stock/stock.service';
 import { BlockTransactionQuery } from './dto/block-transaction-query.dto';
@@ -27,7 +28,7 @@ export class BlockTransactionsService {
       body;
 
     if (start_time > end_time) {
-      throw new BadRequestException('Start time must be smaller than End time');
+      throw new BadRequestException(BLOCK_TRX_INVALID_ST_AND_ET);
     }
 
     const curTime = new Date().getTime();
@@ -104,7 +105,7 @@ export class BlockTransactionsService {
       where: { id, is_delete: false },
     });
     if (!blockTrx) {
-      throw new NotFoundException(MESSAGE.notFoundError('Block Transaction'));
+      throw new NotFoundException(MESSAGE.notFoundError('大宗交易'));
     }
 
     return blockTrx;
@@ -119,7 +120,7 @@ export class BlockTransactionsService {
       where: { stock_code, trx_key },
     });
     if (!blockTrx && !isCheckExist) {
-      throw new NotFoundException(MESSAGE.notFoundError('Block Transaction'));
+      throw new NotFoundException(MESSAGE.notFoundError('大宗交易'));
     }
 
     return blockTrx;

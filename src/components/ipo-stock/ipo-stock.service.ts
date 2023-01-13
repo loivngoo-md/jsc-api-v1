@@ -46,7 +46,7 @@ export class IpoStockService {
     });
     if (ipoStockExist.length) {
       throw new BadRequestException(
-        MESSAGE.isExistError('IPO Stock', 'with this Name or Code'),
+        MESSAGE.isExistError('新股', '使用此名称或代码'),
       );
     }
 
@@ -109,7 +109,7 @@ export class IpoStockService {
     });
 
     if (!ipoStock) {
-      throw new NotFoundException(MESSAGE.notFoundError('IPO Stock'));
+      throw new NotFoundException(MESSAGE.notFoundError('新股'));
     }
     return ipoStock;
   }
@@ -120,7 +120,7 @@ export class IpoStockService {
     });
 
     if (!ipoStock) {
-      throw new NotFoundException(MESSAGE.notFoundError('IPO Stock'));
+      throw new NotFoundException(MESSAGE.notFoundError('新股'));
     }
     return ipoStock;
   }
@@ -146,7 +146,7 @@ export class IpoStockService {
     });
     if (ipoStockExist.length) {
       throw new BadRequestException(
-        MESSAGE.isExistError('IPO Stock', 'with this Name or Code'),
+        MESSAGE.isExistError('新股', '使用此名称或代码'),
       );
     }
 

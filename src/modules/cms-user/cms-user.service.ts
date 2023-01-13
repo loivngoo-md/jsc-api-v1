@@ -27,7 +27,7 @@ export class CmsUserService {
     const existUser = await this._cmsUserRepo.findOne({ where: { username } });
     if (existUser) {
       throw new BadRequestException(
-        MESSAGE.isExistError('Cms User', 'with this Username'),
+        MESSAGE.isExistError('用户', 'with this Username'),
       );
     }
 
@@ -49,7 +49,7 @@ export class CmsUserService {
   async findByUsername(username: string, isPartService?: boolean) {
     const user = await this._cmsUserRepo.findOne({ where: { username } });
     if (!user && !isPartService) {
-      throw new NotFoundException(MESSAGE.notFoundError('Cms User'));
+      throw new NotFoundException(MESSAGE.notFoundError('用户'));
     }
     return user;
   }
@@ -89,7 +89,7 @@ export class CmsUserService {
     if (user) {
       return user;
     }
-    throw new NotFoundException(MESSAGE.notFoundError('Cms User'));
+    throw new NotFoundException(MESSAGE.notFoundError('用户'));
   }
 
   async update(id: number, updateCmsUserDto: UpdateCmsUserDto) {
@@ -99,13 +99,13 @@ export class CmsUserService {
     if (updatedUser) {
       return updatedUser;
     }
-    throw new NotFoundException(MESSAGE.notFoundError('Cms User'));
+    throw new NotFoundException(MESSAGE.notFoundError('用户'));
   }
 
   async remove(id: number) {
     const deleteResponse = await this._cmsUserRepo.delete(id);
     if (!deleteResponse.affected) {
-      throw new NotFoundException(MESSAGE.notFoundError('Cms User'));
+      throw new NotFoundException(MESSAGE.notFoundError('用户'));
     }
   }
 
@@ -113,7 +113,7 @@ export class CmsUserService {
     const { old_password, new_password } = dto;
     const user = await this._cmsUserRepo.findOne({ where: { id } });
     if (!user) {
-      throw new NotFoundException(MESSAGE.notFoundError('Cms User'));
+      throw new NotFoundException(MESSAGE.notFoundError('用户'));
     }
     const { password } = user;
     const compare = await bcrypt.compare(old_password, password);

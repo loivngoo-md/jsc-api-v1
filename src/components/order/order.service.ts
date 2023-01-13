@@ -235,14 +235,14 @@ export class OrderService {
     ]);
 
     if (!position) {
-      throw new NotFoundException(MESSAGE.notFoundError('Position'));
+      throw new NotFoundException(MESSAGE.notFoundError('位置'));
     }
     if (position.status === POSITION_STATUS.CLOSED) {
       throw new BadRequestException(MESSAGE.POSITION_IS_CLOSED);
     }
 
     if (!currentSession) {
-      throw new NotFoundException(MESSAGE.notFoundError('Opening Session'));
+      throw new NotFoundException(MESSAGE.notFoundError('开幕式'));
     }
 
     if (currentSession.id === position.trading_session) {
@@ -319,7 +319,7 @@ export class OrderService {
     ]);
 
     if (!currentSession) {
-      throw new NotFoundException(MESSAGE.notFoundError('Opening Session'));
+      throw new NotFoundException(MESSAGE.notFoundError('开幕式'));
     }
 
     const [stock, user] = await Promise.all([
