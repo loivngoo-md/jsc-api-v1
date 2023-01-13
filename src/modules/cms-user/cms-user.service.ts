@@ -72,6 +72,9 @@ export class CmsUserService {
       where: whereConditions,
       take,
       skip,
+      order: {
+        created_at: "DESC"
+      }
     });
 
     return {

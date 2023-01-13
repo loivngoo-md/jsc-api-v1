@@ -48,6 +48,7 @@ export class TransactionsService {
       .select([
         't.*',
         'row_to_json(u.*) as app_user',
+        'row_to_json(ag.*) as agent_detail',
         'row_to_json(o.*) as order',
         'row_to_json(d.*) as deposit',
         'row_to_json(w.*) as withdrawal',
@@ -61,6 +62,7 @@ export class TransactionsService {
     const transactions = await transactionsQuery
       .limit(pageSize)
       .offset((page - 1) * pageSize)
+      .orderBy('t.created_at', 'DESC')
       .getRawMany();
     return {
       data: transactions,

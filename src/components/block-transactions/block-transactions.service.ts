@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessThanOrEqual, MoreThanOrEqual, Not, Repository } from 'typeorm';
 import { MESSAGE } from '../../common/constant';
@@ -21,6 +26,19 @@ export class BlockTransactionsService {
     const { stock_code, quantity, trx_key, discount, start_time, end_time } =
       body;
 
+    if (start_time > end_time) {
+      throw new BadRequestException('Start time must be smaller than End time');
+    }
+
+    const curTime = new Date().getTime();
+
+    let status = COMMON_STATUS.OPENING;
+    if (curTime < start_time) {
+      status = COMMON_STATUS.PENDING;
+    } else if (curTime >= end_time) {
+      status = COMMON_STATUS.CLOSED;
+    }
+
     const stock = await this._stockService.findByC(stock_code.toString());
     const blockTrxInfo = this._blockTrxRepo.create({
       stock_code,
@@ -30,6 +48,7 @@ export class BlockTransactionsService {
       discount,
       start_time,
       end_time,
+      status,
     });
     await this._blockTrxRepo.save(blockTrxInfo);
 
@@ -54,7 +73,11 @@ export class BlockTransactionsService {
       );
 
     const total = await queryBuilder.clone().getCount();
-    const recs = await queryBuilder.limit(take).offset(skip).getRawMany();
+    const recs = await queryBuilder
+      .limit(take)
+      .offset(skip)
+      .orderBy(`bt.created_at`, 'DESC')
+      .getRawMany();
 
     return {
       count: recs.length,
@@ -128,7 +151,7 @@ export class BlockTransactionsService {
   }
 
   //TODO: Turn-on Cronjob
-  // @Cron('* * * * * *')
+  @Cron('*/01 * * * *')
   async changeStatusBlockTrx() {
     const curTime = new Date().getTime();
 
@@ -159,5 +182,7 @@ export class BlockTransactionsService {
         },
       ),
     ]);
+
+    console.log('Change Status Block Transaction...');
   }
 }

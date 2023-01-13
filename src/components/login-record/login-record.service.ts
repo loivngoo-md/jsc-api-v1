@@ -16,6 +16,6 @@ export class LoginRecordService {
   }
 
   async list() {
-    return this._loginRecordRepo.find();
+    return this._loginRecordRepo.find({order: {created_at: 'DESC'}});
   }
 }

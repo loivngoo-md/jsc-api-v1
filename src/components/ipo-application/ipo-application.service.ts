@@ -264,6 +264,10 @@ export class IpoApplicationService {
       this._tradingSessionService.findToday(),
     ]);
 
+    if (!ipoStock.is_on_market) {
+      throw new BadRequestException('Ipo is not on market. Cannot transfer.');
+    }
+
     const { actual_amount, actual_quantity, price, user_id } = ipoApp;
     const { code } = ipoStock;
 
@@ -305,12 +309,14 @@ export class IpoApplicationService {
 
     const queryBuilder = this._ipoAppRepo
       .createQueryBuilder('ia')
-      .innerJoinAndSelect('ipo-stock', 'ist', 'ist.id = ia.ipo_id')
-      .innerJoinAndSelect('app_users', 'u', 'u.id = ia.user_id')
+      .innerJoin('ipo-stock', 'ist', 'ist.id = ia.ipo_id')
+      .innerJoin('app_users', 'u', 'u.id = ia.user_id')
+      .innerJoin('agent', 'ag', 'ag.id = u.agent')
       .select([
         'ia.*',
         'row_to_json(u.*) as user_detail',
         'row_to_json(ist.*) as ipo_stock',
+        'row_to_json(ag.*) as agent_detail',
       ])
       .where(`ia.is_delete = false`);
 
@@ -331,7 +337,9 @@ export class IpoApplicationService {
     }
 
     const total = await queryBuilder.clone().getCount();
-    const recs = await queryBuilder.limit(take).offset(skip).getRawMany();
+    const recs = await queryBuilder.limit(take).offset(skip)
+    .orderBy('ia.created_at', 'DESC')
+    .getRawMany();
 
     return {
       count: recs.length,

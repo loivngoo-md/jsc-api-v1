@@ -30,12 +30,12 @@ export class AgentService {
     @InjectRepository(Agent)
     private readonly _agentRepo: Repository<Agent>,
     private readonly _moneyLogService: MoneyLogService,
-  ) { }
+  ) {}
 
   private generateId = async () => {
     const code = Math.floor(Math.random() * 10000).toString();
 
-    const isValid = await this._agentRepo.findOne({ where: { code } })
+    const isValid = await this._agentRepo.findOne({ where: { code } });
 
     if (!isValid) {
       return code;
@@ -44,9 +44,8 @@ export class AgentService {
     }
   };
 
-
   async create(body: AgentUserCreateByAdmin, isPartService?: boolean) {
-    let code = await this.generateId()
+    let code = await this.generateId();
     const { username, password, real_name, phone } = body;
     const existAgent = await this.findByUsername(username, true);
     if (existAgent) {
@@ -140,6 +139,7 @@ export class AgentService {
       where: whereConditions,
       take,
       skip,
+      order: { created_at: 'DESC' },
     });
 
     return {
@@ -200,7 +200,7 @@ export class AgentService {
   }
 
   // TODO
-  async updateProfile(id: number, updateProfile: any) { }
+  async updateProfile(id: number, updateProfile: any) {}
   //
 
   async modifyFund(id: number, body: MoneyLogCreate) {

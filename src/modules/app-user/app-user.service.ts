@@ -67,6 +67,11 @@ export class AppUserService {
     },
   ) {
     const appUser = await this.findOne(user_id);
+
+    if (appUser.is_verified) {
+      throw new BadRequestException('You had been verified, cannot change.');
+    }
+
     if (dto['type'] === IMAGE_TYPE.FRONT) {
       appUser.id_front = fileData.filename;
     }
@@ -224,6 +229,9 @@ export class AppUserService {
       where: whereConditions,
       take,
       skip,
+      order: {
+        created_at: 'DESC',
+      },
     });
 
     return {
@@ -245,7 +253,7 @@ export class AppUserService {
     const queryBuilder = this._appUserRepo
       .createQueryBuilder('u')
       .innerJoinAndSelect('agent', 'a', 'a.id = u.agent')
-      .select(['u.*']);
+      .select(['u.*', 'row_to_json(ag.*) as agent_detail']);
 
     queryBuilder.where(`a.path like '${agentUser.path}%'`);
     is_real && queryBuilder.andWhere(`u.is_real = ${is_real}`);
@@ -259,7 +267,11 @@ export class AppUserService {
     }
 
     const total = await queryBuilder.clone().getCount();
-    const app_users = await queryBuilder.limit(take).offset(skip).getRawMany();
+    const app_users = await queryBuilder
+      .limit(take)
+      .offset(skip)
+      .orderBy('u.created_at', 'DESC')
+      .getRawMany();
 
     return {
       count: app_users.length,
@@ -280,6 +292,11 @@ export class AppUserService {
 
   async updateProfile(user_id: number, body: AppUserUpdateProfile) {
     const user = await this.findOne(user_id);
+
+    if (user.is_verified) {
+      throw new BadRequestException('You had been verified, cannot change.');
+    }
+
     const {
       real_name,
       phone,
