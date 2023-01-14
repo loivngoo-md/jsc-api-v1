@@ -252,10 +252,10 @@ export class AppUserService {
 
     const queryBuilder = this._appUserRepo
       .createQueryBuilder('u')
-      .innerJoinAndSelect('agent', 'a', 'a.id = u.agent')
+      .innerJoinAndSelect('agent', 'ag', 'ag.id = u.agent')
       .select(['u.*', 'row_to_json(ag.*) as agent_detail']);
 
-    queryBuilder.where(`a.path like '${agentUser.path}%'`);
+    queryBuilder.where(`ag.path like '${agentUser.path}%'`);
     is_real && queryBuilder.andWhere(`u.is_real = ${is_real}`);
     real_name && queryBuilder.andWhere(`u.real_name ilike '%${real_name}%'`);
     phone && queryBuilder.andWhere(`u.phone ilike '%${phone}%'`);
@@ -263,7 +263,7 @@ export class AppUserService {
 
     if (superior) {
       const queryAgent = await this._agentService.findByUsername(superior);
-      queryBuilder.andWhere(`a.path like '${queryAgent.path}%'`);
+      queryBuilder.andWhere(`ag.path like '${queryAgent.path}%'`);
     }
 
     const total = await queryBuilder.clone().getCount();
