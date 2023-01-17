@@ -1,12 +1,12 @@
 import {
   BadRequestException,
   Injectable,
-  UnauthorizedException,
+  UnauthorizedException
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import * as fetch from 'node-fetch';
-import { MESSAGE } from '../../common/constant';
+import { MESSAGES } from '../../common/constant';
 import { AgentService } from '../../modules/agent/agent.service';
 import { Agent } from '../../modules/agent/entities/agent.entity';
 import { AppUserService } from '../../modules/app-user/app-user.service';
@@ -16,10 +16,6 @@ import CmsUser from '../../modules/cms-user/entities/cms-user.entity';
 import { BackendLogger } from '../logger/BackendLogger';
 import { LoginRecordService } from '../login-record/login-record.service';
 import { TOKEN_EXPIRES_IN } from './../../common/constant/constants';
-import {
-  INVALID_TOKEN,
-  USER_MESSAGE,
-} from './../../common/constant/error-message';
 import { LoginByUsernameDto } from './dto/LoginByUsernameDto';
 import { LoginReturnDto } from './dto/LoginReturnDto';
 import { PayLoad } from './dto/PayLoad';
@@ -41,7 +37,7 @@ export class AuthService {
 
     const user = await this._cmsUserService.findByUsername(username, true);
     if (!user) {
-      throw new UnauthorizedException(INVALID_TOKEN);
+      throw new UnauthorizedException(MESSAGES.INVALID_TOKEN);
     }
     return payload;
   }
@@ -51,7 +47,7 @@ export class AuthService {
 
     const user = await this._agentUserService.findByUsername(username, true);
     if (!user) {
-      throw new UnauthorizedException(INVALID_TOKEN);
+      throw new UnauthorizedException(MESSAGES.INVALID_TOKEN);
     }
     return payload;
   }
@@ -61,7 +57,7 @@ export class AuthService {
 
     const user = await this._appUserService.findByUsername(username, true);
     if (!user) {
-      throw new UnauthorizedException(INVALID_TOKEN);
+      throw new UnauthorizedException(MESSAGES.INVALID_TOKEN);
     }
     return payload;
   }
@@ -70,9 +66,6 @@ export class AuthService {
     LoginByUsernameDto: LoginByUsernameDto,
     ip: string,
   ): Promise<LoginReturnDto> {
-    if (!ip) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
-    }
     const { username, password } = LoginByUsernameDto;
 
     const user = await this._appUserService.findByUsername(username, true);
@@ -80,11 +73,11 @@ export class AuthService {
     const comparePw = await bcrypt.compare(password, userPw);
 
     if (!user || !comparePw) {
-      throw new BadRequestException(USER_MESSAGE.WRONG_SINGIN);
+      throw new BadRequestException(MESSAGES.WRONG_SINGIN);
     }
 
     if (!user.is_active) {
-      throw new BadRequestException(USER_MESSAGE.NOT_ACTIVE);
+      throw new BadRequestException(MESSAGES.APP_NOT_ACTIVE);
     }
 
     const options = {
@@ -106,7 +99,7 @@ export class AuthService {
 
     await this._loginRecord.insert(location);
 
-    this.logger.log(`'${user.username}' ${MESSAGE.IS_LOGGED_IN}`);
+    // this.logger.log(`'${user.username}' ${MESSAGE.IS_LOGGED_IN}`);
     return this.createToken(user);
   }
 
@@ -120,14 +113,14 @@ export class AuthService {
     const comparePw = await bcrypt.compare(password, userPw);
 
     if (!user || !comparePw) {
-      throw new BadRequestException(USER_MESSAGE.WRONG_SINGIN);
+      throw new BadRequestException(MESSAGES.WRONG_SINGIN);
     }
 
     if (!user.is_active) {
-      throw new BadRequestException(USER_MESSAGE.NOT_ACTIVE);
+      throw new BadRequestException(MESSAGES.AGENT_NOT_ACTIVE);
     }
 
-    this.logger.log(`'${username}' ${MESSAGE.IS_LOGGED_IN}`);
+    // this.logger.log(`'${username}' ${MESSAGE.IS_LOGGED_IN}`);
 
     return this.createTokenForAgent(user);
   }
@@ -143,11 +136,11 @@ export class AuthService {
     const comparePw = await bcrypt.compare(password, userPw);
 
     if (!user || !comparePw) {
-      throw new BadRequestException(USER_MESSAGE.WRONG_SINGIN);
+      throw new BadRequestException(MESSAGES.WRONG_SINGIN);
     }
 
     if (!user.is_active) {
-      throw new BadRequestException(USER_MESSAGE.NOT_ACTIVE);
+      throw new BadRequestException(MESSAGES.CMS_NOT_ACTIVE);
     }
 
     return this.createToken(user);

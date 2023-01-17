@@ -1,19 +1,13 @@
 import {
   BadRequestException,
   Injectable,
-  NotFoundException,
+  NotFoundException
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { MESSAGE } from '../../common/constant';
+import { MESSAGES } from '../../common/constant';
 import {
-  IPO_APP_QUANTITY_INCREASE,
-  IPO_APP_STATUS_NOT_PENDING,
-  IPO_APP_STATUS_PAID,
-  IPO_APP_WRONG_STATUS,
-  IPO_STOCK_MISSING_ACT_QUANTITY,
-  IPO_STOCK_NOT_ON_MARKET,
-  IPO_STOCK_QUANTITY,
+  // IPO_STOCK_MISSING_ACT_QUANTITY
 } from '../../common/constant/error-message';
 import { IPO_APP_STATUS, TRANSACTION_TYPE, TRX_TYPE } from '../../common/enums';
 import { convertC2FS } from '../../helpers/stock-helper';
@@ -25,12 +19,12 @@ import { TradingSessionService } from '../trading-session/trading-session.servic
 import { TransactionsService } from './../transactions/transactions.service';
 import {
   IpoApplicationAssign,
-  IpoApplicationCreate,
+  IpoApplicationCreate
 } from './dto/create-ipo-application.dto';
 import { IpoApplicationListQuery } from './dto/ipo-application-query.dto';
 import {
   IpoApplicationReview,
-  IpoApplicationUpdate,
+  IpoApplicationUpdate
 } from './dto/update-ipo-application.dto';
 import { IpoApplication } from './entities/ipo-application.entity';
 
@@ -58,11 +52,11 @@ export class IpoApplicationService {
     const amount = price * quantity;
 
     if (supply_quantity - purchase_quantity < quantity) {
-      throw new BadRequestException(IPO_STOCK_QUANTITY);
+      throw new BadRequestException(MESSAGES.IPO_STOCK_NOT_ENOUGH_QUANTITY);
     }
 
     if (amount > +balance_avail) {
-      throw new BadRequestException(MESSAGE.NOT_ENOUGH_MONEY);
+      throw new BadRequestException(MESSAGES.APP_NOT_ENOUGH_MONEY);
     }
 
     const ipoAppInfo = this._ipoAppRepo.create({
@@ -98,7 +92,7 @@ export class IpoApplicationService {
 
     if (status === IPO_APP_STATUS.SUCCESS) {
       if (!actual_quantity) {
-        throw new BadRequestException(IPO_STOCK_MISSING_ACT_QUANTITY);
+        // throw new BadRequestException(IPO_STOCK_MISSING_ACT_QUANTITY); // ERROR MESSAGE
       }
       const session = await this._tradingSessionService.findOpeningSession();
       const rate = session.detail.transactions_rate as any as ITransactionsRate;
@@ -160,7 +154,7 @@ export class IpoApplicationService {
     }
 
     if (addPurchase && addPurchase + purchase_quantity > supply_quantity) {
-      throw new BadRequestException(IPO_STOCK_QUANTITY);
+      throw new BadRequestException(MESSAGES.IPO_STOCK_NOT_ENOUGH_QUANTITY);
     }
 
     const trx = this._ipoAppRepo.create(ipoAppInfo);
@@ -210,11 +204,11 @@ export class IpoApplicationService {
     const ipoApp = await this.findOne(ipo_app_id);
 
     if (is_accept && !actual_quantity) {
-      throw new BadRequestException(IPO_STOCK_MISSING_ACT_QUANTITY);
+      // throw new BadRequestException(IPO_STOCK_MISSING_ACT_QUANTITY); // ERROR MESSAGE
     }
 
     if (is_accept && actual_quantity > ipoApp.quantity) {
-      throw new BadRequestException(`购买不能大于${ipoApp.quantity}`);
+      // throw new BadRequestException(`购买不能大于${ipoApp.quantity}`); // ERROR MESSAGE
     }
 
     const [appUser, ipoStock] = await Promise.all([
@@ -263,7 +257,7 @@ export class IpoApplicationService {
   async transferByCms(ipo_app_id: number) {
     const ipoApp = await this.findOne(ipo_app_id);
     if (ipoApp.status !== IPO_APP_STATUS.PAID) {
-      throw new BadRequestException(IPO_APP_STATUS_PAID);
+      throw new BadRequestException(MESSAGES.IPO_APP_NOT_PAID);
     }
 
     const [ipoStock, session] = await Promise.all([
@@ -272,7 +266,7 @@ export class IpoApplicationService {
     ]);
 
     if (!ipoStock.is_on_market) {
-      throw new BadRequestException(IPO_STOCK_NOT_ON_MARKET);
+      throw new BadRequestException(MESSAGES.IPO_STOCK_NOT_ON_MARKET);
     }
 
     const { actual_amount, actual_quantity, price, user_id } = ipoApp;
@@ -302,7 +296,7 @@ export class IpoApplicationService {
     });
 
     if (!ipoApp) {
-      throw new NotFoundException(MESSAGE.notFoundError('上市申请'));
+      throw new NotFoundException(MESSAGES.IPO_STOCK_NOT_FOUND);
     }
 
     return ipoApp;
@@ -360,7 +354,7 @@ export class IpoApplicationService {
   async update(ipo_app_id: number, body: IpoApplicationUpdate) {
     const ipoApp = await this.findOne(ipo_app_id);
     if (ipoApp.status !== IPO_APP_STATUS.PENDING) {
-      throw new BadRequestException(IPO_APP_STATUS_NOT_PENDING);
+      throw new BadRequestException(MESSAGES.IPO_APP_NOT_PENDING);
     }
     const [appUser, ipoStock] = await Promise.all([
       this._appUserService.findOne(ipoApp.user_id),
@@ -373,7 +367,7 @@ export class IpoApplicationService {
     const addQuantity = quantity - ipoApp.quantity;
     const addAmount = addQuantity * ipoApp.price;
     if (addQuantity > 0 && addQuantity > remainQuantity) {
-      throw new BadRequestException(IPO_APP_QUANTITY_INCREASE);
+      throw new BadRequestException(MESSAGES.IPO_STOCK_NOT_ENOUGH_QUANTITY);
     }
 
     ipoApp.quantity = +ipoApp.quantity + addQuantity;
@@ -430,7 +424,7 @@ export class IpoApplicationService {
     if (
       ![IPO_APP_STATUS.PENDING, IPO_APP_STATUS.FAIL].includes(ipoApp.status)
     ) {
-      throw new BadRequestException(IPO_APP_WRONG_STATUS);
+      throw new BadRequestException(MESSAGES.IPO_APP_CANT_REMOVE);
     }
 
     if (ipoApp.status === IPO_APP_STATUS.PENDING) {

@@ -1,7 +1,7 @@
 import {
   BadRequestException,
   Injectable,
-  NotFoundException,
+  NotFoundException
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
@@ -12,13 +12,12 @@ import { MoneyLogService } from '../../components/money-log/money-log.service';
 import {
   PaginationQuery,
   SetPassword,
-  UpdatePassword,
+  UpdatePassword
 } from '../../helpers/dto-helper';
-import { USER_MESSAGE } from './../../common/constant/error-message';
-import { MESSAGE } from './../../common/constant/index';
+import { MESSAGES } from './../../common/constant';
 import {
   AgentUserCreateByAdmin,
-  AgentUserCreateByAgent,
+  AgentUserCreateByAgent
 } from './dto/agent-user-create.dto';
 import { AgentUserListQuery } from './dto/agent-user-query.dto';
 import { AgentUserUpdate } from './dto/agent-user-update.dto';
@@ -49,9 +48,7 @@ export class AgentService {
     const { username, password, real_name, phone } = body;
     const existAgent = await this.findByUsername(username, true);
     if (existAgent) {
-      throw new BadRequestException(
-        MESSAGE.isExistError('代理人', 'with this Username'),
-      );
+      throw new BadRequestException(MESSAGES.AGENT_IS_EXIST);
     }
 
     const salt = await bcrypt.genSalt();
@@ -161,7 +158,7 @@ export class AgentService {
 
     const rec = await this._agentRepo.findOne({ where: whereConditions });
     if (!rec) {
-      throw new NotFoundException(MESSAGE.notFoundError('代理人'));
+      throw new NotFoundException(MESSAGES.AGENT_NOT_FOUND);
     }
     return rec;
   }
@@ -172,7 +169,7 @@ export class AgentService {
       where: { code, is_delete: false },
     });
     if (!rec && !isCreate) {
-      throw new NotFoundException(MESSAGE.notFoundError('代理人'));
+      throw new NotFoundException(MESSAGES.AGENT_NOT_FOUND);
     }
     return rec;
   }
@@ -182,7 +179,7 @@ export class AgentService {
       where: { username, is_delete: false },
     });
     if (!rec && !isPartService) {
-      throw new NotFoundException(MESSAGE.notFoundError('代理人'));
+      throw new NotFoundException(MESSAGES.AGENT_NOT_FOUND);
     }
     return rec;
   }
@@ -247,7 +244,7 @@ export class AgentService {
     const compare = await bcrypt.compare(old_password, password);
 
     if (!compare) {
-      throw new BadRequestException(USER_MESSAGE.WRONG_OLD_PASSWORD);
+      throw new BadRequestException(MESSAGES.WRONG_OLD_PASSWORD);
     }
 
     const salt = await bcrypt.genSalt();

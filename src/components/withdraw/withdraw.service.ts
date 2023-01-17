@@ -7,7 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
 import { DEPOSIT_WITHDRAWAL_STATUS, TRANSACTION_TYPE } from 'src/common/enums';
 import { Repository } from 'typeorm';
-import { MESSAGE } from '../../common/constant';
+import { MESSAGES } from '../../common/constant';
 import { AppUserService } from '../../modules/app-user/app-user.service';
 import { SystemConfigurationService } from '../system-configuration/system-configuration.service';
 import { TransactionsService } from './../transactions/transactions.service';
@@ -38,17 +38,16 @@ export class WithdrawService {
       user.withdraw_password,
     );
     if (!byCms && !comparePw) {
-      throw new BadRequestException(MESSAGE.WITHDRAWAL_WRONG_PASSWORD);
+      throw new BadRequestException(MESSAGES.WITHDRAWAL_WRONG_PASSWORD);
     }
 
     if (+amount < withdrawal_min || +amount > withdrawal_max) {
-      throw new BadRequestException(
-        `${MESSAGE.DEPOSIT_RANGE_VALID_IS} ${withdrawal_min}, ${withdrawal_max} `,
-      );
+      throw new BadRequestException();
+      // `${MESSAGE.DEPOSIT_RANGE_VALID_IS} ${withdrawal_min}, ${withdrawal_max} `, //ERROR MESSAGE
     }
 
     if (+user['balance'] < +amount) {
-      throw new BadRequestException(MESSAGE.NOT_ENOUGH_MONEY);
+      throw new BadRequestException(MESSAGES.APP_NOT_ENOUGH_MONEY);
     }
 
     dto['user_id'] = user['id'];
@@ -111,9 +110,7 @@ export class WithdrawService {
     if (response) {
       return response;
     }
-    throw new NotFoundException(
-      MESSAGE.notFoundError('Withdrawal Transaction'),
-    );
+    throw new NotFoundException(MESSAGES.WITHDRAWAL_NOT_FOUND);
   }
 
   async reviewByCms(withdraw_id: number, dto: any) {
@@ -121,7 +118,7 @@ export class WithdrawService {
     const withdrawal = await this.findOne(withdraw_id);
     const { user_id, amount } = withdrawal;
     if (withdrawal.status !== DEPOSIT_WITHDRAWAL_STATUS.PENDING) {
-      throw new BadRequestException(MESSAGE.WITHDRAWAL_NOT_PENDING);
+      throw new BadRequestException(MESSAGES.WITHDRAWAL_NOT_PENDING);
     }
     const user = await this._appUserService.findOne(user_id);
     const { balance, balance_avail, balance_frozen } = user;

@@ -7,7 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { firstValueFrom } from 'rxjs';
 import { Repository } from 'typeorm';
-import { MESSAGE } from '../../common/constant';
+import { MESSAGES } from '../../common/constant';
 import { UpdateStockDto } from './dto/update-stock.dto';
 import Stock from './entities/stock.entity';
 
@@ -157,7 +157,7 @@ export class StockService {
       return listStocks[0] as Stock;
     }
 
-    throw new NotFoundException(MESSAGE.notFoundError('库存'));
+    throw new NotFoundException(MESSAGES.STOCK_NOT_FOUND);
   }
 
   async findMany(fss: string[]) {
@@ -172,7 +172,7 @@ export class StockService {
   async findByC(c: string) {
     const stock = await this._stockRepo.findOne({ where: { C: c } });
     if (!stock) {
-      throw new NotFoundException(MESSAGE.notFoundError('库存'));
+      throw new NotFoundException(MESSAGES.STOCK_NOT_FOUND);
     }
     return await this.findOne(stock.FS);
   }
@@ -183,7 +183,7 @@ export class StockService {
     if (updated) {
       return updated;
     }
-    throw new NotFoundException(MESSAGE.notFoundError('库存'));
+    throw new NotFoundException(MESSAGES.STOCK_NOT_FOUND);
   }
 
   remove(id: number) {

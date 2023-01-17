@@ -12,7 +12,7 @@ import { MoneyLogCreate } from '../../components/money-log/dto/money-log-create.
 import { MoneyLogService } from '../../components/money-log/money-log.service';
 import { SetPassword, UpdatePassword } from '../../helpers/dto-helper';
 import { AgentService } from '../agent/agent.service';
-import { MESSAGE, USER_MESSAGE } from './../../common/constant/index';
+import { MESSAGES } from './../../common/constant/index';
 import { AppUserListQuery } from './dto/app-user-query.dto';
 import {
   AppUserCreate,
@@ -42,11 +42,11 @@ export class AppUserService {
   async get_customer_balance_frozen(user_id: number) {
     const user = await this.findOne(user_id);
     if (!user) {
-      throw new NotFoundException(MESSAGE.notFoundError('用户'));
+      throw new NotFoundException(MESSAGES.APP_NOT_FOUND);
     }
 
     return {
-      amount: user['balance_frozen'],
+      amount: user.balance_frozen,
     };
   }
 
@@ -69,7 +69,7 @@ export class AppUserService {
     const appUser = await this.findOne(user_id);
 
     if (appUser.is_verified) {
-      throw new BadRequestException('你已经验证过了，不能更改。');
+      throw new BadRequestException(MESSAGES.APP_IS_VERIFIED);
     }
 
     if (dto['type'] === IMAGE_TYPE.FRONT) {
@@ -137,13 +137,11 @@ export class AppUserService {
     console.log(isExistedUser, '>>>>>');
 
     if (isExistedUser) {
-      throw new BadRequestException(
-        MESSAGE.isExistError('用户', 'with this Username'),
-      );
+      throw new BadRequestException(MESSAGES.APP_IS_EXIST);
     }
 
     if (!existAgent) {
-      throw new NotFoundException(MESSAGE.notFoundError('代理人'));
+      throw new NotFoundException(MESSAGES.AGENT_NOT_FOUND);
     }
 
     const salt = await bcrypt.genSalt();
@@ -207,7 +205,7 @@ export class AppUserService {
       where: { username, is_delete: false },
     });
     if (!user && !isPartService) {
-      throw new NotFoundException(MESSAGE.notFoundError('应用程序用户'));
+      throw new NotFoundException(MESSAGES.APP_NOT_FOUND);
     }
     return user;
   }
@@ -230,8 +228,8 @@ export class AppUserService {
       take,
       skip,
       order: {
-        created_at: "DESC"
-      }
+        created_at: 'DESC',
+      },
     });
 
     return {
@@ -267,7 +265,11 @@ export class AppUserService {
     }
 
     const total = await queryBuilder.clone().getCount();
-    const app_users = await queryBuilder.limit(take).offset(skip).orderBy('u.created_at', 'DESC').getRawMany();
+    const app_users = await queryBuilder
+      .limit(take)
+      .offset(skip)
+      .orderBy('u.created_at', 'DESC')
+      .getRawMany();
 
     return {
       count: app_users.length,
@@ -283,7 +285,7 @@ export class AppUserService {
     if (user) {
       return user;
     }
-    throw new NotFoundException(MESSAGE.notFoundError('应用程序用户'));
+    throw new NotFoundException(MESSAGES.APP_NOT_FOUND);
   }
 
   async updateProfile(user_id: number, body: AppUserUpdateProfile) {
@@ -355,7 +357,7 @@ export class AppUserService {
 
     const compare = await bcrypt.compare(old_password, appUser.password);
     if (!compare) {
-      throw new BadRequestException(USER_MESSAGE.WRONG_OLD_PASSWORD);
+      throw new BadRequestException(MESSAGES.WRONG_OLD_PASSWORD);
     }
 
     const salt = await bcrypt.genSalt();
@@ -372,13 +374,15 @@ export class AppUserService {
     let { withdraw_password } = appUser;
     if (withdraw_password) {
       if (!old_password) {
-        throw new BadRequestException(USER_MESSAGE.LACK_WITHDRAWAL_PW);
+        throw new BadRequestException(
+          // USER_MESSAGE.LACK_WITHDRAWAL_PW
+          ); //ERROR MESSAGE
       }
 
       const compare = await bcrypt.compare(old_password, withdraw_password);
 
       if (!compare) {
-        throw new BadRequestException(USER_MESSAGE.WRONG_OLD_PASSWORD);
+        throw new BadRequestException(MESSAGES.WRONG_OLD_PASSWORD);
       }
     }
 

@@ -1,12 +1,12 @@
 import {
   BadRequestException,
   Injectable,
-  NotFoundException,
+  NotFoundException
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
 import { ILike, Repository } from 'typeorm';
-import { MESSAGE, USER_MESSAGE } from '../../common/constant';
+import { MESSAGES } from '../../common/constant';
 import { UpdatePassword } from '../../helpers/dto-helper';
 import { CmsUserListQuery } from './dto/cms-user-query.dto';
 import { CreateCmsUserDto } from './dto/create-cms-user.dto';
@@ -26,9 +26,7 @@ export class CmsUserService {
 
     const existUser = await this._cmsUserRepo.findOne({ where: { username } });
     if (existUser) {
-      throw new BadRequestException(
-        MESSAGE.isExistError('用户', 'with this Username'),
-      );
+      throw new BadRequestException(MESSAGES.CMS_IS_EXIST);
     }
 
     const salt = await bcrypt.genSalt();
@@ -49,7 +47,7 @@ export class CmsUserService {
   async findByUsername(username: string, isPartService?: boolean) {
     const user = await this._cmsUserRepo.findOne({ where: { username } });
     if (!user && !isPartService) {
-      throw new NotFoundException(MESSAGE.notFoundError('用户'));
+      throw new NotFoundException(MESSAGES.CMS_NOT_FOUND);
     }
     return user;
   }
@@ -73,8 +71,8 @@ export class CmsUserService {
       take,
       skip,
       order: {
-        created_at: "DESC"
-      }
+        created_at: 'DESC',
+      },
     });
 
     return {
@@ -89,7 +87,7 @@ export class CmsUserService {
     if (user) {
       return user;
     }
-    throw new NotFoundException(MESSAGE.notFoundError('用户'));
+    throw new NotFoundException(MESSAGES.CMS_NOT_FOUND);
   }
 
   async update(id: number, updateCmsUserDto: UpdateCmsUserDto) {
@@ -99,13 +97,13 @@ export class CmsUserService {
     if (updatedUser) {
       return updatedUser;
     }
-    throw new NotFoundException(MESSAGE.notFoundError('用户'));
+    throw new NotFoundException(MESSAGES.CMS_NOT_FOUND);
   }
 
   async remove(id: number) {
     const deleteResponse = await this._cmsUserRepo.delete(id);
     if (!deleteResponse.affected) {
-      throw new NotFoundException(MESSAGE.notFoundError('用户'));
+      throw new NotFoundException(MESSAGES.CMS_NOT_FOUND);
     }
   }
 
@@ -113,13 +111,13 @@ export class CmsUserService {
     const { old_password, new_password } = dto;
     const user = await this._cmsUserRepo.findOne({ where: { id } });
     if (!user) {
-      throw new NotFoundException(MESSAGE.notFoundError('用户'));
+      throw new NotFoundException(MESSAGES.CMS_NOT_FOUND);
     }
     const { password } = user;
     const compare = await bcrypt.compare(old_password, password);
 
     if (!compare) {
-      throw new BadRequestException(USER_MESSAGE.WRONG_OLD_PASSWORD);
+      throw new BadRequestException(MESSAGES.WRONG_OLD_PASSWORD);
     }
 
     const salt = await bcrypt.genSalt();

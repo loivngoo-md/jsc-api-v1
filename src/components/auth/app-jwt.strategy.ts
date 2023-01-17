@@ -3,7 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { BackendLogger } from '../../components/logger/BackendLogger';
 import { SessionMiddleware } from '../../middleware/session.middleware';
-import { MESSAGE } from './../../common/constant/index';
+import { MESSAGES } from './../../common/constant/index';
 import { AuthService } from './auth.service';
 import { PayLoad } from './dto/PayLoad';
 
@@ -21,7 +21,7 @@ export class AppStrategy extends PassportStrategy(Strategy, 'app') {
   async validate(payload: PayLoad) {
     const user = await this.authService.validateAppUser(payload);
     if (!user) {
-      throw new UnauthorizedException(MESSAGE.UNAUTHORIZED);
+      throw new UnauthorizedException(MESSAGES.UNAUTHORIZED);
     }
     SessionMiddleware.set('session_user', user);
     return user;

@@ -13,7 +13,7 @@ import {
   TRX_TYPE,
 } from 'src/common/enums';
 import { Repository } from 'typeorm';
-import { MESSAGE } from '../../common/constant';
+import { MESSAGES } from '../../common/constant';
 import { PaginationQuery } from '../../helpers/dto-helper';
 import { AppUserService } from '../../modules/app-user/app-user.service';
 import { BlockTransactionsService } from '../block-transactions/block-transactions.service';
@@ -38,7 +38,10 @@ export class OrderService {
   ) {}
 
   async list_orders_by_user(user_id: number) {
-    return await this._orderRepo.find({ where: { user_id }, order: {created_at: 'DESC'} });
+    return await this._orderRepo.find({
+      where: { user_id },
+      order: { created_at: 'DESC' },
+    });
   }
 
   async listAllOrders(
@@ -144,7 +147,7 @@ export class OrderService {
     if (!!$orders) {
       return $orders;
     }
-    throw new NotFoundException(MESSAGE.notFoundError('Order'));
+    throw new NotFoundException(MESSAGES.ORDER_NOT_FOUND);
   }
 
   async buy(body: any, isLarTrx?: boolean) {
@@ -159,11 +162,11 @@ export class OrderService {
     ]);
 
     if (isLarTrx && blockTrx.status !== COMMON_STATUS.OPENING) {
-      throw new BadRequestException(MESSAGE.BLOCK_TRANSACTION_IS_NOT_OPEN);
+      throw new BadRequestException(MESSAGES.BLOCK_TRX_NOT_OPEN);
     }
     if (isLarTrx && blockTrx.quantity > quantity) {
       throw new BadRequestException(
-        `${MESSAGE.MINIMUM_QUANTITY_IS} ${blockTrx.quantity}.`,
+        // `${MESSAGE.MINIMUM_QUANTITY_IS} ${blockTrx.quantity}.`, // ERROR MESSAGE
       );
     }
 
@@ -177,7 +180,7 @@ export class OrderService {
       amount * (1 + transaction_fees / 100 - discount / 100);
 
     if (+user.balance_avail < actual_amount) {
-      throw new BadRequestException(MESSAGE.NOT_ENOUGH_MONEY);
+      throw new BadRequestException(MESSAGES.APP_NOT_ENOUGH_MONEY);
     }
 
     const orderInfo = this._orderRepo.create({
@@ -235,22 +238,22 @@ export class OrderService {
     ]);
 
     if (!position) {
-      throw new NotFoundException(MESSAGE.notFoundError('位置'));
+      throw new NotFoundException(MESSAGES.POSITION_NOT_FOUND);
     }
     if (position.status === POSITION_STATUS.CLOSED) {
-      throw new BadRequestException(MESSAGE.POSITION_IS_CLOSED);
+      throw new BadRequestException(MESSAGES.POSITION_NOT_CLOSED);
     }
 
     if (!currentSession) {
-      throw new NotFoundException(MESSAGE.notFoundError('开幕式'));
+      throw new NotFoundException(MESSAGES.TRADING_SESSION_NOT_OPEN);
     }
 
     if (currentSession.id === position.trading_session) {
-      throw new BadRequestException(MESSAGE.POSITION_CANT_SELL);
+      throw new BadRequestException(MESSAGES.POSITION_CANT_SELL);
     }
 
     if (user_id && +user_id !== +position.user_id) {
-      throw new UnauthorizedException(MESSAGE.UNAUTHORIZED);
+      throw new UnauthorizedException(MESSAGES.UNAUTHORIZED);
     }
 
     const [stock, user] = await Promise.all([
@@ -319,7 +322,7 @@ export class OrderService {
     ]);
 
     if (!currentSession) {
-      throw new NotFoundException(MESSAGE.notFoundError('开幕式'));
+      throw new NotFoundException(MESSAGES.TRADING_SESSION_NOT_OPEN);
     }
 
     const [stock, user] = await Promise.all([

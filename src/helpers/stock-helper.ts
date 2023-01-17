@@ -4,12 +4,12 @@ export const convertC2FS = (C: string) => {
     case 2:
     case 3:
     case 9:
-      return 'sz' + C;
+      return 'SZ' + C;
     case 4:
     case 8:
-      return 'bj' + C;
+      return 'BJ' + C;
     case 6:
-      return 'sh' + C;
+      return 'SH' + C;
     default:
       return C;
   }

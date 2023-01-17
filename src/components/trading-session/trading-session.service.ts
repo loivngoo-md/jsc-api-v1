@@ -3,7 +3,7 @@ import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { dateFormatter } from 'src/helpers/moment';
 import { Repository } from 'typeorm';
-import { MESSAGE } from '../../common/constant';
+import { MESSAGES } from '../../common/constant';
 import { COMMON_STATUS } from '../../common/enums';
 import { DAYS } from '../../helpers/helper-date';
 import { ITradingHours } from '../system-configuration/entities/system-configuration.interface';
@@ -49,7 +49,7 @@ export class TradingSessionService {
     });
 
     if (!session) {
-      throw new NotFoundException(MESSAGE.notFoundError('开幕式'));
+      throw new NotFoundException(MESSAGES.TRADING_SESSION_NOT_OPEN);
     }
     return session;
   }

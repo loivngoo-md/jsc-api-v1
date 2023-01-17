@@ -12,7 +12,7 @@ import {
   Not,
   Repository,
 } from 'typeorm';
-import { MESSAGE } from '../../common/constant';
+import { MESSAGES } from '../../common/constant';
 import { convertC2FS } from '../../helpers/stock-helper';
 import { StockService } from '../stock/stock.service';
 import { IpoStockCreate } from './dto/create-ipo-stock.dto';
@@ -45,9 +45,7 @@ export class IpoStockService {
       where: [{ name }, { code }],
     });
     if (ipoStockExist.length) {
-      throw new BadRequestException(
-        MESSAGE.isExistError('新股', '使用此名称或代码'),
-      );
+      throw new BadRequestException(MESSAGES.IPO_STOCK_IS_EXIST);
     }
 
     const ipoStockInfo = this._ipoStockRepo.create({
@@ -92,8 +90,8 @@ export class IpoStockService {
       take: take,
       skip: skip,
       order: {
-        created_at: 'DESC'
-      }
+        created_at: 'DESC',
+      },
     });
 
     return {
@@ -109,7 +107,7 @@ export class IpoStockService {
     });
 
     if (!ipoStock) {
-      throw new NotFoundException(MESSAGE.notFoundError('新股'));
+      throw new NotFoundException(MESSAGES.IPO_STOCK_NOT_FOUND);
     }
     return ipoStock;
   }
@@ -120,7 +118,7 @@ export class IpoStockService {
     });
 
     if (!ipoStock) {
-      throw new NotFoundException(MESSAGE.notFoundError('新股'));
+      throw new NotFoundException(MESSAGES.IPO_STOCK_NOT_FOUND);
     }
     return ipoStock;
   }
@@ -145,9 +143,7 @@ export class IpoStockService {
       ],
     });
     if (ipoStockExist.length) {
-      throw new BadRequestException(
-        MESSAGE.isExistError('新股', '使用此名称或代码'),
-      );
+      throw new BadRequestException(MESSAGES.IPO_STOCK_IS_EXIST);
     }
 
     name && Object.assign(ipoStock, { name });

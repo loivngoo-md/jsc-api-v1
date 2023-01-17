@@ -1,7 +1,7 @@
 import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { MESSAGE } from './../../common/constant/index';
+import { MESSAGES } from './../../common/constant';
 import DepositAccount from './entities/deposit-account.entity';
 
 @Injectable()
@@ -32,7 +32,7 @@ export class DepositAccountService {
     if (response) {
       return response;
     }
-    throw new NotFoundException(MESSAGE.notFoundError('存款账户'));
+    throw new NotFoundException(MESSAGES.DEPOSIT_ACCOUNT_NOT_FOUND);
   }
 
   async update(id: number, dto: any) {
@@ -44,13 +44,13 @@ export class DepositAccountService {
       return updated;
     }
 
-    throw new NotFoundException(MESSAGE.notFoundError('存款账户'));
+    throw new NotFoundException(MESSAGES.DEPOSIT_ACCOUNT_NOT_FOUND);
   }
- 
+
   async remove(id: number) {
     const deleteResponse = await this._depositAccountRepo.delete(id);
     if (!deleteResponse.affected) {
-      throw new NotFoundException(MESSAGE.notFoundError('存款账户'));
+      throw new NotFoundException(MESSAGES.DEPOSIT_ACCOUNT_NOT_FOUND);
     }
 
     return {

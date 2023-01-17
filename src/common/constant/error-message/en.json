@@ -1,0 +1,63 @@
+{
+  "field.required": "{field} is required.",
+  "field.invalid": "{field} is invalid",
+  "field.min.len": "{field} has min length: {len}.",
+  "field.max.len": "{field} has max length: {len}.",
+  "field.min.val": "{field} has min value: {val}.",
+  "field.max.val": "{field} has max value: {val}.",
+
+  "bad.request": "Bad request",
+  "unauthorized": "You don't have any permission for this service.",
+  "invalid.token": "Token is invalid.",
+  "wrong.username.password": "Username or Password is wrong.",
+  "wrong.old.password": "Your Old Password is wrong.",
+
+  "app.is.not.active": "Your account is not active.",
+  "app.balance.avail.is.not.enough": "Your balance available is not enought for purchase.",
+  "app.is.not.found": "App User is not found.",
+  "app.is.verified": "App User is already verified, cannot change information.",
+  "app.is.exist": "App User is already exist.",
+
+  "cms.is.not.active": "Cms User is not active.",
+  "cms.is.exist": "Cms User is already exist.",
+  "cms.is.not.found": "Cms User is not found.",
+
+  "agent.is.not.active": "Agent User is not active.",
+  "agent.is.exist": "Agent User is alreadt exist.",
+  "agent.is.not.found": "Agent User is not found.",
+
+  "lar.trx.not.found": "Large Transaction is not found.",
+  "lar.trx.is.not.opening": "Large Transaction is not openning.",
+
+  "deposit.account.not.found": "Deposit Account is not found.",
+  "deposit.not.found": "Deposit is not found.",
+  "deposit.is.not.pending": "Deposit Status is not pending.",
+  "deposit.amount.out.of.range": "Deposit Amount is out of allowed range.",
+
+  "favorit.is.exist": "Favorit Stock is already exist.",
+  "favorit.is.not.found": "Favorit Stock is not found.",
+
+  "ipo.stock.quantity.is.not.enough": "Ipo Stock Quantity is not enough for purchase.",
+  "ipo.stock.is.not.on.market": "Ipo Stock is not on market, cannot transfer.",
+  "ipo.stock.is.not.found": "Ipo Stock is not found.",
+  "ipo.stock.is.exist": "Ipo Stock is already exist.",
+
+  "ipo.app.is.not.paid": "Ipo Application Status is not paid, cannot transfer.",
+  "ipo.app.is.not.pending": "Ipo Application Status is not pending.",
+  "ipo.app.cant.remove": "Ipo Application cannot remove.",
+
+  "order.is.not.found": "Order is not found.",
+
+  "position.is.not.found": "Position is not found.",
+  "position.is.not.closed": "Position Status is not Closed.",
+  "position.cant.sell": "Position cannot sell.",
+  "positions.are.not.found.enough": "Some position is not found.",
+
+  "trading.session.is.not.opening": "Trading Session is not openning, cannot purchase.",
+
+  "stock.is.not.found": "Stock is not found.",
+
+  "withdrawal.wrong.password": "Your withdrawal password is wrong.",
+  "withdrawal.is.not.pending": "Withdrawal Status is not pending.",
+  "withdrawal.is.not.found": "Withdrawal is not found."
+}

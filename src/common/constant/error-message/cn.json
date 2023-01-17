@@ -1,0 +1,56 @@
+{
+  "bad.request": "错误的请求。",
+  "unauthorized": "您无权使用此服务。",
+  "invalid.token": "令牌无效。",
+  "wrong.username.password": "用户名或密码错误",
+  "wrong.old.password": "您的旧密码错误。",
+
+  "app.is.not.active": "您的帐户未激活。",
+  "app.balance.avail.is.not.enough": "您的可用余额不足以购买。",
+  "app.is.not.found": "找不到应用程序用户。",
+  "app.is.verified": "应用用户已经通过验证，不能更改信息。",
+  "app.is.exist": "应用程序用户已经存在。",
+
+  "cms.is.not.active": "CMS 用户未激活。",
+  "cms.is.exist": "CMS 用户已经存在。",
+  "cms.is.not.found": "未找到 CMS 用户。",
+
+  "agent.is.not.active": "代理用户不活跃。",
+  "agent.is.exist": "代理用户已经存在。",
+  "agent.is.not.found": "找不到代理用户。",
+
+  "lar.trx.not.found": "未找到大交易。",
+  "lar.trx.is.not.opening": "大宗交易未开启。",
+
+  "deposit.account.not.found": "找不到存款账户。",
+  "deposit.not.found": "找不到存款。",
+  "deposit.is.not.pending": "存款状态不是待处理。",
+  "deposit.amount.out.of.range": "存款金额超出允许范围。",
+
+  "favorit.is.exist": "最喜欢的股票已经存在。",
+  "favorit.is.not.found": "找不到最喜欢的股票。",
+
+  "ipo.stock.quantity.is.not.enough": "新股数量不足，无法购买。",
+  "ipo.stock.is.not.on.market": "新股未上市，不可转让。",
+  "ipo.stock.is.not.found": "未找到 IPO 股票。",
+  "ipo.stock.is.exist": "IPO 股票已经存在。",
+
+  "ipo.app.is.not.paid": "IPO申请状态未支付, 无法转让。",
+  "ipo.app.is.not.pending": "IPO 申请状态不是待定。",
+  "ipo.app.cant.remove": "IPO 申请无法删除。",
+
+  "order.is.not.found": "找不到订单。",
+
+  "position.is.not.found": "找不到位置。",
+  "position.is.not.closed": "仓位状态未平仓。",
+  "position.cant.sell": "头寸不能卖出。",
+  "positions.are.not.found.enough": "找不到某个位置。",
+
+  "trading.session.is.not.opening": "交易时段未开启，无法购买。",
+
+  "stock.is.not.found": "找不到库存。",
+
+  "withdrawal.wrong.password": "您的提现密码错误",
+  "withdrawal.is.not.pending": "提款状态不是待处理。",
+  "withdrawal.is.not.found": "未找到取款。"
+}

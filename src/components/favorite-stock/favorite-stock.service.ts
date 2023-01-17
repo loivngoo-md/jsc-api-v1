@@ -6,7 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { StockService } from 'src/components/stock/stock.service';
 import { Repository } from 'typeorm';
-import { MESSAGE } from '../../common/constant';
+import { MESSAGES } from '../../common/constant';
 import { QueryFavorite } from './dto/query-favorite.dto';
 import { FavoriteStock } from './entities/favorite-stock.entity';
 
@@ -61,7 +61,7 @@ export class FavoriteStockService {
     await this._stockService.findOne(fs);
     const existRec = await this._repo.findOne({ where: { user_id, fs } });
     if (existRec) {
-      throw new BadRequestException(MESSAGE.isExistError('最喜欢的股票'));
+      throw new BadRequestException(MESSAGES.FAVORIT_IS_EXIST);
     }
     const infoRec = this._repo.create({ user_id, fs });
     return await this._repo.save(infoRec);
@@ -70,7 +70,7 @@ export class FavoriteStockService {
   public remove = async (user_id: number, fs: string) => {
     const existRec = await this._repo.findOne({ where: { user_id, fs } });
     if (!existRec) {
-      throw new NotFoundException(MESSAGE.notFoundError('最喜欢的股票'));
+      throw new NotFoundException(MESSAGES.FAVORIT_NOT_FOUND);
     }
     await this._repo.remove(existRec);
     return { isSuccess: true };

@@ -14,7 +14,7 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { RealIP } from 'nestjs-real-ip';
 import { StockService } from 'src/components/stock/stock.service';
-import { MESSAGE } from '../../common/constant';
+import { MESSAGES } from '../../common/constant';
 import { AuthService } from '../../components/auth/auth.service';
 import { LoginByUsernameDto } from '../../components/auth/dto/LoginByUsernameDto';
 import { PayLoad } from '../../components/auth/dto/PayLoad';
@@ -306,7 +306,7 @@ export class AppUserController {
   ) {
     const { position_ids } = body;
     if (!position_ids) {
-      throw new BadRequestException('position_ids 是必须的。');
+      throw new BadRequestException('position_ids 是必须的。'); //ERROR MESSAGE
     }
     return this.orderService.bulkSellNor(
       position_ids,
@@ -322,7 +322,7 @@ export class AppUserController {
     @GetCurrentAppUser() userFromToken: PayLoad,
   ) {
     if (!query.stock_code) {
-      throw new BadRequestException(MESSAGE.BAD_REQUEST);
+      throw new BadRequestException(MESSAGES.BAD_REQUEST); // ERROR MESSAGE
     }
 
     return this.stockStorageService.getSellablePositions(

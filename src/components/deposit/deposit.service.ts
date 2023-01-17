@@ -10,7 +10,7 @@ import { AppUserService } from '../../modules/app-user/app-user.service';
 import { DepositAccountService } from '../deposit-account/deposit-account.service';
 import { SystemConfigurationService } from '../system-configuration/system-configuration.service';
 import { TransactionsService } from '../transactions/transactions.service';
-import { MESSAGE } from './../../common/constant/index';
+import { MESSAGES } from './../../common/constant';
 import { DepositQuery } from './dto/query-deposit.dto';
 import Deposit from './entities/deposit.entity';
 
@@ -27,14 +27,11 @@ export class DepositService {
 
   async create(dto: any, byApp?: boolean) {
     const { amount, deposit_account_id, user_id } = dto;
+
     if (deposit_account_id) {
-      const depAcc = await this._depositAccountService.findOne(
-        deposit_account_id,
-      );
-      if (!depAcc) {
-        throw new NotFoundException(MESSAGE.notFoundError('存款账户'));
-      }
+      await this._depositAccountService.findOne(deposit_account_id);
     }
+
     const [user, sysConfig] = await Promise.all([
       this._appUserService.findOne(user_id),
       this._sysConfigService.findOne(),
@@ -45,9 +42,7 @@ export class DepositService {
     ] as any;
 
     if (+amount < deposit_min || +amount > deposit_max) {
-      throw new BadRequestException(
-        `${MESSAGE.DEPOSIT_RANGE_VALID_IS} ${deposit_min}, ${deposit_max} `,
-      );
+      throw new BadRequestException(MESSAGES.DEPOSIT_AMOUNT_OUT_OF_RANGE);
     }
 
     const response = this._depositRepo.create({
@@ -131,14 +126,14 @@ export class DepositService {
     if (response) {
       return response;
     }
-    throw new NotFoundException(MESSAGE.notFoundError('存款账户'));
+    throw new NotFoundException(MESSAGES.DEPOSIT_NOT_FOUND);
   }
 
   async reviewByCms(deposit_id: number, dto: any) {
     const { status } = dto;
     const deposit = await this.findOne(deposit_id);
     if (deposit.status !== DEPOSIT_WITHDRAWAL_STATUS.PENDING) {
-      throw new BadRequestException(MESSAGE.DEPOSIT_NOT_PENDING);
+      throw new BadRequestException(MESSAGES.DEPOSIT_NOT_PENDING);
     }
 
     if (status === DEPOSIT_WITHDRAWAL_STATUS.SUCCESS) {

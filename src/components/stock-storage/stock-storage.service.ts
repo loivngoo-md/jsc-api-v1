@@ -4,7 +4,7 @@ import { COMMON_STATUS, POSITION_STATUS } from 'src/common/enums';
 import { DeepPartial, In, MoreThanOrEqual, Repository } from 'typeorm';
 import { PaginationQuery } from '../../helpers/dto-helper';
 import { SellablePositionsQuery } from '../../modules/app-user/dto/app-user-query.dto';
-import { MESSAGE } from './../../common/constant/index';
+import { MESSAGES } from './../../common/constant/index';
 
 import { StockService } from '../stock/stock.service';
 import { StockStorageStore } from './dto/stock-storage-create.dto';
@@ -142,9 +142,7 @@ export class StockStorageService {
 
     const recs = await query.getRawMany();
     if (recs.length !== position_ids.length) {
-      throw new NotFoundException(
-        MESSAGE.notFoundError('Stock Storage', 'enought'),
-      );
+      throw new NotFoundException(MESSAGES.POSITION_NOT_FOUND_ENOUGH);
     }
     return recs;
   }
@@ -221,9 +219,7 @@ export class StockStorageService {
       where: { id: In([...position_ids]), status: POSITION_STATUS.OPEN },
     });
     if (recs.length !== position_ids.length) {
-      throw new NotFoundException(
-        MESSAGE.notFoundError('Stock Storage', 'enought'),
-      );
+      throw new NotFoundException(MESSAGES.POSITION_NOT_FOUND_ENOUGH);
     }
     await this._stockStorageRepo.update(
       { id: In([...position_ids]) },
