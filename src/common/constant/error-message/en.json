@@ -1,6 +1,6 @@
 {
   "field.required": "{field} is required.",
-  "field.invalid": "{field} is invalid",
+  "field.invalid": "{field} is invalid, type: {type}",
   "field.min.len": "{field} has min length: {len}.",
   "field.max.len": "{field} has max length: {len}.",
   "field.min.val": "{field} has min value: {val}.",

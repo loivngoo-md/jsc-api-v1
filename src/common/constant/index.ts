@@ -1,4 +1,4 @@
 import { TOKEN_EXPIRES_IN } from './constants';
-import { MESSAGES } from './error-message';
+import { MESSAGES, VALIDATE, getValidateMess } from './error-message';
 
-export { TOKEN_EXPIRES_IN, MESSAGES };
+export { TOKEN_EXPIRES_IN, MESSAGES, VALIDATE, getValidateMess };

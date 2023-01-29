@@ -1,5 +1,6 @@
-const cn = require('./cn.json');
-const en = require('./en.json');
+import * as cn from './cn.json';
+import * as en from './en.json';
+
 const STORE_LANGS = {
   en,
   cn,
@@ -47,8 +48,11 @@ export const convertMessageValidate = (message: string, lang?: string) => {
 
 const SEPARATOR = '!!@!!';
 export const getValidateMess = {
-  invalid: (field: string) => {
-    return `${VALIDATE.INVALID_FIELD}${SEPARATOR}${JSON.stringify({ field })}`;
+  invalid: (field: string, type: string) => {
+    return `${VALIDATE.INVALID_FIELD}${SEPARATOR}${JSON.stringify({
+      field,
+      type,
+    })}`;
   },
   required: (field: string) => {
     return `${VALIDATE.REQUIRED_FIELD}${SEPARATOR}${JSON.stringify({ field })}`;

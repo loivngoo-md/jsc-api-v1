@@ -1,4 +1,11 @@
 {
+  "field.required": "{field} 是必需的。",
+  "field.invalid": "{field} 无效，类型：{type}",
+  "field.min.len": "{field} 的最小长度：{len}。",
+  "field.max.len": "{field} 的最大长度：{len}。",
+  "field.min.val": "{field} 的最小值：{val}。",
+  "field.max.val": "{field} 有最大值：{val}。",
+
   "bad.request": "错误的请求。",
   "unauthorized": "您无权使用此服务。",
   "invalid.token": "令牌无效。",
